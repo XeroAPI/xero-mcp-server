@@ -13,7 +13,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 - Node.js (v18 or higher)
 - npm or pnpm
-- A Xero developer account with API credentials
+- A Xero developer account with API credentials.
 
 ## Installation
 
@@ -41,7 +41,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       }
     }
   }
-} 
+}
 ```
 
 ### Available MCP Commands
