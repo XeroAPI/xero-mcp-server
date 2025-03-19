@@ -4,22 +4,6 @@ import { AxiosError } from "axios";
 import { ToolResponse } from "../types/tool-response.js";
 
 /**
- * Response format for creating an invoice
- */
-interface CreateXeroInvoiceResponse {
-  success: boolean;
-  error?: string;
-  invoice?: {
-    invoiceId?: string;
-    contact?: {
-      name?: string;
-    };
-    total?: number;
-    status?: string;
-  };
-}
-
-/**
  * Format error messages in a user-friendly way
  */
 function formatError(error: unknown): string {
@@ -114,7 +98,7 @@ export async function createXeroInvoice(
   accountCode: string,
   taxType: string,
   reference?: string,
-): Promise<CreateXeroInvoiceResponse> {
+): Promise<ToolResponse<Invoice>> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
 
@@ -152,20 +136,19 @@ export async function createXeroInvoice(
 
     const createdInvoice = response.body.invoices?.[0];
 
+    if (!createdInvoice) {
+      throw new Error("Invoice creation failed.");
+    }
+
     return {
-      success: true,
-      invoice: {
-        invoiceId: createdInvoice?.invoiceID,
-        contact: {
-          name: createdInvoice?.contact?.name,
-        },
-        total: createdInvoice?.total,
-        status: createdInvoice?.status?.toString(),
-      },
+      result: createdInvoice,
+      isError: false,
+      error: null,
     };
   } catch (error) {
     return {
-      success: false,
+      result: null,
+      isError: true,
       error: formatError(error),
     };
   }

@@ -391,7 +391,7 @@ server.tool(
       taxType,
       reference,
     );
-    if (!result.success) {
+    if (result.isError) {
       return {
         content: [
           {
@@ -402,15 +402,17 @@ server.tool(
       };
     }
 
+    const invoice = result.result;
+
     return {
       content: [
         {
           type: "text" as const,
           text: `Invoice created successfully:
-- ID: ${result.invoice?.invoiceId}
-- Contact: ${result.invoice?.contact?.name}
-- Total: ${result.invoice?.total}
-- Status: ${result.invoice?.status}`,
+- ID: ${invoice?.invoiceID}
+- Contact: ${invoice?.contact?.name}
+- Total: ${invoice?.total}
+- Status: ${invoice?.status}`,
         },
       ],
     };
