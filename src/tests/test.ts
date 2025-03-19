@@ -1,6 +1,6 @@
-import { xeroClient } from "../xero/client.js";
 import { Contact } from "xero-node";
 import dotenv from "dotenv";
+import { xeroClient } from "../clients/xero-client.js";
 
 dotenv.config();
 

@@ -3,13 +3,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { xeroClient } from "./xero/client.js";
+import { xeroClient } from "./clients/xero-client.js";
 import { Contact, Phone } from "xero-node";
 import {
   listXeroContacts,
   listXeroInvoices,
   createXeroInvoice,
-} from "./xero/tools.js";
+} from "./tools/tools.js";
 
 // Create an MCP server
 const server = new McpServer({

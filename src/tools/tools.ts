@@ -1,4 +1,4 @@
-import { xeroClient } from "./client.js";
+import { xeroClient } from "../clients/xero-client.js";
 import { Invoice } from "xero-node";
 import { AxiosError } from "axios";
 
