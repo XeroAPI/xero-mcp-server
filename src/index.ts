@@ -1,24 +1,16 @@
 #!/usr/bin/env node
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { xeroClient } from "./clients/xero-client.js";
 import { Contact, Phone } from "xero-node";
-import {
-  listXeroContacts,
-  listXeroInvoices,
-  createXeroInvoice,
-} from "./tools/tools.js";
+import { XeroMcpServer } from "./server/xero-mcp-server.js";
+import { createXeroInvoice } from "./handlers/create-xero-invoice.js";
+import { listXeroContacts } from "./handlers/list-xero-contacts.js";
+import { listXeroInvoices } from "./handlers/list-xero-invoices.js";
 
 // Create an MCP server
-const server = new McpServer({
-  name: "Xero MCP Server",
-  version: "1.0.0",
-  capabilities: {
-    tools: {},
-  },
-});
+const server = XeroMcpServer.GetServer();
 
 // Add tool to list contacts
 server.tool(
