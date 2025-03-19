@@ -1,6 +1,6 @@
-import { xeroClient } from './client.js';
-import { Contact, Invoice, Phone } from 'xero-node';
-import { AxiosError } from 'axios';
+import { xeroClient } from "./client.js";
+import { Invoice } from "xero-node";
+import { AxiosError } from "axios";
 
 /**
  * Response format for the list contacts operation
@@ -154,7 +154,7 @@ function formatError(error: unknown): string {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
     const detail = error.response?.data?.Detail;
-    
+
     switch (status) {
       case 401:
         return "Authentication failed. Please check your Xero credentials.";
@@ -168,7 +168,9 @@ function formatError(error: unknown): string {
         return detail || "An error occurred while communicating with Xero.";
     }
   }
-  return error instanceof Error ? error.message : "An unexpected error occurred.";
+  return error instanceof Error
+    ? error.message
+    : "An unexpected error occurred.";
 }
 
 /**
@@ -177,18 +179,18 @@ function formatError(error: unknown): string {
 export async function listXeroContacts(): Promise<XeroContactResponse> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
-    
+
     await xeroClient.setTokenSet({
       access_token: tokenResponse.access_token,
       expires_in: tokenResponse.expires_in,
-      token_type: tokenResponse.token_type
+      token_type: tokenResponse.token_type,
     });
-    
+
     const contacts = await xeroClient.accountingApi.getContacts("");
 
     return {
       success: true,
-      contacts: contacts.body.contacts?.map(contact => ({
+      contacts: contacts.body.contacts?.map((contact) => ({
         contactId: contact.contactID,
         name: contact.name,
         firstName: contact.firstName,
@@ -196,9 +198,10 @@ export async function listXeroContacts(): Promise<XeroContactResponse> {
         emailAddress: contact.emailAddress,
         bankAccountDetails: contact.bankAccountDetails,
         taxNumber: contact.taxNumber,
-        accountsReceivableTaxType: contact.accountsReceivableTaxType?.toString(),
+        accountsReceivableTaxType:
+          contact.accountsReceivableTaxType?.toString(),
         accountsPayableTaxType: contact.accountsPayableTaxType?.toString(),
-        addresses: contact.addresses?.map(address => ({
+        addresses: contact.addresses?.map((address) => ({
           addressType: address.addressType?.toString(),
           addressLine1: address.addressLine1,
           addressLine2: address.addressLine2,
@@ -208,31 +211,31 @@ export async function listXeroContacts(): Promise<XeroContactResponse> {
           region: address.region,
           postalCode: address.postalCode,
           country: address.country,
-          attentionTo: address.attentionTo
+          attentionTo: address.attentionTo,
         })),
-        phones: contact.phones?.map(phone => ({
+        phones: contact.phones?.map((phone) => ({
           phoneType: phone.phoneType?.toString(),
           phoneNumber: phone.phoneNumber,
           phoneAreaCode: phone.phoneAreaCode,
-          phoneCountryCode: phone.phoneCountryCode
+          phoneCountryCode: phone.phoneCountryCode,
         })),
         isSupplier: contact.isSupplier,
         isCustomer: contact.isCustomer,
         defaultCurrency: contact.defaultCurrency?.toString(),
         updatedDateUTC: contact.updatedDateUTC?.toISOString(),
         contactStatus: contact.contactStatus?.toString(),
-        contactGroups: contact.contactGroups?.map(group => ({
+        contactGroups: contact.contactGroups?.map((group) => ({
           id: group.contactGroupID,
-          name: group.name
+          name: group.name,
         })),
         hasAttachments: contact.hasAttachments,
-        hasValidationErrors: contact.hasValidationErrors
-      }))
+        hasValidationErrors: contact.hasValidationErrors,
+      })),
     };
   } catch (error) {
     return {
       success: false,
-      error: formatError(error)
+      error: formatError(error),
     };
   }
 }
@@ -243,18 +246,18 @@ export async function listXeroContacts(): Promise<XeroContactResponse> {
 export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
-    
+
     await xeroClient.setTokenSet({
       access_token: tokenResponse.access_token,
       expires_in: tokenResponse.expires_in,
-      token_type: tokenResponse.token_type
+      token_type: tokenResponse.token_type,
     });
-    
+
     const invoices = await xeroClient.accountingApi.getInvoices("");
 
     return {
       success: true,
-      invoices: invoices.body.invoices?.map(invoice => ({
+      invoices: invoices.body.invoices?.map((invoice) => ({
         invoiceId: invoice.invoiceID,
         invoiceNumber: invoice.invoiceNumber,
         reference: invoice.reference,
@@ -262,12 +265,14 @@ export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
         status: invoice.status?.toString(),
         contact: {
           contactId: invoice.contact?.contactID,
-          name: invoice.contact?.name
+          name: invoice.contact?.name,
         },
         date: invoice.date ? new Date(invoice.date).toISOString() : undefined,
-        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString() : undefined,
+        dueDate: invoice.dueDate
+          ? new Date(invoice.dueDate).toISOString()
+          : undefined,
         lineAmountTypes: invoice.lineAmountTypes?.toString(),
-        lineItems: invoice.lineItems?.map(item => ({
+        lineItems: invoice.lineItems?.map((item) => ({
           description: item.description,
           quantity: item.quantity,
           unitAmount: item.unitAmount,
@@ -275,11 +280,11 @@ export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
           taxAmount: item.taxAmount,
           lineAmount: item.lineAmount,
           accountCode: item.accountCode,
-          tracking: item.tracking?.map(track => ({
+          tracking: item.tracking?.map((track) => ({
             name: track.name,
-            option: track.option
+            option: track.option,
           })),
-          discountRate: item.discountRate
+          discountRate: item.discountRate,
         })),
         subTotal: invoice.subTotal,
         totalTax: invoice.totalTax,
@@ -287,32 +292,40 @@ export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
         totalDiscount: invoice.totalDiscount,
         currencyCode: invoice.currencyCode?.toString(),
         currencyRate: invoice.currencyRate,
-        updatedDateUTC: invoice.updatedDateUTC ? new Date(invoice.updatedDateUTC).toISOString() : undefined,
-        fullyPaidOnDate: invoice.fullyPaidOnDate ? new Date(invoice.fullyPaidOnDate).toISOString() : undefined,
+        updatedDateUTC: invoice.updatedDateUTC
+          ? new Date(invoice.updatedDateUTC).toISOString()
+          : undefined,
+        fullyPaidOnDate: invoice.fullyPaidOnDate
+          ? new Date(invoice.fullyPaidOnDate).toISOString()
+          : undefined,
         amountDue: invoice.amountDue,
         amountPaid: invoice.amountPaid,
         amountCredited: invoice.amountCredited,
         hasAttachments: invoice.hasAttachments,
         hasErrors: invoice.hasErrors,
         isDiscounted: invoice.isDiscounted,
-        payments: invoice.payments?.map(payment => ({
+        payments: invoice.payments?.map((payment) => ({
           paymentId: payment.paymentID,
           date: payment.date ? new Date(payment.date).toISOString() : undefined,
           amount: payment.amount,
           reference: payment.reference,
           hasAccount: payment.hasAccount,
-          hasValidationErrors: payment.hasValidationErrors
+          hasValidationErrors: payment.hasValidationErrors,
         })),
-        prepayments: invoice.prepayments?.map(prepayment => ({
+        prepayments: invoice.prepayments?.map((prepayment) => ({
           prepaymentId: prepayment.prepaymentID,
-          date: prepayment.date ? new Date(prepayment.date).toISOString() : undefined,
-          reference: prepayment.reference
+          date: prepayment.date
+            ? new Date(prepayment.date).toISOString()
+            : undefined,
+          reference: prepayment.reference,
         })),
-        overpayments: invoice.overpayments?.map(overpayment => ({
+        overpayments: invoice.overpayments?.map((overpayment) => ({
           overpaymentId: overpayment.overpaymentID,
-          date: overpayment.date ? new Date(overpayment.date).toISOString() : undefined
+          date: overpayment.date
+            ? new Date(overpayment.date).toISOString()
+            : undefined,
         })),
-        creditNotes: invoice.creditNotes?.map(note => ({
+        creditNotes: invoice.creditNotes?.map((note) => ({
           creditNoteId: note.creditNoteID,
           creditNoteNumber: note.creditNoteNumber,
           reference: note.reference,
@@ -321,14 +334,16 @@ export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
           subTotal: note.subTotal,
           totalTax: note.totalTax,
           total: note.total,
-          updatedDateUTC: note.updatedDateUTC ? new Date(note.updatedDateUTC).toISOString() : undefined
-        }))
-      }))
+          updatedDateUTC: note.updatedDateUTC
+            ? new Date(note.updatedDateUTC).toISOString()
+            : undefined,
+        })),
+      })),
     };
   } catch (error) {
     return {
       success: false,
-      error: formatError(error)
+      error: formatError(error),
     };
   }
 }
@@ -343,21 +358,21 @@ export async function createXeroInvoice(
   unitAmount: number,
   accountCode: string,
   taxType: string,
-  reference?: string
+  reference?: string,
 ): Promise<CreateXeroInvoiceResponse> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
-    
+
     await xeroClient.setTokenSet({
       access_token: tokenResponse.access_token,
       expires_in: tokenResponse.expires_in,
-      token_type: tokenResponse.token_type
+      token_type: tokenResponse.token_type,
     });
 
     const invoice: Invoice = {
       type: Invoice.TypeEnum.ACCREC,
       contact: {
-        contactID: contactId
+        contactID: contactId,
       },
       lineItems: [
         {
@@ -365,17 +380,19 @@ export async function createXeroInvoice(
           quantity: quantity,
           unitAmount: unitAmount,
           accountCode: accountCode,
-          taxType: taxType
-        }
+          taxType: taxType,
+        },
       ],
-      date: new Date().toISOString().split('T')[0], // Today's date
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+      date: new Date().toISOString().split("T")[0], // Today's date
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0], // 30 days from now
       reference: reference,
-      status: Invoice.StatusEnum.DRAFT
+      status: Invoice.StatusEnum.DRAFT,
     };
 
     const response = await xeroClient.accountingApi.createInvoices("", {
-      invoices: [invoice]
+      invoices: [invoice],
     });
 
     const createdInvoice = response.body.invoices?.[0];
@@ -385,16 +402,16 @@ export async function createXeroInvoice(
       invoice: {
         invoiceId: createdInvoice?.invoiceID,
         contact: {
-          name: createdInvoice?.contact?.name
+          name: createdInvoice?.contact?.name,
         },
         total: createdInvoice?.total,
-        status: createdInvoice?.status?.toString()
-      }
+        status: createdInvoice?.status?.toString(),
+      },
     };
   } catch (error) {
     return {
       success: false,
-      error: formatError(error)
+      error: formatError(error),
     };
   }
-} 
+}

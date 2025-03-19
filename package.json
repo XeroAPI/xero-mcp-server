@@ -14,7 +14,9 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "prepare": "npm run build",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "lint:fix": "eslint --fix .",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.0",
@@ -28,6 +30,7 @@
     "@types/node": "^22.13.10",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
+    "prettier": "3.5.3",
     "shx": "^0.3.4",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1"

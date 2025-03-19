@@ -41,7 +41,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       }
     }
   }
-} 
+}
 ```
 
 ### Available MCP Commands
