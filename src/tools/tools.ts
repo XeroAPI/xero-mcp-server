@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { Invoice } from "xero-node";
+import { Invoice, Invoices } from "xero-node";
 import { AxiosError } from "axios";
+import { ToolResponse } from "../types/tool-response.js";
 
 /**
  * Response format for the list contacts operation
@@ -47,87 +48,6 @@ interface XeroContactResponse {
     }>;
     hasAttachments?: boolean;
     hasValidationErrors?: boolean;
-  }>;
-}
-
-/**
- * Response format for the list invoices operation
- */
-interface XeroInvoiceResponse {
-  success: boolean;
-  error?: string;
-  invoices?: Array<{
-    invoiceId?: string;
-    invoiceNumber?: string;
-    reference?: string;
-    type?: string;
-    status?: string;
-    contact?: {
-      contactId?: string;
-      name?: string;
-    };
-    date?: string;
-    dueDate?: string;
-    lineAmountTypes?: string;
-    lineItems?: Array<{
-      description?: string;
-      quantity?: number;
-      unitAmount?: number;
-      taxType?: string;
-      taxAmount?: number;
-      lineAmount?: number;
-      accountCode?: string;
-      tracking?: Array<{
-        name?: string;
-        option?: string;
-      }>;
-      discountRate?: number;
-    }>;
-    subTotal?: number;
-    totalTax?: number;
-    total?: number;
-    totalDiscount?: number;
-    currencyCode?: string;
-    currencyRate?: number;
-    updatedDateUTC?: string;
-    fullyPaidOnDate?: string;
-    amountDue?: number;
-    amountPaid?: number;
-    amountCredited?: number;
-    hasAttachments?: boolean;
-    hasErrors?: boolean;
-    isDiscounted?: boolean;
-    payments?: Array<{
-      paymentId?: string;
-      date?: string;
-      amount?: number;
-      reference?: string;
-      hasAccount?: boolean;
-      hasValidationErrors?: boolean;
-    }>;
-    prepayments?: Array<{
-      prepaymentId?: string;
-      date?: string;
-      amount?: number;
-      reference?: string;
-    }>;
-    overpayments?: Array<{
-      overpaymentId?: string;
-      date?: string;
-      amount?: number;
-      reference?: string;
-    }>;
-    creditNotes?: Array<{
-      creditNoteId?: string;
-      creditNoteNumber?: string;
-      reference?: string;
-      type?: string;
-      status?: string;
-      subTotal?: number;
-      totalTax?: number;
-      total?: number;
-      updatedDateUTC?: string;
-    }>;
   }>;
 }
 
@@ -243,7 +163,7 @@ export async function listXeroContacts(): Promise<XeroContactResponse> {
 /**
  * List all invoices from Xero
  */
-export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
+export async function listXeroInvoices(): Promise<ToolResponse<Invoices>> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
 
@@ -253,96 +173,15 @@ export async function listXeroInvoices(): Promise<XeroInvoiceResponse> {
       token_type: tokenResponse.token_type,
     });
 
-    const invoices = await xeroClient.accountingApi.getInvoices("");
+    const { body: invoices } = await xeroClient.accountingApi.getInvoices("");
 
     return {
-      success: true,
-      invoices: invoices.body.invoices?.map((invoice) => ({
-        invoiceId: invoice.invoiceID,
-        invoiceNumber: invoice.invoiceNumber,
-        reference: invoice.reference,
-        type: invoice.type?.toString(),
-        status: invoice.status?.toString(),
-        contact: {
-          contactId: invoice.contact?.contactID,
-          name: invoice.contact?.name,
-        },
-        date: invoice.date ? new Date(invoice.date).toISOString() : undefined,
-        dueDate: invoice.dueDate
-          ? new Date(invoice.dueDate).toISOString()
-          : undefined,
-        lineAmountTypes: invoice.lineAmountTypes?.toString(),
-        lineItems: invoice.lineItems?.map((item) => ({
-          description: item.description,
-          quantity: item.quantity,
-          unitAmount: item.unitAmount,
-          taxType: item.taxType,
-          taxAmount: item.taxAmount,
-          lineAmount: item.lineAmount,
-          accountCode: item.accountCode,
-          tracking: item.tracking?.map((track) => ({
-            name: track.name,
-            option: track.option,
-          })),
-          discountRate: item.discountRate,
-        })),
-        subTotal: invoice.subTotal,
-        totalTax: invoice.totalTax,
-        total: invoice.total,
-        totalDiscount: invoice.totalDiscount,
-        currencyCode: invoice.currencyCode?.toString(),
-        currencyRate: invoice.currencyRate,
-        updatedDateUTC: invoice.updatedDateUTC
-          ? new Date(invoice.updatedDateUTC).toISOString()
-          : undefined,
-        fullyPaidOnDate: invoice.fullyPaidOnDate
-          ? new Date(invoice.fullyPaidOnDate).toISOString()
-          : undefined,
-        amountDue: invoice.amountDue,
-        amountPaid: invoice.amountPaid,
-        amountCredited: invoice.amountCredited,
-        hasAttachments: invoice.hasAttachments,
-        hasErrors: invoice.hasErrors,
-        isDiscounted: invoice.isDiscounted,
-        payments: invoice.payments?.map((payment) => ({
-          paymentId: payment.paymentID,
-          date: payment.date ? new Date(payment.date).toISOString() : undefined,
-          amount: payment.amount,
-          reference: payment.reference,
-          hasAccount: payment.hasAccount,
-          hasValidationErrors: payment.hasValidationErrors,
-        })),
-        prepayments: invoice.prepayments?.map((prepayment) => ({
-          prepaymentId: prepayment.prepaymentID,
-          date: prepayment.date
-            ? new Date(prepayment.date).toISOString()
-            : undefined,
-          reference: prepayment.reference,
-        })),
-        overpayments: invoice.overpayments?.map((overpayment) => ({
-          overpaymentId: overpayment.overpaymentID,
-          date: overpayment.date
-            ? new Date(overpayment.date).toISOString()
-            : undefined,
-        })),
-        creditNotes: invoice.creditNotes?.map((note) => ({
-          creditNoteId: note.creditNoteID,
-          creditNoteNumber: note.creditNoteNumber,
-          reference: note.reference,
-          type: note.type?.toString(),
-          status: note.status?.toString(),
-          subTotal: note.subTotal,
-          totalTax: note.totalTax,
-          total: note.total,
-          updatedDateUTC: note.updatedDateUTC
-            ? new Date(note.updatedDateUTC).toISOString()
-            : undefined,
-        })),
-      })),
+      result: invoices,
+      error: null,
     };
   } catch (error) {
     return {
-      success: false,
+      result: null,
       error: formatError(error),
     };
   }

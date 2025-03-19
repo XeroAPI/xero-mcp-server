@@ -126,33 +126,35 @@ server.tool(
   "list-invoices",
   {},
   async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
-    const result = await listXeroInvoices();
-    if (!result.success) {
+    const response = await listXeroInvoices();
+    if (response.error !== null) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Error listing invoices: ${result.error}`,
+            text: `Error listing invoices: ${response.error}`,
           },
         ],
       };
     }
 
+    const invoices = response.result.invoices;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `Found ${result.invoices?.length || 0} invoices:`,
+          text: `Found ${invoices?.length || 0} invoices:`,
         },
-        ...(result.invoices?.map((invoice) => ({
+        ...(invoices?.map((invoice) => ({
           type: "text" as const,
           text: [
-            `Invoice: ${invoice.invoiceNumber || invoice.invoiceId}`,
+            `Invoice: ${invoice.invoiceNumber || invoice.invoiceID}`,
             invoice.reference ? `Reference: ${invoice.reference}` : null,
             `Type: ${invoice.type || "Unknown"}`,
             `Status: ${invoice.status || "Unknown"}`,
             invoice.contact
-              ? `Contact: ${invoice.contact.name} (${invoice.contact.contactId})`
+              ? `Contact: ${invoice.contact.name} (${invoice.contact.contactID})`
               : null,
             invoice.date ? `Date: ${invoice.date}` : null,
             invoice.dueDate ? `Due Date: ${invoice.dueDate}` : null,
@@ -219,7 +221,7 @@ server.tool(
             invoice.payments?.length ? "Payments:" : null,
             ...(invoice.payments?.map(
               (payment) =>
-                `  - ID: ${payment.paymentId}
+                `  - ID: ${payment.paymentID}
     Date: ${payment.date || "Unknown"}
     Amount: ${payment.amount || 0}${
       payment.reference
@@ -241,7 +243,7 @@ server.tool(
             invoice.prepayments?.length ? "Prepayments:" : null,
             ...(invoice.prepayments?.map(
               (prepayment) =>
-                `  - ID: ${prepayment.prepaymentId}
+                `  - ID: ${prepayment.prepaymentID}
     Date: ${prepayment.date || "Unknown"}${
       prepayment.reference
         ? `
@@ -252,13 +254,13 @@ server.tool(
             invoice.overpayments?.length ? "Overpayments:" : null,
             ...(invoice.overpayments?.map(
               (overpayment) =>
-                `  - ID: ${overpayment.overpaymentId}
+                `  - ID: ${overpayment.overpaymentID}
     Date: ${overpayment.date || "Unknown"}`,
             ) || []),
             invoice.creditNotes?.length ? "Credit Notes:" : null,
             ...(invoice.creditNotes?.map(
               (note) =>
-                `  - ID: ${note.creditNoteId}
+                `  - ID: ${note.creditNoteID}
     Number: ${note.creditNoteNumber || "Unknown"}${
       note.reference
         ? `
