@@ -2,12 +2,11 @@
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { xeroClient } from "./clients/xero-client.js";
-import { Contact, Phone } from "xero-node";
 import { XeroMcpServer } from "./server/xero-mcp-server.js";
 import { createXeroInvoice } from "./handlers/create-xero-invoice.js";
 import { listXeroContacts } from "./handlers/list-xero-contacts.js";
 import { listXeroInvoices } from "./handlers/list-xero-invoices.js";
+import { createXeroContact } from "./handlers/create-xero-contact.js";
 
 // Create an MCP server
 const server = XeroMcpServer.GetServer();
@@ -290,36 +289,25 @@ server.tool(
     //_extra: { signal: AbortSignal },
   ) => {
     try {
-      const tokenResponse = await xeroClient.getClientCredentialsToken();
+      const response = await createXeroContact(name, email, phone);
+      if (response.isError) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error listing contacts: ${response.error}`,
+            },
+          ],
+        };
+      }
 
-      await xeroClient.setTokenSet({
-        access_token: tokenResponse.access_token,
-        expires_in: tokenResponse.expires_in,
-        token_type: tokenResponse.token_type,
-      });
-
-      const contact: Contact = {
-        name,
-        emailAddress: email,
-        phones: phone
-          ? [
-              {
-                phoneNumber: phone,
-                phoneType: Phone.PhoneTypeEnum.MOBILE,
-              },
-            ]
-          : undefined,
-      };
-
-      const response = await xeroClient.accountingApi.createContacts("", {
-        contacts: [contact],
-      });
+      const contact = response.result;
 
       return {
         content: [
           {
             type: "text" as const,
-            text: `Contact created: ${response.body.contacts?.[0].name} (ID: ${response.body.contacts?.[0].contactID})`,
+            text: `Contact created: ${contact.name} (ID: ${contact.contactID})`,
           },
         ],
       };
