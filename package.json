@@ -15,7 +15,7 @@
     "build": "tsc && shx chmod +x dist/*.js",
     "prepare": "npm run build",
     "watch": "tsc --watch",
-    "lint:fix": "eslint --fix .",
+    "lint:fix": "eslint --fix",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -29,6 +29,7 @@
     "@eslint/js": "^9.22.0",
     "@types/node": "^22.13.10",
     "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
     "globals": "^16.0.0",
     "prettier": "3.5.3",
     "shx": "^0.3.4",

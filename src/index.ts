@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { xeroClient } from "./xero/client.js";
-import { Contact, Invoice, Phone } from "xero-node";
+import { Contact, Phone } from "xero-node";
 import {
   listXeroContacts,
   listXeroInvoices,
@@ -24,7 +24,7 @@ const server = new McpServer({
 server.tool(
   "list-contacts",
   {},
-  async (_args: {}, _extra: { signal: AbortSignal }) => {
+  async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
     const result = await listXeroContacts();
     if (!result.success) {
       return {
@@ -125,7 +125,7 @@ server.tool(
 server.tool(
   "list-invoices",
   {},
-  async (_args: {}, _extra: { signal: AbortSignal }) => {
+  async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
     const result = await listXeroInvoices();
     if (!result.success) {
       return {
@@ -291,7 +291,7 @@ server.tool(
   },
   async (
     { name, email, phone }: { name: string; email?: string; phone?: string },
-    _extra: { signal: AbortSignal },
+    //_extra: { signal: AbortSignal },
   ) => {
     try {
       const tokenResponse = await xeroClient.getClientCredentialsToken();
@@ -376,7 +376,7 @@ server.tool(
       taxType: string;
       reference?: string;
     },
-    _extra: { signal: AbortSignal },
+    //_extra: { signal: AbortSignal },
   ) => {
     const result = await createXeroInvoice(
       contactId,
