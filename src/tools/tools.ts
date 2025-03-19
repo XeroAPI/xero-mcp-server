@@ -1,55 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { Invoice, Invoices } from "xero-node";
+import { Contacts, Invoice, Invoices } from "xero-node";
 import { AxiosError } from "axios";
 import { ToolResponse } from "../types/tool-response.js";
-
-/**
- * Response format for the list contacts operation
- */
-interface XeroContactResponse {
-  success: boolean;
-  error?: string;
-  contacts?: Array<{
-    contactId?: string;
-    name?: string;
-    firstName?: string;
-    lastName?: string;
-    emailAddress?: string;
-    bankAccountDetails?: string;
-    taxNumber?: string;
-    accountsReceivableTaxType?: string;
-    accountsPayableTaxType?: string;
-    addresses?: Array<{
-      addressType?: string;
-      addressLine1?: string;
-      addressLine2?: string;
-      addressLine3?: string;
-      addressLine4?: string;
-      city?: string;
-      region?: string;
-      postalCode?: string;
-      country?: string;
-      attentionTo?: string;
-    }>;
-    phones?: Array<{
-      phoneType?: string;
-      phoneNumber?: string;
-      phoneAreaCode?: string;
-      phoneCountryCode?: string;
-    }>;
-    isSupplier?: boolean;
-    isCustomer?: boolean;
-    defaultCurrency?: string;
-    updatedDateUTC?: string;
-    contactStatus?: string;
-    contactGroups?: Array<{
-      id?: string;
-      name?: string;
-    }>;
-    hasAttachments?: boolean;
-    hasValidationErrors?: boolean;
-  }>;
-}
 
 /**
  * Response format for creating an invoice
@@ -96,7 +48,7 @@ function formatError(error: unknown): string {
 /**
  * List all contacts from Xero
  */
-export async function listXeroContacts(): Promise<XeroContactResponse> {
+export async function listXeroContacts(): Promise<ToolResponse<Contacts>> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
 
@@ -109,52 +61,14 @@ export async function listXeroContacts(): Promise<XeroContactResponse> {
     const contacts = await xeroClient.accountingApi.getContacts("");
 
     return {
-      success: true,
-      contacts: contacts.body.contacts?.map((contact) => ({
-        contactId: contact.contactID,
-        name: contact.name,
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        emailAddress: contact.emailAddress,
-        bankAccountDetails: contact.bankAccountDetails,
-        taxNumber: contact.taxNumber,
-        accountsReceivableTaxType:
-          contact.accountsReceivableTaxType?.toString(),
-        accountsPayableTaxType: contact.accountsPayableTaxType?.toString(),
-        addresses: contact.addresses?.map((address) => ({
-          addressType: address.addressType?.toString(),
-          addressLine1: address.addressLine1,
-          addressLine2: address.addressLine2,
-          addressLine3: address.addressLine3,
-          addressLine4: address.addressLine4,
-          city: address.city,
-          region: address.region,
-          postalCode: address.postalCode,
-          country: address.country,
-          attentionTo: address.attentionTo,
-        })),
-        phones: contact.phones?.map((phone) => ({
-          phoneType: phone.phoneType?.toString(),
-          phoneNumber: phone.phoneNumber,
-          phoneAreaCode: phone.phoneAreaCode,
-          phoneCountryCode: phone.phoneCountryCode,
-        })),
-        isSupplier: contact.isSupplier,
-        isCustomer: contact.isCustomer,
-        defaultCurrency: contact.defaultCurrency?.toString(),
-        updatedDateUTC: contact.updatedDateUTC?.toISOString(),
-        contactStatus: contact.contactStatus?.toString(),
-        contactGroups: contact.contactGroups?.map((group) => ({
-          id: group.contactGroupID,
-          name: group.name,
-        })),
-        hasAttachments: contact.hasAttachments,
-        hasValidationErrors: contact.hasValidationErrors,
-      })),
+      result: contacts.body,
+      isError: false,
+      error: null,
     };
   } catch (error) {
     return {
-      success: false,
+      result: null,
+      isError: true,
       error: formatError(error),
     };
   }
@@ -177,11 +91,13 @@ export async function listXeroInvoices(): Promise<ToolResponse<Invoices>> {
 
     return {
       result: invoices,
+      isError: false,
       error: null,
     };
   } catch (error) {
     return {
       result: null,
+      isError: true,
       error: formatError(error),
     };
   }

@@ -25,29 +25,31 @@ server.tool(
   "list-contacts",
   {},
   async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
-    const result = await listXeroContacts();
-    if (!result.success) {
+    const response = await listXeroContacts();
+    if (response.isError) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Error listing contacts: ${result.error}`,
+            text: `Error listing contacts: ${response.error}`,
           },
         ],
       };
     }
 
+    const contacts = response.result.contacts;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `Found ${result.contacts?.length || 0} contacts:`,
+          text: `Found ${contacts?.length || 0} contacts:`,
         },
-        ...(result.contacts?.map((contact) => ({
+        ...(contacts?.map((contact) => ({
           type: "text" as const,
           text: [
             `Contact: ${contact.name}`,
-            `ID: ${contact.contactId}`,
+            `ID: ${contact.contactID}`,
             contact.firstName ? `First Name: ${contact.firstName}` : null,
             contact.lastName ? `Last Name: ${contact.lastName}` : null,
             contact.emailAddress
