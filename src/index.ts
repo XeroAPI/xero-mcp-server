@@ -3,10 +3,10 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { XeroMcpServer } from "./server/xero-mcp-server.js";
-import { createXeroInvoice } from "./handlers/create-xero-invoice.js";
-import { listXeroContacts } from "./handlers/list-xero-contacts.js";
-import { listXeroInvoices } from "./handlers/list-xero-invoices.js";
-import { createXeroContact } from "./handlers/create-xero-contact.js";
+import { createXeroInvoice } from "./handlers/create-xero-invoice.handler.js";
+import { listXeroContacts } from "./handlers/list-xero-contacts.handler.js";
+import { listXeroInvoices } from "./handlers/list-xero-invoices.handler.js";
+import { createXeroContact } from "./handlers/create-xero-contact.handler.js";
 
 // Create an MCP server
 const server = XeroMcpServer.GetServer();
