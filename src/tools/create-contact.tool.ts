@@ -37,7 +37,7 @@ const toolHandler = async (
         },
       ],
     };
-  } catch (error: unknown) {
+  } catch (error) {
     let errorMessage = "Unknown error";
     if (error instanceof Error) {
       errorMessage = error.message;

@@ -60,11 +60,13 @@ const toolHandler = async (
     content: [
       {
         type: "text" as const,
-        text: `Invoice created successfully:
-- ID: ${invoice?.invoiceID}
-- Contact: ${invoice?.contact?.name}
-- Total: ${invoice?.total}
-- Status: ${invoice?.status}`,
+        text: [
+          "Invoice created successfully:",
+          `ID: ${invoice?.invoiceID}`,
+          `Contact: ${invoice?.contact?.name}`,
+          `Total: ${invoice?.total}`,
+          `Status: ${invoice?.status}`,
+        ].join("\n"),
       },
     ],
   };
