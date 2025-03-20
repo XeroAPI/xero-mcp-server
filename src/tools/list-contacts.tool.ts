@@ -1,5 +1,5 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { listXeroContacts } from "../handlers/list-xero-contacts.handler.js";
+import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "list-contacts";
 const toolDescription =
@@ -103,6 +103,9 @@ const toolHandler = async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
   };
 };
 
-export const ListContactsTool = (server: McpServer) => {
-  server.tool(toolName, toolDescription, toolSchema, toolHandler);
+export const ListContactsTool: ToolDefinition<typeof toolSchema> = {
+  name: toolName,
+  description: toolDescription,
+  schema: toolSchema,
+  handler: toolHandler,
 };

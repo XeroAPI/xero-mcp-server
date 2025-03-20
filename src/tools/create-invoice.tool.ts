@@ -1,6 +1,6 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createXeroInvoice } from "../handlers/create-xero-invoice.handler.js";
+import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "create-invoice";
 const toolDescription = "Create an invoice in Xero.";
@@ -70,6 +70,9 @@ const toolHandler = async (
   };
 };
 
-export const CreateInvoiceTool = (server: McpServer) => {
-  server.tool(toolName, toolDescription, toolSchema, toolHandler);
+export const CreateInvoiceTool: ToolDefinition<typeof toolSchema> = {
+  name: toolName,
+  description: toolDescription,
+  schema: toolSchema,
+  handler: toolHandler,
 };
