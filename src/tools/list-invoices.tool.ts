@@ -1,50 +1,51 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { listXeroInvoices } from "../handlers/list-xero-invoices.handler.js";
 
-export const ListInvoicesTool = (server: McpServer) => {
-  server.tool(
-    "list-invoices",
-    {},
-    async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
-      const response = await listXeroInvoices();
-      if (response.error !== null) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Error listing invoices: ${response.error}`,
-            },
-          ],
-        };
-      }
+const toolName = "list-invoices";
+const toolDescription =
+  "List all invoices in Xero. This includes Draft, Submitted, and Paid invoices.";
+const toolSchema = {};
 
-      const invoices = response.result.invoices;
+const toolHandler = async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
+  const response = await listXeroInvoices();
+  if (response.error !== null) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `Error listing invoices: ${response.error}`,
+        },
+      ],
+    };
+  }
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `Found ${invoices?.length || 0} invoices:`,
-          },
-          ...(invoices?.map((invoice) => ({
-            type: "text" as const,
-            text: [
-              `Invoice: ${invoice.invoiceNumber || invoice.invoiceID}`,
-              invoice.reference ? `Reference: ${invoice.reference}` : null,
-              `Type: ${invoice.type || "Unknown"}`,
-              `Status: ${invoice.status || "Unknown"}`,
-              invoice.contact
-                ? `Contact: ${invoice.contact.name} (${invoice.contact.contactID})`
-                : null,
-              invoice.date ? `Date: ${invoice.date}` : null,
-              invoice.dueDate ? `Due Date: ${invoice.dueDate}` : null,
-              invoice.lineAmountTypes
-                ? `Line Amount Types: ${invoice.lineAmountTypes}`
-                : null,
-              invoice.lineItems?.length ? "Line Items:" : null,
-              ...(invoice.lineItems?.map(
-                (item) =>
-                  `  - ${item.description || "No description"}
+  const invoices = response.result.invoices;
+
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: `Found ${invoices?.length || 0} invoices:`,
+      },
+      ...(invoices?.map((invoice) => ({
+        type: "text" as const,
+        text: [
+          `Invoice: ${invoice.invoiceNumber || invoice.invoiceID}`,
+          invoice.reference ? `Reference: ${invoice.reference}` : null,
+          `Type: ${invoice.type || "Unknown"}`,
+          `Status: ${invoice.status || "Unknown"}`,
+          invoice.contact
+            ? `Contact: ${invoice.contact.name} (${invoice.contact.contactID})`
+            : null,
+          invoice.date ? `Date: ${invoice.date}` : null,
+          invoice.dueDate ? `Due Date: ${invoice.dueDate}` : null,
+          invoice.lineAmountTypes
+            ? `Line Amount Types: ${invoice.lineAmountTypes}`
+            : null,
+          invoice.lineItems?.length ? "Line Items:" : null,
+          ...(invoice.lineItems?.map(
+            (item) =>
+              `  - ${item.description || "No description"}
       Quantity: ${item.quantity || 0}
       Unit Amount: ${item.unitAmount || 0}
       Line Amount: ${item.lineAmount || 0}${
@@ -73,35 +74,35 @@ export const ListInvoicesTool = (server: McpServer) => {
       Tracking: ${item.tracking.map((t) => `${t.name}: ${t.option}`).join(", ")}`
           : ""
       }`,
-              ) || []),
-              invoice.subTotal ? `Sub Total: ${invoice.subTotal}` : null,
-              invoice.totalTax ? `Total Tax: ${invoice.totalTax}` : null,
-              `Total: ${invoice.total || 0}`,
-              invoice.totalDiscount
-                ? `Total Discount: ${invoice.totalDiscount}`
-                : null,
-              invoice.currencyCode ? `Currency: ${invoice.currencyCode}` : null,
-              invoice.currencyRate
-                ? `Currency Rate: ${invoice.currencyRate}`
-                : null,
-              invoice.updatedDateUTC
-                ? `Last Updated: ${invoice.updatedDateUTC}`
-                : null,
-              invoice.fullyPaidOnDate
-                ? `Fully Paid On: ${invoice.fullyPaidOnDate}`
-                : null,
-              invoice.amountDue ? `Amount Due: ${invoice.amountDue}` : null,
-              invoice.amountPaid ? `Amount Paid: ${invoice.amountPaid}` : null,
-              invoice.amountCredited
-                ? `Amount Credited: ${invoice.amountCredited}`
-                : null,
-              invoice.hasAttachments ? "Has Attachments: Yes" : null,
-              invoice.hasErrors ? "Has Errors: Yes" : null,
-              invoice.isDiscounted ? "Is Discounted: Yes" : null,
-              invoice.payments?.length ? "Payments:" : null,
-              ...(invoice.payments?.map(
-                (payment) =>
-                  `  - ID: ${payment.paymentID}
+          ) || []),
+          invoice.subTotal ? `Sub Total: ${invoice.subTotal}` : null,
+          invoice.totalTax ? `Total Tax: ${invoice.totalTax}` : null,
+          `Total: ${invoice.total || 0}`,
+          invoice.totalDiscount
+            ? `Total Discount: ${invoice.totalDiscount}`
+            : null,
+          invoice.currencyCode ? `Currency: ${invoice.currencyCode}` : null,
+          invoice.currencyRate
+            ? `Currency Rate: ${invoice.currencyRate}`
+            : null,
+          invoice.updatedDateUTC
+            ? `Last Updated: ${invoice.updatedDateUTC}`
+            : null,
+          invoice.fullyPaidOnDate
+            ? `Fully Paid On: ${invoice.fullyPaidOnDate}`
+            : null,
+          invoice.amountDue ? `Amount Due: ${invoice.amountDue}` : null,
+          invoice.amountPaid ? `Amount Paid: ${invoice.amountPaid}` : null,
+          invoice.amountCredited
+            ? `Amount Credited: ${invoice.amountCredited}`
+            : null,
+          invoice.hasAttachments ? "Has Attachments: Yes" : null,
+          invoice.hasErrors ? "Has Errors: Yes" : null,
+          invoice.isDiscounted ? "Is Discounted: Yes" : null,
+          invoice.payments?.length ? "Payments:" : null,
+          ...(invoice.payments?.map(
+            (payment) =>
+              `  - ID: ${payment.paymentID}
       Date: ${payment.date || "Unknown"}
       Amount: ${payment.amount || 0}${
         payment.reference
@@ -119,28 +120,28 @@ export const ListInvoicesTool = (server: McpServer) => {
       Has Validation Errors: Yes`
           : ""
       }`,
-              ) || []),
-              invoice.prepayments?.length ? "Prepayments:" : null,
-              ...(invoice.prepayments?.map(
-                (prepayment) =>
-                  `  - ID: ${prepayment.prepaymentID}
+          ) || []),
+          invoice.prepayments?.length ? "Prepayments:" : null,
+          ...(invoice.prepayments?.map(
+            (prepayment) =>
+              `  - ID: ${prepayment.prepaymentID}
       Date: ${prepayment.date || "Unknown"}${
         prepayment.reference
           ? `
       Reference: ${prepayment.reference}`
           : ""
       }`,
-              ) || []),
-              invoice.overpayments?.length ? "Overpayments:" : null,
-              ...(invoice.overpayments?.map(
-                (overpayment) =>
-                  `  - ID: ${overpayment.overpaymentID}
+          ) || []),
+          invoice.overpayments?.length ? "Overpayments:" : null,
+          ...(invoice.overpayments?.map(
+            (overpayment) =>
+              `  - ID: ${overpayment.overpaymentID}
       Date: ${overpayment.date || "Unknown"}`,
-              ) || []),
-              invoice.creditNotes?.length ? "Credit Notes:" : null,
-              ...(invoice.creditNotes?.map(
-                (note) =>
-                  `  - ID: ${note.creditNoteID}
+          ) || []),
+          invoice.creditNotes?.length ? "Credit Notes:" : null,
+          ...(invoice.creditNotes?.map(
+            (note) =>
+              `  - ID: ${note.creditNoteID}
       Number: ${note.creditNoteNumber || "Unknown"}${
         note.reference
           ? `
@@ -153,13 +154,15 @@ export const ListInvoicesTool = (server: McpServer) => {
       Total Tax: ${note.totalTax || 0}
       Total: ${note.total || 0}
       Last Updated: ${note.updatedDateUTC || "Unknown"}`,
-              ) || []),
-            ]
-              .filter(Boolean)
-              .join("\n"),
-          })) || []),
-        ],
-      };
-    },
-  );
+          ) || []),
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      })) || []),
+    ],
+  };
+};
+
+export const ListInvoicesTool = (server: McpServer) => {
+  server.tool(toolName, toolDescription, toolSchema, toolHandler);
 };
