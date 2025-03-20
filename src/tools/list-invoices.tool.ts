@@ -1,13 +1,22 @@
+import { z } from "zod";
 import { listXeroInvoices } from "../handlers/list-xero-invoices.handler.js";
 import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "list-invoices";
 const toolDescription =
-  "List all invoices in Xero. This includes Draft, Submitted, and Paid invoices.";
-const toolSchema = {};
+  "List all invoices in Xero. This includes Draft, Submitted, and Paid invoices. Ask the user if they want the next page of invoices after running this tool. If they do, call this tool again with the page number.";
+const toolSchema = {
+  page: z.number(),
+};
 
-const toolHandler = async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
-  const response = await listXeroInvoices();
+const toolHandler = async ({
+  page,
+}: {
+  page: number;
+}): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+}> => {
+  const response = await listXeroInvoices(page);
   if (response.error !== null) {
     return {
       content: [

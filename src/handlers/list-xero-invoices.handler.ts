@@ -6,7 +6,7 @@ import { Invoices } from "xero-node";
 /**
  * List all invoices from Xero
  */
-export async function listXeroInvoices(): Promise<ToolResponse<Invoices>> {
+export async function listXeroInvoices(page: number = 1): Promise<ToolResponse<Invoices>> {
   try {
     const tokenResponse = await xeroClient.getClientCredentialsToken();
 
@@ -16,7 +16,24 @@ export async function listXeroInvoices(): Promise<ToolResponse<Invoices>> {
       token_type: tokenResponse.token_type,
     });
 
-    const { body: invoices } = await xeroClient.accountingApi.getInvoices("");
+    const { body: invoices } = await xeroClient.accountingApi.getInvoices(
+      "", // tenantId (empty string for default)
+      undefined, // ifModifiedSince
+      undefined, // where
+      undefined, // order
+      undefined, // iDs
+      undefined, // invoiceNumbers
+      undefined, // contactIDs
+      undefined, // statuses
+      page,
+      false, // includeArchived
+      false, // createdByMyApp
+      undefined, // summaryOnly
+      true, // includePayments
+      10, // pageSize
+      undefined, // unitdp
+      undefined // createdByMyApp
+    );
 
     return {
       result: invoices,
