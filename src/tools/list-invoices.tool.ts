@@ -4,19 +4,25 @@ import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "list-invoices";
 const toolDescription =
-  "List all invoices in Xero. This includes Draft, Submitted, and Paid invoices. Ask the user if they want the next page of invoices after running this tool. If they do, call this tool again with the page number.";
+  `List all invoices in Xero. This includes Draft, Submitted, and Paid invoices. 
+  Ask the user if they want to see invoices for a specific contact before running. 
+  Ask the user if they want the next page of invoices after running this tool if 10 invoices are returned. 
+  If they do, call this tool again with the page number and the contact provided in the previous call.`;
 const toolSchema = {
   page: z.number(),
+  contactId: z.string(),
 };
 
 const toolHandler = async ({
   page,
+  contactId,
 }: {
   page: number;
+  contactId: string;
 }): Promise<{
   content: Array<{ type: "text"; text: string }>;
 }> => {
-  const response = await listXeroInvoices(page);
+  const response = await listXeroInvoices(page, contactId);
   if (response.error !== null) {
     return {
       content: [
@@ -51,39 +57,6 @@ const toolHandler = async ({
           invoice.lineAmountTypes
             ? `Line Amount Types: ${invoice.lineAmountTypes}`
             : null,
-          invoice.lineItems?.length ? "Line Items:" : null,
-          ...(invoice.lineItems?.map(
-            (item) =>
-              `  - ${item.description || "No description"}
-      Quantity: ${item.quantity || 0}
-      Unit Amount: ${item.unitAmount || 0}
-      Line Amount: ${item.lineAmount || 0}${
-        item.taxType
-          ? `
-      Tax Type: ${item.taxType}`
-          : ""
-      }${
-        item.taxAmount
-          ? `
-      Tax Amount: ${item.taxAmount}`
-          : ""
-      }${
-        item.accountCode
-          ? `
-      Account Code: ${item.accountCode}`
-          : ""
-      }${
-        item.discountRate
-          ? `
-      Discount Rate: ${item.discountRate}`
-          : ""
-      }${
-        item.tracking?.length
-          ? `
-      Tracking: ${item.tracking.map((t) => `${t.name}: ${t.option}`).join(", ")}`
-          : ""
-      }`,
-          ) || []),
           invoice.subTotal ? `Sub Total: ${invoice.subTotal}` : null,
           invoice.totalTax ? `Total Tax: ${invoice.totalTax}` : null,
           `Total: ${invoice.total || 0}`,
@@ -105,65 +78,8 @@ const toolHandler = async ({
           invoice.amountCredited
             ? `Amount Credited: ${invoice.amountCredited}`
             : null,
-          invoice.hasAttachments ? "Has Attachments: Yes" : null,
           invoice.hasErrors ? "Has Errors: Yes" : null,
           invoice.isDiscounted ? "Is Discounted: Yes" : null,
-          invoice.payments?.length ? "Payments:" : null,
-          ...(invoice.payments?.map(
-            (payment) =>
-              `  - ID: ${payment.paymentID}
-      Date: ${payment.date || "Unknown"}
-      Amount: ${payment.amount || 0}${
-        payment.reference
-          ? `
-      Reference: ${payment.reference}`
-          : ""
-      }${
-        payment.hasAccount
-          ? `
-      Has Account: Yes`
-          : ""
-      }${
-        payment.hasValidationErrors
-          ? `
-      Has Validation Errors: Yes`
-          : ""
-      }`,
-          ) || []),
-          invoice.prepayments?.length ? "Prepayments:" : null,
-          ...(invoice.prepayments?.map(
-            (prepayment) =>
-              `  - ID: ${prepayment.prepaymentID}
-      Date: ${prepayment.date || "Unknown"}${
-        prepayment.reference
-          ? `
-      Reference: ${prepayment.reference}`
-          : ""
-      }`,
-          ) || []),
-          invoice.overpayments?.length ? "Overpayments:" : null,
-          ...(invoice.overpayments?.map(
-            (overpayment) =>
-              `  - ID: ${overpayment.overpaymentID}
-      Date: ${overpayment.date || "Unknown"}`,
-          ) || []),
-          invoice.creditNotes?.length ? "Credit Notes:" : null,
-          ...(invoice.creditNotes?.map(
-            (note) =>
-              `  - ID: ${note.creditNoteID}
-      Number: ${note.creditNoteNumber || "Unknown"}${
-        note.reference
-          ? `
-      Reference: ${note.reference}`
-          : ""
-      }
-      Type: ${note.type || "Unknown"}
-      Status: ${note.status || "Unknown"}
-      Sub Total: ${note.subTotal || 0}
-      Total Tax: ${note.totalTax || 0}
-      Total: ${note.total || 0}
-      Last Updated: ${note.updatedDateUTC || "Unknown"}`,
-          ) || []),
         ]
           .filter(Boolean)
           .join("\n"),
