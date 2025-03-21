@@ -10,19 +10,19 @@ const toolDescription =
   If they do, call this tool again with the page number and the contact provided in the previous call.`;
 const toolSchema = {
   page: z.number(),
-  contactId: z.string(),
+  contactIds: z.array(z.string()).optional(),
 };
 
 const toolHandler = async ({
   page,
-  contactId,
+  contactIds,
 }: {
   page: number;
-  contactId: string;
+  contactIds?: string[];
 }): Promise<{
   content: Array<{ type: "text"; text: string }>;
 }> => {
-  const response = await listXeroInvoices(page, contactId);
+  const response = await listXeroInvoices(page, contactIds);
   if (response.error !== null) {
     return {
       content: [
