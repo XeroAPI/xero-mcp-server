@@ -28,7 +28,8 @@ class CustomConnectionsXeroClient extends XeroClient {
   }
 
   async getClientCredentialsToken() {
-    const scope = "accounting.transactions accounting.contacts";
+    const scope =
+      "accounting.transactions accounting.contacts accounting.settings.read";
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
@@ -69,6 +70,16 @@ class CustomConnectionsXeroClient extends XeroClient {
         `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
       );
     }
+  }
+
+  public async authenticate() {
+    const tokenResponse = await xeroClient.getClientCredentialsToken();
+
+    xeroClient.setTokenSet({
+      access_token: tokenResponse.access_token,
+      expires_in: tokenResponse.expires_in,
+      token_type: tokenResponse.token_type,
+    });
   }
 
   // Override the buildHeaders method to include the tenant ID

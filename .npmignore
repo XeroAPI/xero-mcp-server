@@ -1,0 +1,12 @@
+node_modules/
+src/
+docs_theme/
+.*
+*.tgz
+typedoc.json
+scratch.ts
+**/__tests__/**
+docs_theme
+*.config.js
+start-server.sh
+tsconfig.json
