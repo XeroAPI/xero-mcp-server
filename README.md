@@ -52,47 +52,6 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
-## For Developers
-
-### Installation
-
-```bash
-# Using npm
-npm install
-
-# Using pnpm
-pnpm install
-```
-
-### Run a build
-
-```bash
-# Using npm
-npm run build
-
-# Using pnpm
-pnpm build
-```
-
-### Integrating with Claude Desktop
-
-To add the MCP server to Claude go to Settings > Developer > Edit config and add the following to your claude_desktop_config.json file:
-
-```json
-{
-  "mcpServers": {
-    "xero": {
-      "command": "node",
-      "args": ["insert-your-file-path-here/xero-mcp-server/dist/index.js"],
-      "env": {
-        "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here"
-      }
-    }
-  }
-}
-```
-
 ## License
 
 MIT
