@@ -6,15 +6,11 @@ import { Invoices } from "xero-node";
 /**
  * List all invoices from Xero
  */
-export async function listXeroInvoices(page: number = 1): Promise<ToolResponse<Invoices>> {
+export async function listXeroInvoices(
+  page: number = 1,
+): Promise<ToolResponse<Invoices>> {
   try {
-    const tokenResponse = await xeroClient.getClientCredentialsToken();
-
-    await xeroClient.setTokenSet({
-      access_token: tokenResponse.access_token,
-      expires_in: tokenResponse.expires_in,
-      token_type: tokenResponse.token_type,
-    });
+    await xeroClient.authenticate();
 
     const { body: invoices } = await xeroClient.accountingApi.getInvoices(
       "", // tenantId (empty string for default)
@@ -32,7 +28,7 @@ export async function listXeroInvoices(page: number = 1): Promise<ToolResponse<I
       true, // includePayments
       10, // pageSize
       undefined, // unitdp
-      undefined // createdByMyApp
+      undefined, // createdByMyApp
     );
 
     return {

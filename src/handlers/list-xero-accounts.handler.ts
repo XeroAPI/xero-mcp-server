@@ -1,19 +1,21 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { Contacts } from "xero-node";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { Accounts } from "xero-node";
 
 /**
- * List all contacts from Xero
+ * List all accounts from Xero
  */
-export async function listXeroContacts(): Promise<ToolResponse<Contacts>> {
+export async function listXeroAccounts(): Promise<ToolResponse<Accounts>> {
   try {
     await xeroClient.authenticate();
 
-    const contacts = await xeroClient.accountingApi.getContacts("");
+    const { body: accounts } = await xeroClient.accountingApi.getAccounts(
+      "", // tenantId (empty string for default)
+    );
 
     return {
-      result: contacts.body,
+      result: accounts,
       isError: false,
       error: null,
     };

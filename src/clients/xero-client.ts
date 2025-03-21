@@ -71,6 +71,16 @@ class CustomConnectionsXeroClient extends XeroClient {
     }
   }
 
+  public async authenticate() {
+    const tokenResponse = await xeroClient.getClientCredentialsToken();
+
+    xeroClient.setTokenSet({
+      access_token: tokenResponse.access_token,
+      expires_in: tokenResponse.expires_in,
+      token_type: tokenResponse.token_type,
+    });
+  }
+
   // Override the buildHeaders method to include the tenant ID
   protected buildHeaders(
     bearerToken: string,

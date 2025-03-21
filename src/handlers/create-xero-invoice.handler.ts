@@ -16,13 +16,7 @@ export async function createXeroInvoice(
   reference?: string,
 ): Promise<ToolResponse<Invoice>> {
   try {
-    const tokenResponse = await xeroClient.getClientCredentialsToken();
-
-    await xeroClient.setTokenSet({
-      access_token: tokenResponse.access_token,
-      expires_in: tokenResponse.expires_in,
-      token_type: tokenResponse.token_type,
-    });
+    await xeroClient.authenticate();
 
     const invoice: Invoice = {
       type: Invoice.TypeEnum.ACCREC,

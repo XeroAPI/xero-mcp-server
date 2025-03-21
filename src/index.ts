@@ -7,6 +7,7 @@ import { ListInvoicesTool } from "./tools/list-invoices.tool.js";
 import { CreateContactTool } from "./tools/create-contact.tool.js";
 import { CreateInvoiceTool } from "./tools/create-invoice.tool.js";
 import { RegisterTool } from "./helpers/register-tool.js";
+import { ListAccountsTool } from "./tools/list-accounts.tool.js";
 
 // Create an MCP server
 const server = XeroMcpServer.GetServer();
@@ -22,6 +23,9 @@ RegisterTool(server, CreateContactTool);
 
 // Add tool to create an invoice
 RegisterTool(server, CreateInvoiceTool);
+
+// Add tool to list accounts
+RegisterTool(server, ListAccountsTool);
 
 // Start receiving messages on stdin and sending messages on stdout
 const transport = new StdioServerTransport();
