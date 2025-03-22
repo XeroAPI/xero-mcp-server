@@ -36,45 +36,12 @@ const toolHandler = async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
           contact.firstName ? `First Name: ${contact.firstName}` : null,
           contact.lastName ? `Last Name: ${contact.lastName}` : null,
           contact.emailAddress ? `Email: ${contact.emailAddress}` : "No email",
-          contact.bankAccountDetails
-            ? `Bank Account: ${contact.bankAccountDetails}`
-            : null,
-          contact.taxNumber ? `Tax Number: ${contact.taxNumber}` : null,
           contact.accountsReceivableTaxType
             ? `AR Tax Type: ${contact.accountsReceivableTaxType}`
             : null,
           contact.accountsPayableTaxType
             ? `AP Tax Type: ${contact.accountsPayableTaxType}`
             : null,
-          contact.addresses?.length ? "Addresses:" : null,
-          ...(contact.addresses?.map(
-            (addr) =>
-              `  ${addr.addressType}: ${[
-                addr.addressLine1,
-                addr.addressLine2,
-                addr.addressLine3,
-                addr.addressLine4,
-                addr.city,
-                addr.region,
-                addr.postalCode,
-                addr.country,
-              ]
-                .filter(Boolean)
-                .join(
-                  ", ",
-                )}${addr.attentionTo ? ` (Attn: ${addr.attentionTo})` : ""}`,
-          ) || []),
-          contact.phones?.length ? "Phone Numbers:" : null,
-          ...(contact.phones?.map(
-            (phone) =>
-              `  ${phone.phoneType}: ${[
-                phone.phoneCountryCode,
-                phone.phoneAreaCode,
-                phone.phoneNumber,
-              ]
-                .filter(Boolean)
-                .join(" ")}`,
-          ) || []),
           `Type: ${
             [
               contact.isCustomer ? "Customer" : null,
