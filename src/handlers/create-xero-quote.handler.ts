@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Quote, QuoteStatusCodes, LineItem } from "xero-node";
+import { Quote, QuoteStatusCodes } from "xero-node";
 
 interface QuoteLineItem {
   description: string;
