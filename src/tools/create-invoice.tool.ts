@@ -4,43 +4,42 @@ import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "create-invoice";
 const toolDescription = "Create an invoice in Xero.";
-const toolSchema = {
-  contactId: z.string(),
+
+const lineItemSchema = z.object({
   description: z.string(),
   quantity: z.number(),
   unitAmount: z.number(),
   accountCode: z.string(),
   taxType: z.string(),
+});
+
+const toolSchema = {
+  contactId: z.string(),
+  lineItems: z.array(lineItemSchema),
   reference: z.string().optional(),
 };
 
 const toolHandler = async (
   {
     contactId,
-    description,
-    quantity,
-    unitAmount,
-    accountCode,
-    taxType,
+    lineItems,
     reference,
   }: {
     contactId: string;
-    description: string;
-    quantity: number;
-    unitAmount: number;
-    accountCode: string;
-    taxType: string;
+    lineItems: Array<{
+      description: string;
+      quantity: number;
+      unitAmount: number;
+      accountCode: string;
+      taxType: string;
+    }>;
     reference?: string;
   },
   //_extra: { signal: AbortSignal },
 ) => {
   const result = await createXeroInvoice(
     contactId,
-    description,
-    quantity,
-    unitAmount,
-    accountCode,
-    taxType,
+    lineItems,
     reference,
   );
   if (result.isError) {

@@ -3,16 +3,20 @@ import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice } from "xero-node";
 
+interface InvoiceLineItem {
+  description: string;
+  quantity: number;
+  unitAmount: number;
+  accountCode: string;
+  taxType: string;
+}
+
 /**
  * Create a new invoice in Xero
  */
 export async function createXeroInvoice(
   contactId: string,
-  description: string,
-  quantity: number,
-  unitAmount: number,
-  accountCode: string,
-  taxType: string,
+  lineItems: InvoiceLineItem[],
   reference?: string,
 ): Promise<ToolResponse<Invoice>> {
   try {
@@ -23,15 +27,7 @@ export async function createXeroInvoice(
       contact: {
         contactID: contactId,
       },
-      lineItems: [
-        {
-          description: description,
-          quantity: quantity,
-          unitAmount: unitAmount,
-          accountCode: accountCode,
-          taxType: taxType,
-        },
-      ],
+      lineItems: lineItems,
       date: new Date().toISOString().split("T")[0], // Today's date
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         .toISOString()
