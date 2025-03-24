@@ -53,6 +53,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
 - `update-contact`: Update an existing contact
+- `update-invoice`: Update an existing draft invoice
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

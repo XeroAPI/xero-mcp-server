@@ -12,6 +12,7 @@ import { ListTaxRatesTool } from "./tools/list-tax-rates.tool.js";
 import { ListQuotesTool } from "./tools/list-quotes.tool.js";
 import { CreateQuoteTool } from "./tools/create-quote.tool.js";
 import { UpdateContactTool } from "./tools/update-contact.tool.js";
+import { UpdateInvoiceTool } from "./tools/update-invoice.tool.js";
 
 const main = async () => {
   // Create an MCP server
@@ -44,12 +45,15 @@ const main = async () => {
   // Add tool to update a contact
   RegisterTool(server, UpdateContactTool);
 
+  // Add tool to update an invoice
+  RegisterTool(server, UpdateInvoiceTool);
+
   // Start receiving messages on stdin and sending messages on stdout
   const transport = new StdioServerTransport();
   await server.connect(transport);
 };
 
 main().catch((error) => {
-  console.error("Fatal error:", error);
+  console.error("Error:", error);
   process.exit(1);
 });
