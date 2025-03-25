@@ -13,7 +13,7 @@ import { ListQuotesTool } from "./tools/list-quotes.tool.js";
 import { CreateQuoteTool } from "./tools/create-quote.tool.js";
 import { UpdateContactTool } from "./tools/update-contact.tool.js";
 import { UpdateInvoiceTool } from "./tools/update-invoice.tool.js";
-
+import { ListCreditNotesTool } from "./tools/list-credit-notes.tool.js";
 const main = async () => {
   // Create an MCP server
   const server = XeroMcpServer.GetServer();
@@ -47,6 +47,9 @@ const main = async () => {
 
   // Add tool to update an invoice
   RegisterTool(server, UpdateInvoiceTool);
+
+  // Add tool to list credit notes
+  RegisterTool(server, ListCreditNotesTool);
 
   // Start receiving messages on stdin and sending messages on stdout
   const transport = new StdioServerTransport();

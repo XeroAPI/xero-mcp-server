@@ -49,6 +49,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 - `list-accounts`: Retrieve a list of accounts
 - `list-tax-rates` : Retrieve a list of tax rates
 - `list-quotes` : Retrieve a list of quotes
+- `list-credit-notes`: Retrieve a list of credit notes
 - `create-contact`: Create a new contact
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
