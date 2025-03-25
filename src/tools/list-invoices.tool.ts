@@ -4,25 +4,31 @@ import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "list-invoices";
 const toolDescription =
-  `List all invoices in Xero. This includes Draft, Submitted, and Paid invoices. 
-  Ask the user if they want to see invoices for a specific contact before running. 
-  Ask the user if they want the next page of invoices after running this tool if 10 invoices are returned. 
-  If they do, call this tool again with the page number and the contact provided in the previous call.`;
+  `List invoices in Xero. This includes Draft, Submitted, and Paid invoices. 
+  Ask the user if they want to see invoices for a specific contact,
+  invoice number, or to see all invoices before running. 
+  Ask the user if they want the next page of invoices after running this tool 
+  if 10 invoices are returned. 
+  If they want the next page, call this tool again with the next page number 
+  and the contact or invoice number if one was provided in the previous call.`;
 const toolSchema = {
   page: z.number(),
   contactIds: z.array(z.string()).optional(),
+  invoiceNumbers: z.array(z.string()).optional(),
 };
 
 const toolHandler = async ({
   page,
   contactIds,
+  invoiceNumbers,
 }: {
   page: number;
   contactIds?: string[];
+  invoiceNumbers?: string[];
 }): Promise<{
   content: Array<{ type: "text"; text: string }>;
 }> => {
-  const response = await listXeroInvoices(page, contactIds);
+  const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
   if (response.error !== null) {
     return {
       content: [
