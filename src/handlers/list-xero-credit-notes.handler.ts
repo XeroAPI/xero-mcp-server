@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { CreditNotes } from "xero-node";
 
 /**
@@ -21,7 +22,9 @@ export async function listXeroCreditNotes(
       page, // page
       undefined, // unitdp
       10, // pageSize
-      undefined, // options
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
     );
 
     return {

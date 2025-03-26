@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Quotes } from "xero-node";
 
 /**
@@ -21,11 +22,13 @@ export async function listXeroQuotes(
       undefined, // expiryDateFrom
       undefined, // expiryDateTo
       contactId, // contactID
-      undefined, // statuses
+      undefined, // status
       page,
       undefined, // order
       undefined, // quoteNumber
-      undefined, // options
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
     );
 
     return {

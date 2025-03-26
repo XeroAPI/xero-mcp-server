@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Invoice } from "xero-node";
 
 interface InvoiceLineItem {
@@ -36,10 +37,18 @@ export async function createXeroInvoice(
       status: Invoice.StatusEnum.DRAFT,
     };
 
-    const response = await xeroClient.accountingApi.createInvoices("", {
-      invoices: [invoice],
-    });
-
+    const response = await xeroClient.accountingApi.createInvoices(
+      "", // tenantId (empty string for default)
+      {
+        invoices: [invoice],
+      }, // invoices
+      true, //summarizeErrors
+      undefined, //unitdp
+      undefined, //idempotencyKey
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
+    );
     const createdInvoice = response.body.invoices?.[0];
 
     if (!createdInvoice) {

@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Invoice } from "xero-node";
 
 interface InvoiceLineItem {
@@ -25,8 +26,12 @@ export async function updateXeroInvoice(
 
     // First, get the current invoice to check its status
     const currentInvoice = await xeroClient.accountingApi.getInvoice(
-      "",
-      invoiceId
+      "", // tenantId (empty string for default)
+      invoiceId, // invoiceId
+      undefined, // unitdp
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
     );
 
     const invoiceStatus = currentInvoice.body.invoices?.[0]?.status;
@@ -47,11 +52,16 @@ export async function updateXeroInvoice(
     };
 
     const response = await xeroClient.accountingApi.updateInvoice(
-      "",
-      invoiceId,
+      "", // tenantId (empty string for default)
+      invoiceId, // invoiceId
       {
         invoices: [invoice],
-      }
+      }, // invoices
+      undefined, // unitdp
+      undefined, // idempotencyKey
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
     );
 
     const updatedInvoice = response.body.invoices?.[0];

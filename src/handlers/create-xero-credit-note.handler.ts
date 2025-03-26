@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { CreditNote } from "xero-node";
 
 interface CreditNoteLineItem {
@@ -33,10 +34,20 @@ export async function createXeroCreditNote(
       status: CreditNote.StatusEnum.DRAFT,
     };
 
-    const response = await xeroClient.accountingApi.createCreditNotes("", {
-      creditNotes: [creditNote],
-    });
-
+    const response = await xeroClient.accountingApi.createCreditNotes(
+      "", // tenantId (empty string for default)
+      {
+        creditNotes: [creditNote],
+      }, // creditNotes
+      true, // summarizeErrors
+      undefined, // unitdp
+      undefined, // idempotencyKey
+      {
+        headers: { 
+          "user-agent": `xero-mcp-server-${getPackageVersion()}`
+        },
+      }, // options
+    );
     const createdCreditNote = response.body.creditNotes?.[0];
 
     if (!createdCreditNote) {

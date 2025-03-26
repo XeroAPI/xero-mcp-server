@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Quote, QuoteStatusCodes } from "xero-node";
 
 interface QuoteLineItem {
@@ -43,10 +44,17 @@ export async function createXeroQuote(
       summary: summary,
     };
 
-    const response = await xeroClient.accountingApi.createQuotes("", {
-      quotes: [quote],
-    });
-
+    const response = await xeroClient.accountingApi.createQuotes(
+      "", // tenantId (empty string for default)
+      {
+        quotes: [quote],
+      }, // quotes
+      true, //summarizeErrors
+      undefined, //idempotencyKey
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
+    );
     const createdQuote = response.body.quotes?.[0];
 
     if (!createdQuote) {

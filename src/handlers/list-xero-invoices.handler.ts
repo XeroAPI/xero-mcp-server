@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Invoices } from "xero-node";
 
 /**
@@ -26,11 +27,15 @@ export async function listXeroInvoices(
       page,
       false, // includeArchived
       false, // createdByMyApp
-      undefined, // summaryOnly
-      true, // includePayments
-      10, // pageSize
       undefined, // unitdp
-      undefined, // createdByMyApp
+      true, // summaryOnly
+      10, // pageSize
+      undefined, // searchTerm
+      {
+        headers: {
+          "user-agent": `xero-mcp-server-${getPackageVersion()}`,
+        },
+      }, // options
     );
 
     return {

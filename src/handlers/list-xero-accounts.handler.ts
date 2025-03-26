@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Accounts } from "xero-node";
 
 /**
@@ -12,6 +13,12 @@ export async function listXeroAccounts(): Promise<ToolResponse<Accounts>> {
 
     const { body: accounts } = await xeroClient.accountingApi.getAccounts(
       "", // tenantId (empty string for default)
+      undefined, // ifModifiedSince
+      undefined, // where
+      undefined, // order
+      {
+        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+      }, // options
     );
 
     return {
