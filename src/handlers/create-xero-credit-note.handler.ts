@@ -12,6 +12,42 @@ interface CreditNoteLineItem {
   taxType: string;
 }
 
+async function createCreditNote(
+  contactId: string,
+  lineItems: CreditNoteLineItem[],
+  reference: string | undefined,
+) {
+  await xeroClient.authenticate();
+
+  const creditNote: CreditNote = {
+    type: CreditNote.TypeEnum.ACCRECCREDIT,
+    contact: {
+      contactID: contactId,
+    },
+    lineItems: lineItems,
+    date: new Date().toISOString().split("T")[0], // Today's date
+    reference: reference,
+    status: CreditNote.StatusEnum.DRAFT,
+  };
+
+  const response = await xeroClient.accountingApi.createCreditNotes(
+    "", // tenantId (empty string for default)
+    {
+      creditNotes: [creditNote],
+    }, // creditNotes
+    true, // summarizeErrors
+    undefined, // unitdp
+    undefined, // idempotencyKey
+    {
+      headers: {
+        "user-agent": `xero-mcp-server-${getPackageVersion()}`,
+      },
+    },
+  );
+  const createdCreditNote = response.body.creditNotes?.[0];
+  return createdCreditNote;
+}
+
 /**
  * Create a new credit note in Xero
  */
@@ -21,34 +57,11 @@ export async function createXeroCreditNote(
   reference?: string,
 ): Promise<ToolResponse<CreditNote>> {
   try {
-    await xeroClient.authenticate();
-
-    const creditNote: CreditNote = {
-      type: CreditNote.TypeEnum.ACCRECCREDIT,
-      contact: {
-        contactID: contactId,
-      },
-      lineItems: lineItems,
-      date: new Date().toISOString().split("T")[0], // Today's date
-      reference: reference,
-      status: CreditNote.StatusEnum.DRAFT,
-    };
-
-    const response = await xeroClient.accountingApi.createCreditNotes(
-      "", // tenantId (empty string for default)
-      {
-        creditNotes: [creditNote],
-      }, // creditNotes
-      true, // summarizeErrors
-      undefined, // unitdp
-      undefined, // idempotencyKey
-      {
-        headers: { 
-          "user-agent": `xero-mcp-server-${getPackageVersion()}`
-        },
-      }, // options
+    const createdCreditNote = await createCreditNote(
+      contactId,
+      lineItems,
+      reference,
     );
-    const createdCreditNote = response.body.creditNotes?.[0];
 
     if (!createdCreditNote) {
       throw new Error("Credit note creation failed.");
@@ -66,4 +79,4 @@ export async function createXeroCreditNote(
       error: formatError(error),
     };
   }
-} 
+}

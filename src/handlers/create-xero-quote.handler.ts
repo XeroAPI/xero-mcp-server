@@ -12,6 +12,49 @@ interface QuoteLineItem {
   taxType: string;
 }
 
+async function createQuote(
+  quoteNumber: string | undefined,
+  reference: string | undefined,
+  terms: string | undefined,
+  contactId: string,
+  lineItems: QuoteLineItem[],
+  title: string | undefined,
+  summary: string | undefined,
+) {
+  await xeroClient.authenticate();
+
+  const quote: Quote = {
+    quoteNumber: quoteNumber,
+    reference: reference,
+    terms: terms,
+    contact: {
+      contactID: contactId,
+    },
+    date: new Date().toISOString().split("T")[0], // Today's date
+    lineItems: lineItems,
+    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0], // 7 days from now
+    status: QuoteStatusCodes.DRAFT,
+    title: title,
+    summary: summary,
+  };
+
+  const response = await xeroClient.accountingApi.createQuotes(
+    "", // tenantId (empty string for default)
+    {
+      quotes: [quote],
+    }, // quotes
+    true, //summarizeErrors
+    undefined, //idempotencyKey
+    {
+      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+    },
+  );
+  const createdQuote = response.body.quotes?.[0];
+  return createdQuote;
+}
+
 /**
  * Create a new quote in Xero
  */
@@ -25,37 +68,15 @@ export async function createXeroQuote(
   summary?: string,
 ): Promise<ToolResponse<Quote>> {
   try {
-    await xeroClient.authenticate();
-
-    const quote: Quote = {
-      quoteNumber: quoteNumber,
-      reference: reference,
-      terms: terms,
-      contact: {
-        contactID: contactId,
-      },
-      date: new Date().toISOString().split("T")[0], // Today's date
-      lineItems: lineItems,
-      expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0], // 7 days from now
-      status: QuoteStatusCodes.DRAFT,
-      title: title,
-      summary: summary,
-    };
-
-    const response = await xeroClient.accountingApi.createQuotes(
-      "", // tenantId (empty string for default)
-      {
-        quotes: [quote],
-      }, // quotes
-      true, //summarizeErrors
-      undefined, //idempotencyKey
-      {
-        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-      }, // options
+    const createdQuote = await createQuote(
+      quoteNumber,
+      reference,
+      terms,
+      contactId,
+      lineItems,
+      title,
+      summary,
     );
-    const createdQuote = response.body.quotes?.[0];
 
     if (!createdQuote) {
       throw new Error("Quote creation failed.");
