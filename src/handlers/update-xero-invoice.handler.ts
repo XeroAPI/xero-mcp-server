@@ -12,6 +12,50 @@ interface InvoiceLineItem {
   taxType: string;
 }
 
+async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
+  await xeroClient.authenticate();
+
+  // First, get the current invoice to check its status
+  const response = await xeroClient.accountingApi.getInvoice(
+    "", // tenantId (empty string for default)
+    invoiceId, // invoiceId
+    undefined, // unitdp
+    {
+      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+    }, // options
+  );
+
+  return response.body.invoices?.[0];
+}
+
+async function updateInvoice(
+  invoiceId: string,
+  lineItems?: InvoiceLineItem[],
+  reference?: string,
+  dueDate?: string,
+): Promise<Invoice | undefined> {
+  const invoice: Invoice = {
+    lineItems: lineItems,
+    reference: reference,
+    dueDate: dueDate,
+  };
+
+  const response = await xeroClient.accountingApi.updateInvoice(
+    "", // tenantId (empty string for default)
+    invoiceId, // invoiceId
+    {
+      invoices: [invoice],
+    }, // invoices
+    undefined, // unitdp
+    undefined, // idempotencyKey
+    {
+      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+    }, // options
+  );
+
+  return response.body.invoices?.[0];
+}
+
 /**
  * Update an existing invoice in Xero
  */
@@ -22,19 +66,9 @@ export async function updateXeroInvoice(
   dueDate?: string,
 ): Promise<ToolResponse<Invoice>> {
   try {
-    await xeroClient.authenticate();
+    const existingInvoice = await getInvoice(invoiceId);
 
-    // First, get the current invoice to check its status
-    const currentInvoice = await xeroClient.accountingApi.getInvoice(
-      "", // tenantId (empty string for default)
-      invoiceId, // invoiceId
-      undefined, // unitdp
-      {
-        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-      }, // options
-    );
-
-    const invoiceStatus = currentInvoice.body.invoices?.[0]?.status;
+    const invoiceStatus = existingInvoice?.status;
 
     // Only allow updates to DRAFT invoices
     if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {
@@ -45,26 +79,12 @@ export async function updateXeroInvoice(
       };
     }
 
-    const invoice: Invoice = {
-      lineItems: lineItems,
-      reference: reference,
-      dueDate: dueDate,
-    };
-
-    const response = await xeroClient.accountingApi.updateInvoice(
-      "", // tenantId (empty string for default)
-      invoiceId, // invoiceId
-      {
-        invoices: [invoice],
-      }, // invoices
-      undefined, // unitdp
-      undefined, // idempotencyKey
-      {
-        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-      }, // options
+    const updatedInvoice = await updateInvoice(
+      invoiceId,
+      lineItems,
+      reference,
+      dueDate,
     );
-
-    const updatedInvoice = response.body.invoices?.[0];
 
     if (!updatedInvoice) {
       throw new Error("Invoice update failed.");
@@ -82,4 +102,4 @@ export async function updateXeroInvoice(
       error: formatError(error),
     };
   }
-} 
+}

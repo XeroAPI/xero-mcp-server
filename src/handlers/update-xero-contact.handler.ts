@@ -4,6 +4,63 @@ import { formatError } from "../helpers/format-error.js";
 import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Contact, Phone, Address, Contacts } from "xero-node";
 
+async function updateContact(
+  name: string,
+  firstName: string | undefined,
+  lastName: string | undefined,
+  email: string | undefined,
+  phone: string | undefined,
+  address: Address | undefined,
+  contactId: string,
+): Promise<Contact | undefined> {
+  await xeroClient.authenticate();
+
+  const contact: Contact = {
+    name,
+    firstName,
+    lastName,
+    emailAddress: email,
+    phones: phone
+      ? [
+          {
+            phoneNumber: phone,
+            phoneType: Phone.PhoneTypeEnum.MOBILE,
+          },
+        ]
+      : undefined,
+    addresses: address
+      ? [
+          {
+            addressType: Address.AddressTypeEnum.STREET,
+            addressLine1: address.addressLine1,
+            addressLine2: address.addressLine2,
+            city: address.city,
+            country: address.country,
+            postalCode: address.postalCode,
+            region: address.region,
+          },
+        ]
+      : undefined,
+  };
+
+  const contacts: Contacts = {
+    contacts: [contact],
+  };
+
+  const response = await xeroClient.accountingApi.updateContact(
+    "", // tenantId (empty string for default)
+    contactId, // contactId
+    contacts, // contacts
+    undefined, // idempotencyKey
+    {
+      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
+    },
+  );
+
+  const updatedContact = response.body.contacts?.[0];
+  return updatedContact;
+}
+
 /**
  * Create a new invoice in Xero
  */
@@ -17,51 +74,15 @@ export async function updateXeroContact(
   address?: Address,
 ): Promise<ToolResponse<Contact>> {
   try {
-    await xeroClient.authenticate();
-
-    const contact: Contact = {
+    const updatedContact = await updateContact(
       name,
       firstName,
       lastName,
-      emailAddress: email,
-      phones: phone
-        ? [
-            {
-              phoneNumber: phone,
-              phoneType: Phone.PhoneTypeEnum.MOBILE,
-            },
-          ]
-        : undefined,
-      addresses: address 
-        ? [
-            {
-              addressType: Address.AddressTypeEnum.STREET,
-              addressLine1: address.addressLine1,
-              addressLine2: address.addressLine2,
-              city: address.city,
-              country: address.country,
-              postalCode: address.postalCode,
-              region: address.region,
-            },
-          ]
-        : undefined,
-    };
-
-    const contacts: Contacts = {
-      contacts: [contact]
-    };
-
-    const response = await xeroClient.accountingApi.updateContact(
-      "", // tenantId (empty string for default)
-      contactId, // contactId
-      contacts, // contacts
-      undefined, // idempotencyKey
-      {
-        headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-      }, // options
+      email,
+      phone,
+      address,
+      contactId,
     );
-
-    const updatedContact = response.body.contacts?.[0];
 
     if (!updatedContact) {
       throw new Error("Contact update failed.");
