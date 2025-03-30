@@ -16,7 +16,7 @@ async function createInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
   reference: string | undefined,
-) {
+): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
   const invoice: Invoice = {
