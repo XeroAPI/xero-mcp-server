@@ -21,7 +21,7 @@ const toolHandler = async (): Promise<{
     };
   }
 
-  const accounts = response.result.accounts;
+  const accounts = response.result;
 
   return {
     content: [

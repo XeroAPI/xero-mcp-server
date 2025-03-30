@@ -21,7 +21,7 @@ const toolHandler = async (): Promise<{
     };
   }
 
-  const taxRates = response.result.taxRates;
+  const taxRates = response.result;
 
   return {
     content: [
@@ -37,16 +37,20 @@ const toolHandler = async (): Promise<{
           `Status: ${taxRate.status || "Unknown status"}`,
           `Display Tax Rate: ${taxRate.displayTaxRate || "0.0000"}%`,
           `Effective Rate: ${taxRate.effectiveRate || "0.0000"}%`,
-          taxRate.taxComponents?.length ? 
-            `Tax Components:\n${taxRate.taxComponents.map(comp => 
-              `  - ${comp.name}: ${comp.rate}%${comp.isCompound ? " (Compound)" : ""}${comp.isNonRecoverable ? " (Non-recoverable)" : ""}`
-            ).join("\n")}` : null,
+          taxRate.taxComponents?.length
+            ? `Tax Components:\n${taxRate.taxComponents
+                .map(
+                  (comp) =>
+                    `  - ${comp.name}: ${comp.rate}%${comp.isCompound ? " (Compound)" : ""}${comp.isNonRecoverable ? " (Non-recoverable)" : ""}`,
+                )
+                .join("\n")}`
+            : null,
           `Can Apply To:${[
             taxRate.canApplyToAssets ? " Assets" : "",
             taxRate.canApplyToEquity ? " Equity" : "",
             taxRate.canApplyToExpenses ? " Expenses" : "",
             taxRate.canApplyToLiabilities ? " Liabilities" : "",
-            taxRate.canApplyToRevenue ? " Revenue" : ""
+            taxRate.canApplyToRevenue ? " Revenue" : "",
           ].join("")}`,
         ]
           .filter(Boolean)

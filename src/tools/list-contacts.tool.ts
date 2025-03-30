@@ -20,7 +20,7 @@ const toolHandler = async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
     };
   }
 
-  const contacts = response.result.contacts;
+  const contacts = response.result;
 
   return {
     content: [

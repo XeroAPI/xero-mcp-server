@@ -3,8 +3,7 @@ import { listXeroCreditNotes } from "../handlers/list-xero-credit-notes.handler.
 import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "list-credit-notes";
-const toolDescription = 
-`List credit notes in Xero. 
+const toolDescription = `List credit notes in Xero. 
   Ask the user if they want to see credit notes for a specific contact,
   or to see all credit notes before running. 
   Ask the user if they want the next page of credit notes after running this tool 
@@ -38,7 +37,7 @@ const toolHandler = async ({
     };
   }
 
-  const creditNotes = response.result.creditNotes;
+  const creditNotes = response.result;
 
   return {
     content: [
@@ -63,7 +62,9 @@ const toolHandler = async ({
           creditNote.subTotal ? `Sub Total: ${creditNote.subTotal}` : null,
           creditNote.totalTax ? `Total Tax: ${creditNote.totalTax}` : null,
           `Total: ${creditNote.total || 0}`,
-          creditNote.currencyCode ? `Currency: ${creditNote.currencyCode}` : null,
+          creditNote.currencyCode
+            ? `Currency: ${creditNote.currencyCode}`
+            : null,
           creditNote.currencyRate
             ? `Currency Rate: ${creditNote.currencyRate}`
             : null,
@@ -85,4 +86,4 @@ export const ListCreditNotesTool: ToolDefinition<typeof toolSchema> = {
   handler: toolHandler,
 };
 
-export default ListCreditNotesTool; 
+export default ListCreditNotesTool;

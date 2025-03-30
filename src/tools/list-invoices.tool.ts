@@ -3,8 +3,7 @@ import { listXeroInvoices } from "../handlers/list-xero-invoices.handler.js";
 import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "list-invoices";
-const toolDescription =
-  `List invoices in Xero. This includes Draft, Submitted, and Paid invoices. 
+const toolDescription = `List invoices in Xero. This includes Draft, Submitted, and Paid invoices. 
   Ask the user if they want to see invoices for a specific contact,
   invoice number, or to see all invoices before running. 
   Ask the user if they want the next page of invoices after running this tool 
@@ -40,7 +39,7 @@ const toolHandler = async ({
     };
   }
 
-  const invoices = response.result.invoices;
+  const invoices = response.result;
 
   return {
     content: [
