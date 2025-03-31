@@ -3,7 +3,10 @@ import { updateXeroInvoice } from "../handlers/update-xero-invoice.handler.js";
 import { ToolDefinition } from "../types/tool-definition.js";
 
 const toolName = "update-invoice";
-const toolDescription = "Update an invoice in Xero. Only works on draft invoices.";
+const toolDescription =
+  "Update an invoice in Xero. Only works on draft invoices.\
+  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
+  Do not modify line items that have not been specified by the user";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -15,7 +18,10 @@ const lineItemSchema = z.object({
 
 const toolSchema = {
   invoiceId: z.string(),
-  lineItems: z.array(lineItemSchema).optional(),
+  lineItems: z.array(lineItemSchema).optional().describe(
+    "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
+      Do not modify line items that have not been specified by the user",
+  ),
   reference: z.string().optional(),
   dueDate: z.string().optional(),
 };
@@ -80,4 +86,4 @@ export const UpdateInvoiceTool: ToolDefinition<typeof toolSchema> = {
   description: toolDescription,
   schema: toolSchema,
   handler: toolHandler,
-}; 
+};

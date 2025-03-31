@@ -4,7 +4,7 @@ import { formatError } from "../helpers/format-error.js";
 import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Invoice } from "xero-node";
 
-async function newFunction(
+async function getInvoices(
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
   page: number,
@@ -24,7 +24,7 @@ async function newFunction(
     false, // includeArchived
     false, // createdByMyApp
     undefined, // unitdp
-    true, // summaryOnly
+    false, // summaryOnly
     10, // pageSize
     undefined, // searchTerm
     {
@@ -45,7 +45,7 @@ export async function listXeroInvoices(
   invoiceNumbers?: string[],
 ): Promise<ToolResponse<Invoice[]>> {
   try {
-    const invoices = await newFunction(invoiceNumbers, contactIds, page);
+    const invoices = await getInvoices(invoiceNumbers, contactIds, page);
 
     return {
       result: invoices,

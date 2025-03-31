@@ -4,7 +4,7 @@ import { formatError } from "../helpers/format-error.js";
 import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Quote } from "xero-node";
 
-async function newFunction(
+async function getQuotes(
   contactId: string | undefined,
   page: number,
 ): Promise<Quote[]> {
@@ -37,7 +37,7 @@ export async function listXeroQuotes(
   contactId?: string,
 ): Promise<ToolResponse<Quote[]>> {
   try {
-    const quotes = await newFunction(contactId, page);
+    const quotes = await getQuotes(contactId, page);
 
     return {
       result: quotes,

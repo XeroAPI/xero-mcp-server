@@ -1,19 +1,34 @@
 import { z } from "zod";
 import { listXeroInvoices } from "../handlers/list-xero-invoices.handler.js";
 import { ToolDefinition } from "../types/tool-definition.js";
+import { LineItem } from "xero-node";
 
 const toolName = "list-invoices";
-const toolDescription = `List invoices in Xero. This includes Draft, Submitted, and Paid invoices. 
-  Ask the user if they want to see invoices for a specific contact,
-  invoice number, or to see all invoices before running. 
-  Ask the user if they want the next page of invoices after running this tool 
-  if 10 invoices are returned. 
-  If they want the next page, call this tool again with the next page number 
-  and the contact or invoice number if one was provided in the previous call.`;
+const toolDescription =
+  "List invoices in Xero. This includes Draft, Submitted, and Paid invoices. \
+  Ask the user if they want to see invoices for a specific contact, \
+  invoice number, or to see all invoices before running. \
+  Ask the user if they want the next page of invoices after running this tool \
+  if 10 invoices are returned. \
+  If they want the next page, call this tool again with the next page number \
+  and the contact or invoice number if one was provided in the previous call.";
 const toolSchema = {
   page: z.number(),
   contactIds: z.array(z.string()).optional(),
-  invoiceNumbers: z.array(z.string()).optional(),
+  invoiceNumbers: z
+    .array(z.string())
+    .optional()
+    .describe("If provided, invoice line items will also be returned"),
+};
+
+const formatLineItem = (lineItem: LineItem): string => {
+  return [
+    `Description: ${lineItem.description}`,
+    `Quantity: ${lineItem.quantity}`,
+    `Unit Amount: ${lineItem.unitAmount}`,
+    `Account Code: ${lineItem.accountCode}`,
+    `Tax Type: ${lineItem.taxType}`,
+  ].join("\n");
 };
 
 const toolHandler = async ({
@@ -40,6 +55,7 @@ const toolHandler = async ({
   }
 
   const invoices = response.result;
+  const returnLineItems = (invoiceNumbers?.length ?? 0) > 0;
 
   return {
     content: [
@@ -85,6 +101,9 @@ const toolHandler = async ({
             : null,
           invoice.hasErrors ? "Has Errors: Yes" : null,
           invoice.isDiscounted ? "Is Discounted: Yes" : null,
+          returnLineItems
+            ? `Line Items: ${invoice.lineItems?.map(formatLineItem)}`
+            : null,
         ]
           .filter(Boolean)
           .join("\n"),
