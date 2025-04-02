@@ -1,4 +1,4 @@
-import { XeroClient } from "xero-node";
+import { Organisation, TokenSet, XeroClient } from "xero-node";
 import dotenv from "dotenv";
 import axios, { AxiosError } from "axios";
 
@@ -16,6 +16,7 @@ class CustomConnectionsXeroClient extends XeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private tenantId?: string;
+  private shortCode?: string;
 
   constructor(config: {
     clientId: string;
@@ -27,7 +28,7 @@ class CustomConnectionsXeroClient extends XeroClient {
     this.clientSecret = config.clientSecret;
   }
 
-  async getClientCredentialsToken() {
+  public async getClientCredentialsToken(): Promise<TokenSet> {
     const scope =
       "accounting.transactions accounting.contacts accounting.settings.read";
     const credentials = Buffer.from(
@@ -70,6 +71,37 @@ class CustomConnectionsXeroClient extends XeroClient {
         `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
       );
     }
+  }
+
+  private async getOrganisation(): Promise<Organisation> {
+    await this.authenticate();
+
+    const organisationResponse = await this.accountingApi.getOrganisations(
+      this.tenantId || "",
+    );
+
+    const organisation = organisationResponse.body.organisations?.[0];
+
+    if (!organisation) {
+      throw new Error("Failed to retrieve organisation");
+    }
+
+    return organisation;
+  }
+
+  public async getShortCode(): Promise<string | undefined> {
+    if (!this.shortCode) {
+      try {
+        const organisation = await this.getOrganisation();
+        this.shortCode = organisation.shortCode;
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        throw new Error(
+          `Failed to get Xero short code: ${axiosError.response?.data || axiosError.message}`,
+        );
+      }
+    }
+    return this.shortCode;
   }
 
   public async authenticate() {
