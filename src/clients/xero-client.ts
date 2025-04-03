@@ -64,7 +64,9 @@ abstract class MCPXeroClient extends XeroClient {
       } catch (error: unknown) {
         const err = ensureError(error);
 
-        throw new Error(`Failed to get Xero short code: ${err.message}`);
+        throw new Error(
+          `Failed to get Organisation short code: ${err.message}`,
+        );
       }
     }
     return this.shortCode;
