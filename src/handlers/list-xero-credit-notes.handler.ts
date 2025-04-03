@@ -1,8 +1,8 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { getPackageVersion } from "../helpers/get-package-version.js";
 import { CreditNote } from "xero-node";
+import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getCreditNotes(
   contactId: string | undefined,
@@ -18,9 +18,7 @@ async function getCreditNotes(
     page, // page
     undefined, // unitdp
     10, // pageSize
-    {
-      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-    },
+    getClientHeaders(),
   );
 
   return response.body.creditNotes ?? [];

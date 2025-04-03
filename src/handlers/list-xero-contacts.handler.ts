@@ -2,7 +2,7 @@ import { xeroClient } from "../clients/xero-client.js";
 import { Contact } from "xero-node";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { getPackageVersion } from "../helpers/get-package-version.js";
+import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getContacts(): Promise<Contact[]> {
   await xeroClient.authenticate();
@@ -18,9 +18,7 @@ async function getContacts(): Promise<Contact[]> {
     true, // summaryOnly
     undefined, // pageSize
     undefined, // searchTerm
-    {
-      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-    },
+    getClientHeaders(),
   );
   return contacts.body.contacts ?? [];
 }

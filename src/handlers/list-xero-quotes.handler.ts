@@ -1,8 +1,8 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Quote } from "xero-node";
+import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getQuotes(
   contactId: string | undefined,
@@ -22,9 +22,7 @@ async function getQuotes(
     page,
     undefined, // order
     undefined, // quoteNumber
-    {
-      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-    },
+    getClientHeaders(),
   );
   return quotes.body.quotes ?? [];
 }

@@ -1,8 +1,8 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { getPackageVersion } from "../helpers/get-package-version.js";
 import { Invoice } from "xero-node";
+import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
   description: string;
@@ -41,9 +41,7 @@ async function createInvoice(
     true, //summarizeErrors
     undefined, //unitdp
     undefined, //idempotencyKey
-    {
-      headers: { "user-agent": `xero-mcp-server-${getPackageVersion()}` },
-    },
+    getClientHeaders(),
   );
   const createdInvoice = response.body.invoices?.[0];
   return createdInvoice;
