@@ -21,11 +21,12 @@ if (!bearer_token && (!client_id || !client_secret)) {
 
 abstract class MCPXeroClient extends XeroClient {
   public tenantId: string;
-  private shortCode?: string;
+  private shortCode: string;
 
   protected constructor(config?: IXeroClientConfig) {
     super(config);
     this.tenantId = "";
+    this.shortCode = "";
   }
 
   public abstract authenticate(): Promise<void>;
@@ -59,7 +60,7 @@ abstract class MCPXeroClient extends XeroClient {
     if (!this.shortCode) {
       try {
         const organisation = await this.getOrganisation();
-        this.shortCode = organisation.shortCode;
+        this.shortCode = organisation.shortCode ?? "";
       } catch (error: unknown) {
         const err = ensureError(error);
 
