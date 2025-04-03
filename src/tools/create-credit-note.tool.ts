@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { createXeroCreditNote } from "../handlers/create-xero-credit-note.handler.js";
 import { ToolDefinition } from "../types/tool-definition.js";
+import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
 
 const toolName = "create-credit-note";
-const toolDescription = "Create a credit note in Xero.";
+const toolDescription =
+  "Create a credit note in Xero.\
+ When a credit note is created, a deep link to the credit note in Xero is returned. \
+ This deep link can be used to view the credit note in Xero directly. \
+ This link should be displayed to the user.";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -37,11 +42,7 @@ const toolHandler = async (
   },
   //_extra: { signal: AbortSignal },
 ) => {
-  const result = await createXeroCreditNote(
-    contactId,
-    lineItems,
-    reference,
-  );
+  const result = await createXeroCreditNote(contactId, lineItems, reference);
   if (result.isError) {
     return {
       content: [
@@ -55,6 +56,10 @@ const toolHandler = async (
 
   const creditNote = result.result;
 
+  const deepLink = creditNote.creditNoteID
+    ? await getDeepLink(DeepLinkType.CREDIT_NOTE, creditNote.creditNoteID)
+    : null;
+
   return {
     content: [
       {
@@ -65,7 +70,10 @@ const toolHandler = async (
           `Contact: ${creditNote?.contact?.name}`,
           `Total: ${creditNote?.total}`,
           `Status: ${creditNote?.status}`,
-        ].join("\n"),
+          deepLink ? `Link to view: ${deepLink}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n"),
       },
     ],
   };
@@ -78,4 +86,4 @@ export const CreateCreditNoteTool: ToolDefinition<typeof toolSchema> = {
   handler: toolHandler,
 };
 
-export default CreateCreditNoteTool; 
+export default CreateCreditNoteTool;

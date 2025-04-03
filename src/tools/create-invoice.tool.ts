@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { createXeroInvoice } from "../handlers/create-xero-invoice.handler.js";
 import { ToolDefinition } from "../types/tool-definition.js";
+import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
 
 const toolName = "create-invoice";
-const toolDescription = "Create an invoice in Xero.";
+const toolDescription =
+  "Create an invoice in Xero.\
+ When an invoice is created, a deep link to the invoice in Xero is returned. \
+ This deep link can be used to view the invoice in Xero directly. \
+ This link should be displayed to the user.";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -37,11 +42,7 @@ const toolHandler = async (
   },
   //_extra: { signal: AbortSignal },
 ) => {
-  const result = await createXeroInvoice(
-    contactId,
-    lineItems,
-    reference,
-  );
+  const result = await createXeroInvoice(contactId, lineItems, reference);
   if (result.isError) {
     return {
       content: [
@@ -55,6 +56,10 @@ const toolHandler = async (
 
   const invoice = result.result;
 
+  const deepLink = invoice.invoiceID
+    ? await getDeepLink(DeepLinkType.INVOICE, invoice.invoiceID)
+    : null;
+
   return {
     content: [
       {
@@ -65,7 +70,10 @@ const toolHandler = async (
           `Contact: ${invoice?.contact?.name}`,
           `Total: ${invoice?.total}`,
           `Status: ${invoice?.status}`,
-        ].join("\n"),
+          deepLink ? `Link to view: ${deepLink}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n"),
       },
     ],
   };
