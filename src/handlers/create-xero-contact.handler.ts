@@ -25,7 +25,7 @@ async function createContact(
   };
 
   const response = await xeroClient.accountingApi.createContacts(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     {
       contacts: [contact],
     }, //contacts
