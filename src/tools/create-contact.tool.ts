@@ -1,9 +1,14 @@
 import { createXeroContact } from "../handlers/create-xero-contact.handler.js";
 import { z } from "zod";
 import { ToolDefinition } from "../types/tool-definition.js";
+import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
 
 const toolName = "create-contact";
-const toolDescription = "Create a contact in Xero.";
+const toolDescription =
+  "Create a contact in Xero.\
+ When a contact is created, a deep link to the contact in Xero is returned. \
+ This deep link can be used to view the contact in Xero directly. \
+ This link should be displayed to the user.";
 const toolSchema = {
   name: z.string(),
   email: z.string().email().optional(),
@@ -21,7 +26,7 @@ const toolHandler = async (
         content: [
           {
             type: "text" as const,
-            text: `Error listing contacts: ${response.error}`,
+            text: `Error creating contact: ${response.error}`,
           },
         ],
       };
@@ -29,11 +34,20 @@ const toolHandler = async (
 
     const contact = response.result;
 
+    const deepLink = contact.contactID
+      ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID)
+      : null;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `Contact created: ${contact.name} (ID: ${contact.contactID})`,
+          text: [
+            `Contact created: ${contact.name} (ID: ${contact.contactID})`,
+            deepLink ? `Link to view: ${deepLink}` : null,
+          ]
+            .filter(Boolean)
+            .join("\n"),
         },
       ],
     };
