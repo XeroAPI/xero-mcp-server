@@ -11,7 +11,7 @@ async function getQuotes(
   await xeroClient.authenticate();
 
   const quotes = await xeroClient.accountingApi.getQuotes(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     undefined, // ifModifiedSince
     undefined, // dateFrom
     undefined, // dateTo

@@ -17,7 +17,7 @@ async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
 
   // First, get the current invoice to check its status
   const response = await xeroClient.accountingApi.getInvoice(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     invoiceId, // invoiceId
     undefined, // unitdp
     {
@@ -41,7 +41,7 @@ async function updateInvoice(
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     invoiceId, // invoiceId
     {
       invoices: [invoice],

@@ -11,7 +11,7 @@ async function getCreditNotes(
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getCreditNotes(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     undefined, // ifModifiedSince
     contactId ? `Contact.ContactID=guid("${contactId}")` : undefined, // where
     "UpdatedDateUTC DESC", // order

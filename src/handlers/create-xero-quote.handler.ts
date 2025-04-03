@@ -41,7 +41,7 @@ async function createQuote(
   };
 
   const response = await xeroClient.accountingApi.createQuotes(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     {
       quotes: [quote],
     }, // quotes

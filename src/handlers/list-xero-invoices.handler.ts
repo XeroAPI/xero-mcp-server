@@ -12,7 +12,7 @@ async function getInvoices(
   await xeroClient.authenticate();
 
   const invoices = await xeroClient.accountingApi.getInvoices(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     undefined, // ifModifiedSince
     undefined, // where
     "UpdatedDateUTC DESC", // order

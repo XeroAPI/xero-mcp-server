@@ -1,4 +1,4 @@
-import { XeroClient } from "xero-node";
+import {IXeroClientConfig, XeroClient} from "xero-node";
 import dotenv from "dotenv";
 import axios, { AxiosError } from "axios";
 
@@ -6,16 +6,35 @@ dotenv.config();
 
 const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
+const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
 const grant_type = "client_credentials";
 
-if (!client_id || !client_secret) {
+if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
 
-class CustomConnectionsXeroClient extends XeroClient {
+abstract class MCPXeroClient extends XeroClient {
+  public tenantId: string;
+  
+  protected constructor(config?: IXeroClientConfig) {
+    super(config);
+    this.tenantId = "";
+  }
+
+  public abstract authenticate(): Promise<void>
+  
+  override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
+    await super.updateTenants(fullOrgDetails);
+    if (this.tenants && this.tenants.length > 0) {
+      this.tenantId = this.tenants[0].tenantId;
+    }
+    return this.tenants;
+  }
+}
+
+class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
-  private tenantId?: string;
 
   constructor(config: {
     clientId: string;
@@ -71,33 +90,40 @@ class CustomConnectionsXeroClient extends XeroClient {
       );
     }
   }
-
+  
   public async authenticate() {
-    const tokenResponse = await xeroClient.getClientCredentialsToken();
+    const tokenResponse = await this.getClientCredentialsToken();
 
-    xeroClient.setTokenSet({
+    this.setTokenSet({
       access_token: tokenResponse.access_token,
       expires_in: tokenResponse.expires_in,
       token_type: tokenResponse.token_type,
     });
   }
+}
 
-  // Override the buildHeaders method to include the tenant ID
-  protected buildHeaders(
-    bearerToken: string,
-    contentType = "application/json",
-  ): { [key: string]: string } {
-    return {
-      Authorization: `Bearer ${bearerToken}`,
-      "Content-Type": contentType,
-      Accept: "application/json",
-      "Xero-tenant-id": this.tenantId || "",
-    };
+class BearerTokenXeroClient extends MCPXeroClient {
+  private readonly bearerToken: string;
+  
+  constructor(config: {
+    bearerToken: string;
+  }) {
+    super();
+    this.bearerToken = config.bearerToken;
+  }
+
+  async authenticate(): Promise<void> {
+    this.setTokenSet({
+      access_token: this.bearerToken,
+    })
+    await this.updateTenants()
   }
 }
 
-export const xeroClient = new CustomConnectionsXeroClient({
-  clientId: client_id,
-  clientSecret: client_secret,
+export const xeroClient = bearer_token ? new BearerTokenXeroClient({
+  bearerToken: bearer_token
+}): new CustomConnectionsXeroClient({
+  clientId: client_id!,
+  clientSecret: client_secret!,
   grantType: grant_type,
 });

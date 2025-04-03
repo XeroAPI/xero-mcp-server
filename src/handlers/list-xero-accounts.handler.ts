@@ -8,7 +8,7 @@ async function listAccounts(): Promise<Account[]> {
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getAccounts(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order

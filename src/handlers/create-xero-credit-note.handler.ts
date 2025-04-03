@@ -31,7 +31,7 @@ async function createCreditNote(
   };
 
   const response = await xeroClient.accountingApi.createCreditNotes(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     {
       creditNotes: [creditNote],
     }, // creditNotes

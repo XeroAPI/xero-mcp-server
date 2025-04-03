@@ -48,7 +48,7 @@ async function updateContact(
   };
 
   const response = await xeroClient.accountingApi.updateContact(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     contactId, // contactId
     contacts, // contacts
     undefined, // idempotencyKey

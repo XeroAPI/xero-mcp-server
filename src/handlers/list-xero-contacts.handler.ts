@@ -8,7 +8,7 @@ async function getContacts(): Promise<Contact[]> {
   await xeroClient.authenticate();
 
   const contacts = await xeroClient.accountingApi.getContacts(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order

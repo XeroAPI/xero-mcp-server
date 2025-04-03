@@ -8,7 +8,7 @@ async function getTaxRates(): Promise<TaxRate[]> {
   await xeroClient.authenticate();
 
   const taxRates = await xeroClient.accountingApi.getTaxRates(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     undefined, // where
     undefined, // order
     {

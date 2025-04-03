@@ -23,5 +23,5 @@ export function formatError(error: unknown): string {
   }
   return error instanceof Error
     ? error.message
-    : "An unexpected error occurred.";
+    : `An unexpected error occurred: ${error}`;
 }

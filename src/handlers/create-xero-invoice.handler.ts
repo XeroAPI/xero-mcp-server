@@ -34,7 +34,7 @@ async function createInvoice(
   };
 
   const response = await xeroClient.accountingApi.createInvoices(
-    "", // tenantId (empty string for default)
+    xeroClient.tenantId,
     {
       invoices: [invoice],
     }, // invoices
