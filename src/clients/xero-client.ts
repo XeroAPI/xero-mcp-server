@@ -6,6 +6,7 @@ import {
 } from "xero-node";
 import dotenv from "dotenv";
 import axios, { AxiosError } from "axios";
+import { ensureError } from "../helpers/ensure-error.js";
 
 dotenv.config();
 
@@ -59,11 +60,10 @@ abstract class MCPXeroClient extends XeroClient {
       try {
         const organisation = await this.getOrganisation();
         this.shortCode = organisation.shortCode;
-      } catch (error) {
-        const axiosError = error as AxiosError;
-        throw new Error(
-          `Failed to get Xero short code: ${axiosError.response?.data || axiosError.message}`,
-        );
+      } catch (error: unknown) {
+        const err = ensureError(error);
+
+        throw new Error(`Failed to get Xero short code: ${err.message}`);
       }
     }
     return this.shortCode;
