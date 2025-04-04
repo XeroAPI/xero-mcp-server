@@ -1,5 +1,5 @@
-import { listXeroContacts } from "../handlers/list-xero-contacts.handler.js";
-import { ToolDefinition } from "../types/tool-definition.js";
+import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
 
 const toolName = "list-contacts";
 const toolDescription =

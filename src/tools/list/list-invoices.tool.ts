@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { listXeroInvoices } from "../handlers/list-xero-invoices.handler.js";
-import { ToolDefinition } from "../types/tool-definition.js";
+import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
 import { LineItem } from "xero-node";
 
 const toolName = "list-invoices";

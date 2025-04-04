@@ -1,5 +1,5 @@
-import { ToolDefinition } from "../types/tool-definition.js";
-import { listXeroAccounts } from "../handlers/list-xero-accounts.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
+import { listXeroAccounts } from "../../handlers/list-xero-accounts.handler.js";
 
 const toolName = "list-accounts";
 const toolDescription =

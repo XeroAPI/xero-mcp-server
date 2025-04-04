@@ -2,19 +2,19 @@
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { XeroMcpServer } from "./server/xero-mcp-server.js";
-import { ListContactsTool } from "./tools/list-contacts.tool.js";
-import { ListInvoicesTool } from "./tools/list-invoices.tool.js";
-import { CreateContactTool } from "./tools/create-contact.tool.js";
-import { CreateInvoiceTool } from "./tools/create-invoice.tool.js";
+import { ListContactsTool } from "./tools/list/list-contacts.tool.js";
+import { ListInvoicesTool } from "./tools/list/list-invoices.tool.js";
+import { CreateContactTool } from "./tools/create/create-contact.tool.js";
+import { CreateInvoiceTool } from "./tools/create/create-invoice.tool.js";
 import { RegisterTool } from "./helpers/register-tool.js";
-import { ListAccountsTool } from "./tools/list-accounts.tool.js";
-import { ListTaxRatesTool } from "./tools/list-tax-rates.tool.js";
-import { ListQuotesTool } from "./tools/list-quotes.tool.js";
-import { CreateQuoteTool } from "./tools/create-quote.tool.js";
-import { UpdateContactTool } from "./tools/update-contact.tool.js";
-import { UpdateInvoiceTool } from "./tools/update-invoice.tool.js";
-import { ListCreditNotesTool } from "./tools/list-credit-notes.tool.js";
-import { CreateCreditNoteTool } from "./tools/create-credit-note.tool.js";
+import { ListAccountsTool } from "./tools/list/list-accounts.tool.js";
+import { ListTaxRatesTool } from "./tools/list/list-tax-rates.tool.js";
+import { ListQuotesTool } from "./tools/list/list-quotes.tool.js";
+import { CreateQuoteTool } from "./tools/create/create-quote.tool.js";
+import { UpdateContactTool } from "./tools/update/update-contact.tool.js";
+import { UpdateInvoiceTool } from "./tools/update/update-invoice.tool.js";
+import { ListCreditNotesTool } from "./tools/list/list-credit-notes.tool.js";
+import { CreateCreditNoteTool } from "./tools/create/create-credit-note.tool.js";
 
 const main = async () => {
   // Create an MCP server

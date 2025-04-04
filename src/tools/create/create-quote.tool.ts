@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { createXeroQuote } from "../handlers/create-xero-quote.handler.js";
-import { ToolDefinition } from "../types/tool-definition.js";
-import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
+import { createXeroQuote } from "../../handlers/create-xero-quote.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
+import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 
 const toolName = "create-quote";
 const toolDescription =

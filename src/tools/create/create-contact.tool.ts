@@ -1,8 +1,8 @@
-import { createXeroContact } from "../handlers/create-xero-contact.handler.js";
+import { createXeroContact } from "../../handlers/create-xero-contact.handler.js";
 import { z } from "zod";
-import { ToolDefinition } from "../types/tool-definition.js";
-import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
-import { ensureError } from "../helpers/ensure-error.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
+import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
+import { ensureError } from "../../helpers/ensure-error.js";
 
 const toolName = "create-contact";
 const toolDescription =

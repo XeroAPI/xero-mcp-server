@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { listXeroQuotes } from "../handlers/list-xero-quotes.handler.js";
-import { ToolDefinition } from "../types/tool-definition.js";
+import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
 
 const toolName = "list-quotes";
 const toolDescription = `List all quotes in Xero. 

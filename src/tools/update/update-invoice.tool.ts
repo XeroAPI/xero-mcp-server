@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { updateXeroInvoice } from "../handlers/update-xero-invoice.handler.js";
-import { ToolDefinition } from "../types/tool-definition.js";
-import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
+import { updateXeroInvoice } from "../../handlers/update-xero-invoice.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
+import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 
 const toolName = "update-invoice";
 const toolDescription =

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { listXeroCreditNotes } from "../handlers/list-xero-credit-notes.handler.js";
-import { ToolDefinition } from "../types/tool-definition.js";
+import { listXeroCreditNotes } from "../../handlers/list-xero-credit-notes.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
 
 const toolName = "list-credit-notes";
 const toolDescription = `List credit notes in Xero. 

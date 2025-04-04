@@ -1,5 +1,5 @@
-import { ToolDefinition } from "../types/tool-definition.js";
-import { listXeroTaxRates } from "../handlers/list-xero-tax-rates.handler.js";
+import { ToolDefinition } from "../../types/tool-definition.js";
+import { listXeroTaxRates } from "../../handlers/list-xero-tax-rates.handler.js";
 
 const toolName = "list-tax-rates";
 const toolDescription =
