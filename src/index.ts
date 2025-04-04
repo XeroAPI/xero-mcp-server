@@ -2,59 +2,13 @@
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { XeroMcpServer } from "./server/xero-mcp-server.js";
-import { ListContactsTool } from "./tools/list/list-contacts.tool.js";
-import { ListInvoicesTool } from "./tools/list/list-invoices.tool.js";
-import { CreateContactTool } from "./tools/create/create-contact.tool.js";
-import { CreateInvoiceTool } from "./tools/create/create-invoice.tool.js";
-import { RegisterTool } from "./helpers/register-tool.js";
-import { ListAccountsTool } from "./tools/list/list-accounts.tool.js";
-import { ListTaxRatesTool } from "./tools/list/list-tax-rates.tool.js";
-import { ListQuotesTool } from "./tools/list/list-quotes.tool.js";
-import { CreateQuoteTool } from "./tools/create/create-quote.tool.js";
-import { UpdateContactTool } from "./tools/update/update-contact.tool.js";
-import { UpdateInvoiceTool } from "./tools/update/update-invoice.tool.js";
-import { ListCreditNotesTool } from "./tools/list/list-credit-notes.tool.js";
-import { CreateCreditNoteTool } from "./tools/create/create-credit-note.tool.js";
+import { ToolFactory } from "./tools/tool-factory.js";
 
 const main = async () => {
   // Create an MCP server
   const server = XeroMcpServer.GetServer();
 
-  // Add tool to list contacts
-  RegisterTool(server, ListContactsTool);
-
-  // Add tool to list invoices
-  RegisterTool(server, ListInvoicesTool);
-
-  // Add a tool to create a contact
-  RegisterTool(server, CreateContactTool);
-
-  // Add tool to create an invoice
-  RegisterTool(server, CreateInvoiceTool);
-
-  // Add tool to list accounts
-  RegisterTool(server, ListAccountsTool);
-
-  // Add tool to list tax rates
-  RegisterTool(server, ListTaxRatesTool);
-
-  // Add tool to list quotes
-  RegisterTool(server, ListQuotesTool);
-
-  // Add tool to create a quote
-  RegisterTool(server, CreateQuoteTool);
-
-  // Add tool to update a contact
-  RegisterTool(server, UpdateContactTool);
-
-  // Add tool to update an invoice
-  RegisterTool(server, UpdateInvoiceTool);
-
-  // Add tool to list credit notes
-  RegisterTool(server, ListCreditNotesTool);
-
-  // Add tool to create a credit note
-  RegisterTool(server, CreateCreditNoteTool);
+  ToolFactory(server);
 
   // Start receiving messages on stdin and sending messages on stdout
   const transport = new StdioServerTransport();
