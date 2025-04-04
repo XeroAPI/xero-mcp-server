@@ -2,6 +2,7 @@ import { updateXeroContact } from "../handlers/update-xero-contact.handler.js";
 import { z } from "zod";
 import { ToolDefinition } from "../types/tool-definition.js";
 import { DeepLinkType, getDeepLink } from "../helpers/get-deeplink.js";
+import { ensureError } from "../helpers/ensure-error.js";
 
 const toolName = "update-contact";
 const toolDescription =
@@ -96,17 +97,13 @@ const toolHandler = async (
       ],
     };
   } catch (error) {
-    let errorMessage = "Unknown error";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else if (typeof error === "object" && error !== null) {
-      errorMessage = JSON.stringify(error);
-    }
+    const err = ensureError(error);
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `Error creating contact: ${errorMessage}`,
+          text: `Error creating contact: ${err.message}`,
         },
       ],
     };
