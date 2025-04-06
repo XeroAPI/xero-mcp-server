@@ -1,5 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { ToolResponse } from "../types/tool-response.js";
+import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { TaxRate } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -19,7 +19,9 @@ async function getTaxRates(): Promise<TaxRate[]> {
 /**
  * List all tax rates from Xero
  */
-export async function listXeroTaxRates(): Promise<ToolResponse<TaxRate[]>> {
+export async function listXeroTaxRates(): Promise<
+  XeroClientResponse<TaxRate[]>
+> {
   try {
     const taxRates = await getTaxRates();
 

@@ -4,13 +4,13 @@ import { ListTools } from "./list/index.js";
 import { UpdateTools } from "./update/index.js";
 
 export function ToolFactory(server: McpServer) {
-  CreateTools.forEach((tool) =>
+  CreateTools.map((tool) => tool()).forEach((tool) =>
     server.tool(tool.name, tool.description, tool.schema, tool.handler),
   );
-  ListTools.forEach((tool) =>
+  ListTools.map((tool) => tool()).forEach((tool) =>
     server.tool(tool.name, tool.description, tool.schema, tool.handler),
   );
-  UpdateTools.forEach((tool) =>
+  UpdateTools.map((tool) => tool()).forEach((tool) =>
     server.tool(tool.name, tool.description, tool.schema, tool.handler),
   );
 }

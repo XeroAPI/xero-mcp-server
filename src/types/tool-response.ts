@@ -1,4 +1,4 @@
-export type ToolResponse<Response> =
+export type XeroClientResponse<Response> =
   | {
       result: Response;
       isError: false;

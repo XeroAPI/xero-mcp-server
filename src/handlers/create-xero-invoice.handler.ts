@@ -1,5 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { ToolResponse } from "../types/tool-response.js";
+import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -54,7 +54,7 @@ export async function createXeroInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
   reference?: string,
-): Promise<ToolResponse<Invoice>> {
+): Promise<XeroClientResponse<Invoice>> {
   try {
     const createdInvoice = await createInvoice(contactId, lineItems, reference);
 

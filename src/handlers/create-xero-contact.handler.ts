@@ -1,5 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { ToolResponse } from "../types/tool-response.js";
+import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Contact, Phone } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -44,7 +44,7 @@ export async function createXeroContact(
   name: string,
   email?: string,
   phone?: string,
-): Promise<ToolResponse<Contact>> {
+): Promise<XeroClientResponse<Contact>> {
   try {
     const createdContact = await createContact(name, email, phone);
 

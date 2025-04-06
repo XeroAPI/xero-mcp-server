@@ -1,16 +1,7 @@
 import { z } from "zod";
 import { updateXeroInvoice } from "../../handlers/update-xero-invoice.handler.js";
-import { ToolDefinition } from "../../types/tool-definition.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-
-const toolName = "update-invoice";
-const toolDescription =
-  "Update an invoice in Xero. Only works on draft invoices.\
-  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
-  Do not modify line items that have not been specified by the user.\
- When an invoice is updated, a deep link to the invoice in Xero is returned. \
- This deep link can be used to view the contact in Xero directly. \
- This link should be displayed to the user.";
+import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -20,79 +11,82 @@ const lineItemSchema = z.object({
   taxType: z.string(),
 });
 
-const toolSchema = {
-  invoiceId: z.string(),
-  lineItems: z.array(lineItemSchema).optional().describe(
-    "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
-      Do not modify line items that have not been specified by the user",
-  ),
-  reference: z.string().optional(),
-  dueDate: z.string().optional(),
-};
-
-const toolHandler = async (
+const UpdateInvoiceTool = CreateXeroTool(
+  "update-invoice",
+  "Update an invoice in Xero. Only works on draft invoices.\
+  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
+  Do not modify line items that have not been specified by the user.\
+ When an invoice is updated, a deep link to the invoice in Xero is returned. \
+ This deep link can be used to view the contact in Xero directly. \
+ This link should be displayed to the user.",
   {
-    invoiceId,
-    lineItems,
-    reference,
-    dueDate,
-  }: {
-    invoiceId: string;
-    lineItems?: Array<{
-      description: string;
-      quantity: number;
-      unitAmount: number;
-      accountCode: string;
-      taxType: string;
-    }>;
-    reference?: string;
-    dueDate?: string;
+    invoiceId: z.string(),
+    lineItems: z.array(lineItemSchema).optional().describe(
+      "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
+      Do not modify line items that have not been specified by the user",
+    ),
+    reference: z.string().optional(),
+    dueDate: z.string().optional(),
   },
-  //_extra: { signal: AbortSignal },
-) => {
-  const result = await updateXeroInvoice(
-    invoiceId,
-    lineItems,
-    reference,
-    dueDate,
-  );
-  if (result.isError) {
+  async (
+    {
+      invoiceId,
+      lineItems,
+      reference,
+      dueDate,
+    }: {
+      invoiceId: string;
+      lineItems?: Array<{
+        description: string;
+        quantity: number;
+        unitAmount: number;
+        accountCode: string;
+        taxType: string;
+      }>;
+      reference?: string;
+      dueDate?: string;
+    },
+    //_extra: { signal: AbortSignal },
+  ) => {
+    const result = await updateXeroInvoice(
+      invoiceId,
+      lineItems,
+      reference,
+      dueDate,
+    );
+    if (result.isError) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error updating invoice: ${result.error}`,
+          },
+        ],
+      };
+    }
+
+    const invoice = result.result;
+
+    const deepLink = invoice.invoiceID
+      ? await getDeepLink(DeepLinkType.INVOICE, invoice.invoiceID)
+      : null;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `Error updating invoice: ${result.error}`,
+          text: [
+            "Invoice updated successfully:",
+            `ID: ${invoice?.invoiceID}`,
+            `Contact: ${invoice?.contact?.name}`,
+            `Total: ${invoice?.total}`,
+            `Status: ${invoice?.status}`,
+            deepLink ? `Link to view: ${deepLink}` : null,
+          ].join("\n"),
         },
       ],
     };
-  }
+  },
+);
 
-  const invoice = result.result;
-
-  const deepLink = invoice.invoiceID
-    ? await getDeepLink(DeepLinkType.INVOICE, invoice.invoiceID)
-    : null;
-
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: [
-          "Invoice updated successfully:",
-          `ID: ${invoice?.invoiceID}`,
-          `Contact: ${invoice?.contact?.name}`,
-          `Total: ${invoice?.total}`,
-          `Status: ${invoice?.status}`,
-          deepLink ? `Link to view: ${deepLink}` : null,
-        ].join("\n"),
-      },
-    ],
-  };
-};
-
-export const UpdateInvoiceTool: ToolDefinition<typeof toolSchema> = {
-  name: toolName,
-  description: toolDescription,
-  schema: toolSchema,
-  handler: toolHandler,
-};
+export default UpdateInvoiceTool;
