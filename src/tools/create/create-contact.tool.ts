@@ -4,7 +4,7 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
-export const CreateContactTool = CreateXeroTool(
+const CreateContactTool = CreateXeroTool(
   "create-contact",
   "Create a contact in Xero.\
   When a contact is created, a deep link to the contact in Xero is returned. \
@@ -62,3 +62,5 @@ export const CreateContactTool = CreateXeroTool(
     }
   },
 );
+
+export default CreateContactTool;
