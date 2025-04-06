@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 import { ToolDefinition } from "../../types/tool-definition.js";
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const toolName = "list-quotes";
 const toolDescription = `List all quotes in Xero. 
@@ -12,15 +13,13 @@ const toolSchema = {
   contactId: z.string().optional(),
 };
 
-const toolHandler = async ({
+const toolHandler: ToolCallback<typeof toolSchema> = async ({
   page,
   contactId,
 }: {
   page: number;
   contactId?: string;
-}): Promise<{
-  content: Array<{ type: "text"; text: string }>;
-}> => {
+}) => {
   const response = await listXeroQuotes(page, contactId);
   if (response.error !== null) {
     return {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createXeroQuote } from "../../handlers/create-xero-quote.handler.js";
 import { ToolDefinition } from "../../types/tool-definition.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const toolName = "create-quote";
 const toolDescription =
@@ -28,32 +29,15 @@ const toolSchema = {
   summary: z.string().optional(),
 };
 
-const toolHandler = async (
-  {
-    contactId,
-    lineItems,
-    reference,
-    quoteNumber,
-    terms,
-    title,
-    summary,
-  }: {
-    contactId: string;
-    lineItems: Array<{
-      description: string;
-      quantity: number;
-      unitAmount: number;
-      accountCode: string;
-      taxType: string;
-    }>;
-    reference?: string;
-    quoteNumber?: string;
-    terms?: string;
-    title?: string;
-    summary?: string;
-  },
-  //_extra: { signal: AbortSignal },
-) => {
+const toolHandler: ToolCallback<typeof toolSchema> = async ({
+  contactId,
+  lineItems,
+  reference,
+  quoteNumber,
+  terms,
+  title,
+  summary,
+}) => {
   const result = await createXeroQuote(
     contactId,
     lineItems,

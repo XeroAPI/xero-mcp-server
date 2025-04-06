@@ -1,3 +1,4 @@
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
 import { ToolDefinition } from "../../types/tool-definition.js";
 
@@ -6,7 +7,7 @@ const toolDescription =
   "List all contacts in Xero. This includes Suppliers and Customers.";
 const toolSchema = {};
 
-const toolHandler = async (/*_args: {}, _extra: { signal: AbortSignal }*/) => {
+const toolHandler: ToolCallback<typeof toolSchema> = async () => {
   const response = await listXeroContacts();
 
   if (response.isError) {

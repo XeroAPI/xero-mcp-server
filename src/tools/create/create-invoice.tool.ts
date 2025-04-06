@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createXeroInvoice } from "../../handlers/create-xero-invoice.handler.js";
 import { ToolDefinition } from "../../types/tool-definition.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const toolName = "create-invoice";
 const toolDescription =
@@ -24,24 +25,11 @@ const toolSchema = {
   reference: z.string().optional(),
 };
 
-const toolHandler = async (
-  {
-    contactId,
-    lineItems,
-    reference,
-  }: {
-    contactId: string;
-    lineItems: Array<{
-      description: string;
-      quantity: number;
-      unitAmount: number;
-      accountCode: string;
-      taxType: string;
-    }>;
-    reference?: string;
-  },
-  //_extra: { signal: AbortSignal },
-) => {
+const toolHandler: ToolCallback<typeof toolSchema> = async ({
+  contactId,
+  lineItems,
+  reference,
+}) => {
   const result = await createXeroInvoice(contactId, lineItems, reference);
   if (result.isError) {
     return {

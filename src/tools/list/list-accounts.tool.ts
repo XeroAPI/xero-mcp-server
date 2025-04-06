@@ -1,14 +1,13 @@
 import { ToolDefinition } from "../../types/tool-definition.js";
 import { listXeroAccounts } from "../../handlers/list-xero-accounts.handler.js";
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const toolName = "list-accounts";
 const toolDescription =
   "Lists all accounts in Xero. Use this tool to get the account codes and names to be used when creating invoices in Xero";
 const toolSchema = {};
 
-const toolHandler = async (): Promise<{
-  content: Array<{ type: "text"; text: string }>;
-}> => {
+const toolHandler: ToolCallback<typeof toolSchema> = async () => {
   const response = await listXeroAccounts();
   if (response.error !== null) {
     return {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroCreditNotes } from "../../handlers/list-xero-credit-notes.handler.js";
 import { ToolDefinition } from "../../types/tool-definition.js";
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const toolName = "list-credit-notes";
 const toolDescription = `List credit notes in Xero. 
@@ -16,15 +17,10 @@ const toolSchema = {
   contactId: z.string().optional(),
 };
 
-const toolHandler = async ({
+const toolHandler: ToolCallback<typeof toolSchema> = async ({
   page,
   contactId,
-}: {
-  page: number;
-  contactId?: string;
-}): Promise<{
-  content: Array<{ type: "text"; text: string }>;
-}> => {
+}) => {
   const response = await listXeroCreditNotes(page, contactId);
   if (response.error !== null) {
     return {

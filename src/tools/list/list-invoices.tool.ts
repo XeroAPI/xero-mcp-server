@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { ToolDefinition } from "../../types/tool-definition.js";
 import { LineItem } from "xero-node";
+import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const toolName = "list-invoices";
 const toolDescription =
@@ -31,17 +32,11 @@ const formatLineItem = (lineItem: LineItem): string => {
   ].join("\n");
 };
 
-const toolHandler = async ({
+const toolHandler: ToolCallback<typeof toolSchema> = async ({
   page,
   contactIds,
   invoiceNumbers,
-}: {
-  page: number;
-  contactIds?: string[];
-  invoiceNumbers?: string[];
-}): Promise<{
-  content: Array<{ type: "text"; text: string }>;
-}> => {
+}) => {
   const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
   if (response.error !== null) {
     return {

@@ -1,5 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { ToolResponse } from "../types/tool-response.js";
+import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -30,7 +30,7 @@ async function getCreditNotes(
 export async function listXeroCreditNotes(
   page: number = 1,
   contactId?: string,
-): Promise<ToolResponse<CreditNote[]>> {
+): Promise<XeroClientResponse<CreditNote[]>> {
   try {
     const creditNotes = await getCreditNotes(contactId, page);
 

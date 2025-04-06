@@ -1,5 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { ToolResponse } from "../types/tool-response.js";
+import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Account } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -22,7 +22,9 @@ async function listAccounts(): Promise<Account[]> {
 /**
  * List all accounts from Xero
  */
-export async function listXeroAccounts(): Promise<ToolResponse<Account[]>> {
+export async function listXeroAccounts(): Promise<
+  XeroClientResponse<Account[]>
+> {
   try {
     const accounts = await listAccounts();
 
