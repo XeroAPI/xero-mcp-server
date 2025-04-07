@@ -51,6 +51,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 - `list-quotes` : Retrieve a list of quotes
 - `list-credit-notes`: Retrieve a list of credit notes
 - `list-trial-balance`: Retrieve a trial balance report
+- `list-profit-and-loss`: Retrieve a profit and loss report
 - `create-contact`: Create a new contact
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
