@@ -30,10 +30,18 @@ async function fetchTrialBalance(
  */
 export async function listXeroTrialBalance(
   date?: string,
-  paymentsOnly?: boolean
-): Promise<XeroClientResponse<ReportWithRows>> {
+  paymentsOnly?: boolean,
+): Promise<XeroClientResponse<ReportWithRow>> {
   try {
     const trialBalance = await fetchTrialBalance(date, paymentsOnly);
+
+    if (!trialBalance) {
+      return {
+        result: null,
+        isError: true,
+        error: "Failed to fetch trial balance data from Xero.",
+      };
+    }
 
     return {
       result: trialBalance,
