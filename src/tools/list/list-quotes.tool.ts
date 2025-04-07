@@ -13,7 +13,7 @@ const ListQuotesTool = CreateXeroTool(
     contactId: z.string().optional(),
     quoteNumber: z.string().optional(),
   },
-  async ({ page, contactId, quoteNumber }: { page: number; contactId?: string; quoteNumber?: string }) => {
+  async ({ page, contactId, quoteNumber }) => {
     const response = await listXeroQuotes(page, contactId, quoteNumber);
     if (response.error !== null) {
       return {
