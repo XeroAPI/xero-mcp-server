@@ -46,25 +46,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
-    }: {
-      quoteId: string;
-      lineItems?: Array<{
-        description: string;
-        quantity: number;
-        unitAmount: number;
-        accountCode: string;
-        taxType: string;
-      }>;
-      reference?: string;
-      terms?: string;
-      title?: string;
-      summary?: string;
-      quoteNumber?: string;
-      contactId?: string;
-      date?: string;
-      expiryDate?: string;
-    },
-    //_extra: { signal: AbortSignal },
+    }
   ) => {
     const result = await updateXeroQuote(
       quoteId,
