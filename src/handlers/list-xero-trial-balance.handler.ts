@@ -20,7 +20,7 @@ async function fetchTrialBalance(
     getClientHeaders(),
   );
 
-  return response.body;
+  return response.body.reports?.[0] ?? null;
 }
 
 /**
