@@ -9,8 +9,8 @@ import { ReportWithRow } from "xero-node";
  */
 async function fetchTrialBalance(
   date?: string,
-  paymentsOnly?: boolean
-): Promise<ReportWithRows> {
+  paymentsOnly?: boolean,
+): Promise<ReportWithRow | null> {
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getReportTrialBalance(
