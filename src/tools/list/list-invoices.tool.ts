@@ -55,7 +55,8 @@ const ListInvoicesTool = CreateXeroTool(
         ...(invoices?.map((invoice) => ({
           type: "text" as const,
           text: [
-            `Invoice: ${invoice.invoiceNumber || invoice.invoiceID}`,
+            `Invoice ID: ${invoice.invoiceID}`,
+            `Invoice: ${invoice.invoiceNumber}`,
             invoice.reference ? `Reference: ${invoice.reference}` : null,
             `Type: ${invoice.type || "Unknown"}`,
             `Status: ${invoice.status || "Unknown"}`,

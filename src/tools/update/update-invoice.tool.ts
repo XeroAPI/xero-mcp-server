@@ -27,6 +27,8 @@ const UpdateInvoiceTool = CreateXeroTool(
     ),
     reference: z.string().optional(),
     dueDate: z.string().optional(),
+    date: z.string().optional(),
+    contactId: z.string().optional(),
   },
   async (
     {
@@ -34,6 +36,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       lineItems,
       reference,
       dueDate,
+      date,
+      contactId,
     }: {
       invoiceId: string;
       lineItems?: Array<{
@@ -45,6 +49,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       }>;
       reference?: string;
       dueDate?: string;
+      date?: string;
+      contactId?: string;
     },
     //_extra: { signal: AbortSignal },
   ) => {
@@ -53,6 +59,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       lineItems,
       reference,
       dueDate,
+      date,
+      contactId,
     );
     if (result.isError) {
       return {
