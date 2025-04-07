@@ -56,6 +56,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 - `create-credit-note`: Create a new credit note
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
+- `update-quote`: Update an existing draft quote
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

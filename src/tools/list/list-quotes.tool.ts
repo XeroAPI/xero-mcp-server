@@ -11,9 +11,10 @@ const ListQuotesTool = CreateXeroTool(
   {
     page: z.number(),
     contactId: z.string().optional(),
+    quoteNumber: z.string().optional(),
   },
-  async ({ page, contactId }: { page: number; contactId?: string }) => {
-    const response = await listXeroQuotes(page, contactId);
+  async ({ page, contactId, quoteNumber }: { page: number; contactId?: string; quoteNumber?: string }) => {
+    const response = await listXeroQuotes(page, contactId, quoteNumber);
     if (response.error !== null) {
       return {
         content: [
@@ -36,7 +37,8 @@ const ListQuotesTool = CreateXeroTool(
         ...(quotes?.map((quote) => ({
           type: "text" as const,
           text: [
-            `Quote Number: ${quote.quoteNumber || quote.quoteID}`,
+            `Quote ID: ${quote.quoteID}`,
+            `Quote Number: ${quote.quoteNumber}`,
             quote.reference ? `Reference: ${quote.reference}` : null,
             `Status: ${quote.status || "Unknown"}`,
             quote.contact
