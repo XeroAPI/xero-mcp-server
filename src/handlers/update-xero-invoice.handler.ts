@@ -31,11 +31,15 @@ async function updateInvoice(
   lineItems?: InvoiceLineItem[],
   reference?: string,
   dueDate?: string,
+  date?: string,
+  contactId?: string,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
     reference: reference,
     dueDate: dueDate,
+    date: date,
+    contact: contactId ? { contactID: contactId } : undefined,
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -60,6 +64,8 @@ export async function updateXeroInvoice(
   lineItems?: InvoiceLineItem[],
   reference?: string,
   dueDate?: string,
+  date?: string,
+  contactId?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
@@ -80,6 +86,8 @@ export async function updateXeroInvoice(
       lineItems,
       reference,
       dueDate,
+      date,
+      contactId,
     );
 
     if (!updatedInvoice) {
