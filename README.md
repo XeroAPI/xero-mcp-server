@@ -21,7 +21,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
 
 Currently the following scopes are required:
-`accounting.transactions accounting.contacts accounting.settings.read`
+`accounting.transactions accounting.contacts accounting.settings.read accounting.reports.read`
 
 ### Integrating the MCP server with Claude Desktop
 
