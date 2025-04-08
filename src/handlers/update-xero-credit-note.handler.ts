@@ -12,7 +12,7 @@ interface CreditNoteLineItem {
   taxType: string;
 }
 
-async function getCreditNote(creditNoteId: string): Promise<CreditNote | undefined> {
+async function getCreditNote(creditNoteId: string): Promise<CreditNote | null> {
   await xeroClient.authenticate();
 
   // First, get the current credit note to check its status
@@ -23,7 +23,7 @@ async function getCreditNote(creditNoteId: string): Promise<CreditNote | undefin
     getClientHeaders(), // options
   );
 
-  return response.body.creditNotes?.[0];
+  return response.body.creditNotes?.[0] ?? null;
 }
 
 async function updateCreditNote(
@@ -32,7 +32,7 @@ async function updateCreditNote(
   reference?: string,
   contactId?: string,
   date?: string,
-): Promise<CreditNote | undefined> {
+): Promise<CreditNote | null> {
   const creditNote: CreditNote = {
     lineItems: lineItems,
     reference: reference,
@@ -51,7 +51,7 @@ async function updateCreditNote(
     getClientHeaders(), // options
   );
 
-  return response.body.creditNotes?.[0];
+  return response.body.creditNotes?.[0] ?? null;
 }
 
 /**
