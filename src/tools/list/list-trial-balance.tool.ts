@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { listXeroTrialBalance } from "../../handlers/list-xero-trial-balance.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { ReportWithRow } from "xero-node";
 
 const ListTrialBalanceTool = CreateXeroTool(
   "list-trial-balance",
@@ -23,27 +22,25 @@ const ListTrialBalanceTool = CreateXeroTool(
       };
     }
 
-    const trialBalance = response.result;
-    const reports = trialBalance.reports || [];
-    const report = reports[0] as ReportWithRow | undefined;
+   const trialBalanceReport = response.result;
 
     return {
       content: [
         {
           type: "text" as const,
-          text: `Trial Balance Report: ${report?.reportName || "Unnamed"}`,
+          text: `Trial Balance Report: ${trialBalanceReport?.reportName || "Unnamed"}`,
         },
         {
           type: "text" as const,
-          text: `Date: ${report?.reportDate || "Not specified"}`,
+          text: `Date: ${trialBalanceReport?.reportDate || "Not specified"}`,
         },
         {
           type: "text" as const,
-          text: `Updated At: ${report?.updatedDateUTC ? report.updatedDateUTC.toISOString() : "Unknown"}`,
+          text: `Updated At: ${trialBalanceReport?.updatedDateUTC ? trialBalanceReport.updatedDateUTC.toISOString() : "Unknown"}`,
         },
         {
           type: "text" as const,
-          text: JSON.stringify(trialBalance, null, 2),
+          text: JSON.stringify(trialBalanceReport.rows, null, 2),
         },
       ],
     };

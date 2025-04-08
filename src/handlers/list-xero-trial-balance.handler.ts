@@ -2,15 +2,15 @@ import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
-import { ReportWithRows } from "xero-node";
+import { ReportWithRow } from "xero-node";
 
 /**
  * Internal function to fetch trial balance data from Xero
  */
 async function fetchTrialBalance(
   date?: string,
-  paymentsOnly?: boolean
-): Promise<ReportWithRows> {
+  paymentsOnly?: boolean,
+): Promise<ReportWithRow | null> {
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getReportTrialBalance(
@@ -20,7 +20,7 @@ async function fetchTrialBalance(
     getClientHeaders(),
   );
 
-  return response.body;
+  return response.body.reports?.[0] ?? null;
 }
 
 /**
@@ -30,10 +30,18 @@ async function fetchTrialBalance(
  */
 export async function listXeroTrialBalance(
   date?: string,
-  paymentsOnly?: boolean
-): Promise<XeroClientResponse<ReportWithRows>> {
+  paymentsOnly?: boolean,
+): Promise<XeroClientResponse<ReportWithRow>> {
   try {
     const trialBalance = await fetchTrialBalance(date, paymentsOnly);
+
+    if (!trialBalance) {
+      return {
+        result: null,
+        isError: true,
+        error: "Failed to fetch trial balance data from Xero.",
+      };
+    }
 
     return {
       result: trialBalance,
