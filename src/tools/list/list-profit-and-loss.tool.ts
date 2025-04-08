@@ -40,11 +40,11 @@ const ListProfitAndLossTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Profit and Loss Report: ${profitAndLossReport?.reportName || "Unnamed"}`,
-        },
-        {
-          type: "text" as const,
-          text: `Date Range: ${profitAndLossReport?.reportDate || "Not specified"}`,
+         text: `Profit and Loss Report: ${profitAndLossReport?.reportName ?? "Unnamed"}`,
+       },
+       {
+         type: "text" as const,
+         text: `Date Range: ${profitAndLossReport?.reportDate ?? "Not specified"}`,
         },
         {
           type: "text" as const,
