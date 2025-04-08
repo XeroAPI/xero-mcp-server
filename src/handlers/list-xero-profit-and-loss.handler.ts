@@ -2,7 +2,7 @@ import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
-import { ReportWithRows } from "xero-node";
+import { ReportWithRow } from "xero-node";
 
 // Define the valid timeframe options
 type TimeframeType = "MONTH" | "QUARTER" | "YEAR" | undefined;
@@ -15,13 +15,9 @@ async function fetchProfitAndLoss(
   toDate?: string,
   periods?: number,
   timeframe?: TimeframeType,
-  trackingCategoryID?: string,
-  trackingOptionID?: string,
-  trackingCategoryID2?: string,
-  trackingOptionID2?: string,
   standardLayout?: boolean,
-  paymentsOnly?: boolean
-): Promise<ReportWithRows> {
+  paymentsOnly?: boolean,
+): Promise<ReportWithRow | null> {
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getReportProfitAndLoss(
@@ -30,16 +26,16 @@ async function fetchProfitAndLoss(
     toDate,
     periods,
     timeframe,
-    trackingCategoryID,
-    trackingOptionID,
-    trackingCategoryID2,
-    trackingOptionID2,
+    undefined, // trackingCategoryID
+    undefined, // trackingOptionID
+    undefined, // trackingCategoryID2
+    undefined, // trackingOptionID2
     standardLayout,
     paymentsOnly,
     getClientHeaders(),
   );
 
-  return response.body;
+  return response.body.reports?.[0] ?? null;
 }
 
 /**
@@ -60,26 +56,25 @@ export async function listXeroProfitAndLoss(
   toDate?: string,
   periods?: number,
   timeframe?: TimeframeType,
-  trackingCategoryID?: string,
-  trackingOptionID?: string,
-  trackingCategoryID2?: string,
-  trackingOptionID2?: string,
   standardLayout?: boolean,
-  paymentsOnly?: boolean
-): Promise<XeroClientResponse<ReportWithRows>> {
+  paymentsOnly?: boolean,
+): Promise<XeroClientResponse<ReportWithRow>> {
   try {
     const profitAndLoss = await fetchProfitAndLoss(
       fromDate,
       toDate,
       periods,
       timeframe,
-      trackingCategoryID,
-      trackingOptionID,
-      trackingCategoryID2,
-      trackingOptionID2,
-      standardLayout,
-      paymentsOnly
+      paymentsOnly,
     );
+
+    if (!profitAndLoss) {
+      return {
+        result: null,
+        isError: true,
+        error: "Failed to fetch profit and loss data from Xero.",
+      };
+    }
 
     return {
       result: profitAndLoss,
