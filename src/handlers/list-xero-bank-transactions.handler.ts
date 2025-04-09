@@ -5,8 +5,8 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 
 async function getBankTransactions(
-  bankAccountId: string | undefined,
-  page: number
+  page: number,
+  bankAccountId?: string,
 ): Promise<BankTransaction[]> {
   await xeroClient.authenticate();
 
@@ -24,11 +24,11 @@ async function getBankTransactions(
 }
 
 export async function listXeroBankTransactions(
-  bankAccountId: string | undefined,
   page: number = 1,
+  bankAccountId?: string
 ): Promise<XeroClientResponse<BankTransaction[]>> {
   try {
-    const bankTransactions = await getBankTransactions(bankAccountId, page);
+    const bankTransactions = await getBankTransactions(page, bankAccountId);
 
     return {
       result: bankTransactions,
