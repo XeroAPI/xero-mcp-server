@@ -66,8 +66,7 @@ async function createItem(
     getClientHeaders()
   );
 
-  const createdItem = response.body.items?.[0];
-  return createdItem || null;
+  return response.body.items?.[0] ?? null;
 }
 
 /**
