@@ -16,21 +16,22 @@ type BankTransactionType = "RECEIVE" | "SPEND";
 
 async function createBankTransaction(
   type: BankTransactionType,
-  bankAccountID: string,
-  contactID: string,
+  bankAccountId: string,
+  contactId: string,
   lineItems: BankTransactionLineItem[],
-  reference?: string
+  reference?: string,
+  date?: string
 ): Promise<BankTransaction | undefined> {
   const bankTransaction: BankTransaction = {
     type: BankTransaction.TypeEnum[type],
     bankAccount: {
-      accountID: bankAccountID
+      accountID: bankAccountId
     },
     contact: {
-      contactID: contactID
+      contactID: contactId
     },
     lineItems: lineItems,
-    date: new Date().toISOString().split("T")[0], // Today's date
+    date: date ?? new Date().toISOString().split("T")[0],
     reference: reference,
     status: BankTransaction.StatusEnum.AUTHORISED
   };
@@ -53,13 +54,14 @@ async function createBankTransaction(
 
 export async function createXeroBankTransaction(
   type: BankTransactionType,
-  bankAccountID: string,
-  contactID: string,
+  bankAccountId: string,
+  contactId: string,
   lineItems: BankTransactionLineItem[],
-  reference?: string
+  reference?: string,
+  date?: string
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
-    const createdTransaction = await createBankTransaction(type, bankAccountID, contactID, lineItems, reference);
+    const createdTransaction = await createBankTransaction(type, bankAccountId, contactId, lineItems, reference, date);
   
     if (!createdTransaction) {
       throw new Error("Bank transaction creation failed.");

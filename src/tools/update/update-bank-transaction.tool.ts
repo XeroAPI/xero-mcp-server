@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { createXeroBankTransaction } from "../../handlers/create-xero-bank-transaction.handler.js";
+import { updateXeroBankTransaction } from "../../handlers/update-xero-bank-transaction.handler.js";
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
 
 const lineItemSchema = z.object({
@@ -11,34 +11,44 @@ const lineItemSchema = z.object({
   taxType: z.string(),
 });
 
-const CreateBankTransactionTool = CreateXeroTool(
-  "create-bank-transaction",
-  `Create a bank transaction in Xero.
-  When a bank transaction is created, a deep link to the bank transaction in Xero is returned.
+const UpdateBankTransactionTool = CreateXeroTool(
+  "update-bank-transaction",
+  `Update a bank transaction in Xero.
+  When a bank transaction is updated, a deep link to the bank transaction in Xero is returned.
   This deep link can be used to view the bank transaction in Xero directly.
   This link should be displayed to the user.`,
   {
-    type: z.enum(["RECEIVE", "SPEND"]),
-    bankAccountId: z.string(),
-    contactId: z.string(),
-    lineItems: z.array(lineItemSchema),
+    bankTransactionId: z.string(),
+    type: z.enum(["RECEIVE", "SPEND"]).optional(),
+    contactId: z.string().optional(),
+    lineItems: z.array(lineItemSchema).optional().describe(
+      "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
+      Do not modify line items that have not been specified by the user",
+    ),
     reference: z.string().optional(),
-    date: z.string()
-      .optional()
-      .describe("If no date is provided, the date will default to today's date")
+    date: z.string().optional()
   },
-  async ({ type, bankAccountId, contactId, lineItems, reference, date }) => {
-    const result = await createXeroBankTransaction(type, bankAccountId, contactId, lineItems, reference, date);
+  async (
+    {
+      bankTransactionId,
+      type,
+      contactId,
+      lineItems,
+      reference,
+      date
+    }
+  ) => {
+    const result = await updateXeroBankTransaction(bankTransactionId, type, contactId, lineItems, reference, date);
 
     if (result.isError) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Error creating bank transaction: ${result.error}`
-          }
-        ]
-      }
+            text: `Error updating bank transaction: ${result.error}`,
+          },
+        ],
+      };
     }
 
     const bankTransaction = result.result;
@@ -52,7 +62,7 @@ const CreateBankTransactionTool = CreateXeroTool(
         {
           type: "text" as const,
           text: [
-            "Bank transaction successfully:",
+            "Bank transaction updated successfully:",
             `ID: ${bankTransaction?.bankTransactionID}`,
             `Date: ${bankTransaction?.date}`,
             `Contact: ${bankTransaction?.contact?.name}`,
@@ -66,4 +76,4 @@ const CreateBankTransactionTool = CreateXeroTool(
   }
 );
 
-export default CreateBankTransactionTool;
+export default UpdateBankTransactionTool;
