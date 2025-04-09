@@ -1,3 +1,3 @@
-export const externalLinkDeepLink = (url: string) => {
+export const externalLink = (url: string) => {
   return `${encodeURIComponent(url)}`;
 };
