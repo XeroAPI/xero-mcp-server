@@ -1,3 +1,4 @@
+import UpdateBankTransactionTool from "./update-bank-transaction.tool.js";
 import UpdateContactTool from "./update-contact.tool.js";
 import UpdateCreditNoteTool from "./update-credit-note.tool.js";
 import UpdateInvoiceTool from "./update-invoice.tool.js";
@@ -10,4 +11,5 @@ export const UpdateTools = [
   UpdateInvoiceTool,
   UpdateQuoteTool,
   UpdateItemTool,
+  UpdateBankTransactionTool,
 ];
