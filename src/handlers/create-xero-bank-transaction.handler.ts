@@ -77,6 +77,6 @@ export async function createXeroBankTransaction(
       result: null,
       isError: true,
       error: formatError(error)  
-    }
+    };
   }
 }

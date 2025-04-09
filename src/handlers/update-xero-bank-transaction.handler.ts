@@ -53,7 +53,7 @@ async function updateBankTransaction(
     undefined, // unitdp
     undefined, // idempotencyKey
     getClientHeaders() // options
-  )
+  );
 
   return bankTransaction;
 }
@@ -91,7 +91,7 @@ export async function updateXeroBankTransaction(
       result: updatedBankTransaction,
       isError: false,
       error: null
-    }
+    };
   } catch (error) {
     return {
       result: null,
