@@ -39,7 +39,8 @@ const ListCreditNotesTool = CreateXeroTool(
         ...(creditNotes?.map((creditNote) => ({
           type: "text" as const,
           text: [
-            `Credit Note: ${creditNote.creditNoteNumber || creditNote.creditNoteID}`,
+            `Credit Note ID: ${creditNote.creditNoteID}`,
+            `Credit Note Number: ${creditNote.creditNoteNumber}`,
             creditNote.reference ? `Reference: ${creditNote.reference}` : null,
             `Type: ${creditNote.type || "Unknown"}`,
             `Status: ${creditNote.status || "Unknown"}`,
