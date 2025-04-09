@@ -44,23 +44,24 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 
 ### Available MCP Commands
 
-- `list-contacts`: Retrieve a list of contacts from Xero
-- `list-invoices`: Retrieve a list of invoices
 - `list-accounts`: Retrieve a list of accounts
-- `list-tax-rates` : Retrieve a list of tax rates
-- `list-quotes` : Retrieve a list of quotes
+- `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
-- `list-trial-balance`: Retrieve a trial balance report
-- `list-profit-and-loss`: Retrieve a profit and loss report
+- `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
+- `list-organisation-details`: Retrieve details about an organisation
+- `list-profit-and-loss`: Retrieve a profit and loss report
+- `list-quotes` : Retrieve a list of quotes
+- `list-tax-rates` : Retrieve a list of tax rates
+- `list-trial-balance`: Retrieve a trial balance report
 - `create-contact`: Create a new contact
+- `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
-- `create-credit-note`: Create a new credit note
 - `update-contact`: Update an existing contact
+- `update-credit-note`: Update an existing draft credit note
 - `update-invoice`: Update an existing draft invoice
 - `update-quote`: Update an existing draft quote
-- `update-credit-note`: Update an existing draft credit note
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
