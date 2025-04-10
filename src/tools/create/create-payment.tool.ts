@@ -2,7 +2,6 @@ import { z } from "zod";
 import { createXeroPayment } from "../../handlers/create-xero-payment.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import paymentFormatter from "../../helpers/formatters/payment.formatter.js";
 
 const CreatePaymentTool = CreateXeroTool(
   "create-payment",
@@ -60,12 +59,17 @@ const CreatePaymentTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: "Payment created successfully:",
-        },
-        { type: "text" as const, text: paymentFormatter(payment) },
-        {
-          type: "text" as const,
-          text: deepLink ? `Link to view: ${deepLink}` : "No link available",
+          text: [
+            "Invoice created successfully:",
+            `ID: ${payment?.paymentID}`,
+            `Reference: ${payment?.reference}`,
+            `Invoice Number: ${payment?.invoiceNumber}`,
+            `Amount: ${payment?.amount}`,
+            `Status: ${payment?.status}`,
+            deepLink ? `Link to view: ${deepLink}` : null,
+          ]
+            .filter(Boolean)
+            .join("\n"),
         },
       ],
     };
