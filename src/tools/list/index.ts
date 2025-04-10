@@ -11,11 +11,14 @@ import ListPayrollEmployeesTool from "./list-payroll-employees.tool.js";
 import ListPaymentsTool from "./list-payments.tool.js";
 import ListOrganisationDetailsTool from "./list-organisation-details.tool.js";
 import ListBankTransactionsTool from "./list-bank-transactions.tool.js";
+import ListReportBalanceSheetTool from "./list-report-balance-sheet.tool.js";
 import ListPayrollEmployeeLeaveTool from "./list-payroll-employee-leave.tool.js";
 import ListPayrollLeavePeriodsToolTool from "./list-payroll-leave-periods.tool.js";
 import ListPayrollEmployeeLeaveTypesTool from "./list-payroll-employee-leave-types.tool.js";
 import ListPayrollEmployeeLeaveBalancesTool from "./list-payroll-employee-leave-balances.tool.js";
 import ListPayrollLeaveTypesTool from "./list-payroll-leave-types.tool.js";
+import ListAgedReceivablesByContact from "./list-aged-receivables-by-contact.tool.js";
+import ListAgedPayablesByContact from "./list-aged-payables-by-contact.tool.js";
 
 export const ListTools = [
   ListAccountsTool,
@@ -28,6 +31,9 @@ export const ListTools = [
   ListTrialBalanceTool,
   ListPaymentsTool,
   ListProfitAndLossTool,
+  ListBankTransactionsTool,
+  ListPayrollEmployeesTool,
+  ListReportBalanceSheetTool,
   ListPayrollEmployeesTool,
   ListOrganisationDetailsTool,
   ListBankTransactionsTool,
@@ -35,5 +41,7 @@ export const ListTools = [
   ListPayrollLeavePeriodsToolTool,
   ListPayrollEmployeeLeaveTypesTool,
   ListPayrollEmployeeLeaveBalancesTool,
-  ListPayrollLeaveTypesTool
+  ListPayrollLeaveTypesTool,
+  ListAgedReceivablesByContact,
+  ListAgedPayablesByContact
 ];

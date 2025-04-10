@@ -22,6 +22,8 @@ async function createBankTransaction(
   reference?: string,
   date?: string
 ): Promise<BankTransaction | undefined> {
+  await xeroClient.authenticate();
+
   const bankTransaction: BankTransaction = {
     type: BankTransaction.TypeEnum[type],
     bankAccount: {

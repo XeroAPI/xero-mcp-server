@@ -107,11 +107,14 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-profit-and-loss`: Retrieve a profit and loss report
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-report-balance-sheet`: Retrieve a balance sheet report
 - `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
 - `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
 - `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
 - `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
 - `list-payroll-leave-types`: Retrieve a list of all avaliable leave types in Xero Payroll
+- `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
+- `list-aged-payables-by-contact`: Retrieves aged payables for a contact
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
