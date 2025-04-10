@@ -88,25 +88,32 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 
 ### Available MCP Commands
 
-- `list-contacts`: Retrieve a list of contacts from Xero
-- `list-invoices`: Retrieve a list of invoices
 - `list-accounts`: Retrieve a list of accounts
-- `list-tax-rates` : Retrieve a list of tax rates
-- `list-quotes` : Retrieve a list of quotes
+- `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
+- `list-invoices`: Retrieve a list of invoices
+- `list-items`: Retrieve a list of items
+- `list-organisation-details`: Retrieve details about an organisation
+- `list-profit-and-loss`: Retrieve a profit and loss report
+- `list-quotes` : Retrieve a list of quotes
+- `list-tax-rates` : Retrieve a list of tax rates
 - `list-trial-balance`: Retrieve a trial balance report
 - `list-profit-and-loss`: Retrieve a profit and loss report
-- `list-items`: Retrieve a list of items
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
+- `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
+- `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
+- `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
+- `list-payroll-leave-types`: Retrieve a list of all avaliable leave types in Xero Payroll
 - `create-contact`: Create a new contact
+- `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
-- `create-credit-note`: Create a new credit note
 - `update-contact`: Update an existing contact
+- `update-credit-note`: Update an existing draft credit note
 - `update-invoice`: Update an existing draft invoice
 - `update-quote`: Update an existing draft quote
-- `update-credit-note`: Update an existing draft credit note
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
