@@ -1,17 +1,7 @@
 import { z } from "zod";
 import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
-import { LineItem } from "xero-node";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-
-const formatLineItem = (lineItem: LineItem): string => {
-  return [
-    `Description: ${lineItem.description}`,
-    `Quantity: ${lineItem.quantity}`,
-    `Unit Amount: ${lineItem.unitAmount}`,
-    `Account Code: ${lineItem.accountCode}`,
-    `Tax Type: ${lineItem.taxType}`,
-  ].join("\n");
-};
+import { formatLineItem } from "../../helpers/format-line-item.js";
 
 const ListInvoicesTool = CreateXeroTool(
   "list-invoices",

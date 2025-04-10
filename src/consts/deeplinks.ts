@@ -20,3 +20,14 @@ export const quoteDeepLink = (orgShortCode: string, quoteId: string) => {
 export const manualJournalDeepLink = (journalId: string) => {
   return `https://go.xero.com/Journal/View.aspx?invoiceID=${journalId}`;
 };
+
+export const paymentDeepLink = (orgShortCode: string, paymentId: string) => {
+  return `https://go.xero.com/organisationlogin/default.aspx?shortcode=${orgShortCode}&redirecturl=/Bank/ViewTransaction.aspx?bankTransactionID=${paymentId}`;
+};
+
+export const bankTransactionDeepLink = (
+  accountId: string,
+  bankTransactionId: string,
+) => {
+  return `https://go.xero.com/Bank/ViewTransaction.aspx?bankTransactionID=${bankTransactionId}&accountID=${accountId}`;
+};
