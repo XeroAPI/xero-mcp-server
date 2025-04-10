@@ -3,6 +3,8 @@ import CreateCreditNoteTool from "./create-credit-note.tool.js";
 import CreateInvoiceTool from "./create-invoice.tool.js";
 import CreatePaymentTool from "./create-payment.tool.js";
 import CreateQuoteTool from "./create-quote.tool.js";
+import CreateItemTool from "./create-item.tool.js";
+import CreateBankTransactionTool from "./create-bank-transaction.tool.js";
 
 export const CreateTools = [
   CreateContactTool,
@@ -10,4 +12,6 @@ export const CreateTools = [
   CreateInvoiceTool,
   CreateQuoteTool,
   CreatePaymentTool,
+  CreateItemTool,
+  CreateBankTransactionTool,
 ];
