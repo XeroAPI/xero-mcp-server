@@ -89,7 +89,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
     const scope =
-      "accounting.transactions accounting.contacts accounting.settings.read accounting.reports.read payroll.employees.read";
+      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.employees.read";
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
