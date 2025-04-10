@@ -22,12 +22,19 @@ async function getPayments(
 
   // Build where clause for filtering
   const whereConditions: string[] = [];
-  if (invoiceId)
+
+  if (invoiceId) {
     whereConditions.push(`Invoice.InvoiceID==guid("${invoiceId}")`);
-  if (invoiceNumber)
+  }
+  if (invoiceNumber) {
     whereConditions.push(`Invoice.InvoiceNumber=="${invoiceNumber}"`);
-  if (paymentId) whereConditions.push(`PaymentID==guid("${paymentId}")`);
-  if (reference) whereConditions.push(`Reference=="${reference}"`);
+  }
+  if (paymentId) {
+    whereConditions.push(`PaymentID==guid("${paymentId}")`);
+  }
+  if (reference) {
+    whereConditions.push(`Reference=="${reference}"`);
+  }
 
   // Combine conditions
   const where =
