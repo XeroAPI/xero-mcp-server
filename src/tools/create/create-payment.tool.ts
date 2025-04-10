@@ -9,6 +9,8 @@ const CreatePaymentTool = CreateXeroTool(
  This tool records a payment transaction against an invoice. \
  You'll need to provide the invoice ID, account ID to make the payment from, and the amount. \
  The amount must be positive and should not exceed the remaining amount due on the invoice. \
+ A payment can only be created for an invoice that is status AUTHORIZED \
+ A payment can only be created for an invoice that is not fully paid \
  When a payment is created, a deep link to the payment in Xero is returned. \
  This deep link can be used to view the payment in Xero directly. \
  This link should be displayed to the user.",
