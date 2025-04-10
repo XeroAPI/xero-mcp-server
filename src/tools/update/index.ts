@@ -8,12 +8,14 @@ import UpdateItemTool from "./update-item.tool.js";
 import AddTimesheetLineTool from "./update-payroll-timesheet-add-line.tool.js";
 import UpdatePayrollTimesheetLineTool
   from "./update-payroll-timesheet-update-line.tool.js";
+import UpdateManualJournalTool from "./update-manual-journal-tool.js";
 import UpdateQuoteTool from "./update-quote.tool.js";
 
 export const UpdateTools = [
   UpdateContactTool,
   UpdateCreditNoteTool,
   UpdateInvoiceTool,
+  UpdateManualJournalTool,
   UpdateQuoteTool,
   UpdateItemTool,
   UpdateBankTransactionTool,
