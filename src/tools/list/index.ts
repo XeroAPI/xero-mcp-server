@@ -10,6 +10,7 @@ import ListProfitAndLossTool from "./list-profit-and-loss.tool.js";
 import ListPayrollEmployeesTool from "./list-payroll-employees.tool.js";
 import ListOrganisationDetailsTool from "./list-organisation-details.tool.js";
 import ListBankTransactionsTool from "./list-bank-transactions.tool.js";
+import ListReportBalanceSheetTool from "./list-report-balance-sheet.tool.js";
 import ListPayrollEmployeeLeaveTool from "./list-payroll-employee-leave.tool.js";
 import ListPayrollLeavePeriodsToolTool from "./list-payroll-leave-periods.tool.js";
 import ListPayrollEmployeeLeaveTypesTool from "./list-payroll-employee-leave-types.tool.js";
@@ -28,6 +29,9 @@ export const ListTools = [
   ListTaxRatesTool,
   ListTrialBalanceTool,
   ListProfitAndLossTool,
+  ListBankTransactionsTool,
+  ListPayrollEmployeesTool,
+  ListReportBalanceSheetTool,
   ListPayrollEmployeesTool,
   ListOrganisationDetailsTool,
   ListBankTransactionsTool,

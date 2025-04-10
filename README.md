@@ -101,6 +101,7 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-profit-and-loss`: Retrieve a profit and loss report
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-report-balance-sheet`: Retrieve a balance sheet report
 - `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
 - `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
 - `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
