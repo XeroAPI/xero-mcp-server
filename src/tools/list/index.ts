@@ -9,6 +9,11 @@ import ListTrialBalanceTool from "./list-trial-balance.tool.js";
 import ListProfitAndLossTool from "./list-profit-and-loss.tool.js";
 import ListPayrollEmployeesTool from "./list-payroll-employees.tool.js";
 import ListBankTransactionsTool from "./list-bank-transactions.tool.js";
+import ListPayrollEmployeeLeaveTool from "./list-payroll-employee-leave.tool.js";
+import ListPayrollLeavePeriodsToolTool from "./list-payroll-leave-periods.tool.js";
+import ListPayrollEmployeeLeaveTypesTool from "./list-payroll-employee-leave-types.tool.js";
+import ListPayrollEmployeeLeaveBalancesTool from "./list-payroll-employee-leave-balances.tool.js";
+import ListPayrollLeaveTypesTool from "./list-payroll-leave-types.tool.js";
 
 export const ListTools = [
   ListAccountsTool,
@@ -22,4 +27,9 @@ export const ListTools = [
   ListProfitAndLossTool,
   ListPayrollEmployeesTool,
   ListBankTransactionsTool,
+  ListPayrollEmployeeLeaveTool,
+  ListPayrollLeavePeriodsToolTool,
+  ListPayrollEmployeeLeaveTypesTool,
+  ListPayrollEmployeeLeaveBalancesTool,
+  ListPayrollLeaveTypesTool
 ];

@@ -99,6 +99,11 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-items`: Retrieve a list of items
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
+- `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
+- `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
+- `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
+- `list-payroll-leave-types`: Retrieve a list of all avaliable leave types in Xero Payroll
 - `create-contact`: Create a new contact
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
