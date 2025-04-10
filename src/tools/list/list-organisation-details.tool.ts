@@ -32,14 +32,7 @@ const ListOrganisationDetailsTool = CreateXeroTool(
       };
     }
 
-    const resolvedExternalLinks = await Promise.all(
-      organisation.externalLinks?.map(async (link, index) => {
-        const deepLink = link.url
-          ? await getExternalLink(link.url)
-          : null;
-        return `${index + 1}. ${link.linkType}: ${deepLink || link.url}`;
-      }) || []
-    );
+    const resolvedExternalLinks = organisation.externalLinks?.map((link, index) => `${index + 1}. ${link.linkType}: ${link.url ? getExternalLink(link.url) : link.url}`) || []
 
     const addresses = organisation.addresses?.map((address, index) => {
       return `Address ${index + 1} (${address.addressType || ""}): ${[
