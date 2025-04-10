@@ -20,3 +20,7 @@ export const quoteDeepLink = (orgShortCode: string, quoteId: string) => {
 export const bankTransactionDeepLink = (accountId: string, bankTransactionId: string) => {
   return `https://go.xero.com/Bank/ViewTransaction.aspx?bankTransactionID=${bankTransactionId}&accountID=${accountId}`
 }
+
+export const trackingCategoryDeepLink = (trackingCategoryId: string) => {
+  return `https://go.xero.com/Setup/Tracking.aspx?categoryID=${trackingCategoryId}`
+}

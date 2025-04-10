@@ -4,6 +4,7 @@ import CreateInvoiceTool from "./create-invoice.tool.js";
 import CreateQuoteTool from "./create-quote.tool.js";
 import CreateItemTool from "./create-item.tool.js";
 import CreateBankTransactionTool from "./create-bank-transaction.tool.js";
+import CreateTrackingCategoryTool from "./create-tracking-category.tool.js";
 
 export const CreateTools = [
   CreateContactTool,
@@ -12,4 +13,5 @@ export const CreateTools = [
   CreateQuoteTool,
   CreateItemTool,
   CreateBankTransactionTool,
+  CreateTrackingCategoryTool
 ];
