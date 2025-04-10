@@ -7,8 +7,8 @@ const ListPaymentsTool = CreateXeroTool(
   "list-payments",
   `List payments in Xero. 
   This tool shows all payments made against invoices, including payment date, amount, and payment method.
-  You can filter payments by invoice number, invoice ID, contact ID, status, or payment date range.
-  Ask the user if they want to see payments for a specific invoice, contact, or date range before running.
+  You can filter payments by invoice number, invoice ID, contact ID, payment ID, or invoice reference.
+  Ask the user if they want to see payments for a specific invoice, contact, payment or reference before running.
   If many payments are returned, ask the user if they want to see the next page.`,
   {
     page: z.number().default(1),

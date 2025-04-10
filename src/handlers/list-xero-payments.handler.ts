@@ -24,19 +24,18 @@ async function getPayments(
 
   // Build where clause for filtering
   const whereConditions: string[] = [];
-  if (invoiceId) whereConditions.push(`Invoice.InvoiceID=guid("${invoiceId}")`);
+  if (invoiceId)
+    whereConditions.push(`Invoice.InvoiceID==guid("${invoiceId}")`);
   if (contactId)
-    whereConditions.push(`Invoice.Contact.ContactID=guid("${contactId}")`);
+    whereConditions.push(`Invoice.Contact.ContactID==guid("${contactId}")`);
   if (invoiceNumber)
-    whereConditions.push(`Invoice.InvoiceNumber="${invoiceNumber}"`);
-  if (paymentId) whereConditions.push(`PaymentID=guid("${paymentId}")`);
-  if (reference) whereConditions.push(`Reference="${reference}"`);
+    whereConditions.push(`Invoice.InvoiceNumber=="${invoiceNumber}"`);
+  if (paymentId) whereConditions.push(`PaymentID==guid("${paymentId}")`);
+  if (reference) whereConditions.push(`Reference=="${reference}"`);
 
   // Combine conditions
   const where =
-    whereConditions.length > 0
-      ? `where=${whereConditions.join(" AND ")}`
-      : undefined;
+    whereConditions.length > 0 ? whereConditions.join(" AND ") : undefined;
 
   const response = await xeroClient.accountingApi.getPayments(
     xeroClient.tenantId,
