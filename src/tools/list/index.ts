@@ -10,6 +10,7 @@ import ListProfitAndLossTool from "./list-profit-and-loss.tool.js";
 import ListPayrollEmployeesTool from "./list-payroll-employees.tool.js";
 import ListBankTransactionsTool from "./list-bank-transactions.tool.js";
 import ListAgedReceivablesByContact from "./list-aged-receivables-by-contact.tool.js";
+import ListAgedPayablesByContact from "./list-aged-payables-by-contact.tool.js";
 
 export const ListTools = [
   ListAccountsTool,
@@ -23,5 +24,6 @@ export const ListTools = [
   ListProfitAndLossTool,
   ListPayrollEmployeesTool,
   ListBankTransactionsTool,
-  ListAgedReceivablesByContact
+  ListAgedReceivablesByContact,
+  ListAgedPayablesByContact
 ];

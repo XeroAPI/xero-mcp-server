@@ -4,7 +4,7 @@ import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { ReportWithRow } from "xero-node";
 
-async function listAgedReceivablesByContact(
+async function listAgedPayablesByContact(
   contactId: string,
   reportDate?: string,
   invoicesFromDate?: string,
@@ -12,7 +12,7 @@ async function listAgedReceivablesByContact(
 ): Promise<ReportWithRow | undefined> {
   await xeroClient.authenticate();
 
-  const response = await xeroClient.accountingApi.getReportAgedReceivablesByContact(
+  const response = await xeroClient.accountingApi.getReportAgedPayablesByContact(
     xeroClient.tenantId, // xeroTenantId
     contactId, // contactId
     reportDate, // date
@@ -24,25 +24,25 @@ async function listAgedReceivablesByContact(
   return response.body.reports?.[0];
 }
 
-export async function listXeroAgedReceivablesByContact(
+export async function listXeroAgedPayablesByContact(
   contactId: string,
   reportDate?: string,
   invoicesFromDate?: string,
   invoicesToDate?: string
 ): Promise<XeroClientResponse<ReportWithRow>> {
   try {
-    const agedReceivables = await listAgedReceivablesByContact(contactId, reportDate, invoicesFromDate, invoicesToDate);
+    const agedPayables = await listAgedPayablesByContact(contactId, reportDate, invoicesFromDate, invoicesToDate);
 
-    if (!agedReceivables) {
+    if (!agedPayables) {
       return {
         result: null,
         isError: true,
-        error: "Failed to get aged receivables by contact from Xero."
+        error: "Failed to get aged payables by contact from Xero."
       };
     }
 
     return {
-      result: agedReceivables,
+      result: agedPayables,
       isError: false,
       error: null
     };
