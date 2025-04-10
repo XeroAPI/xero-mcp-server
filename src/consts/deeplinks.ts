@@ -16,3 +16,7 @@ export const creditNoteDeepLink = (
 export const quoteDeepLink = (orgShortCode: string, quoteId: string) => {
   return `https://go.xero.com/app/${orgShortCode}/quotes/view/${quoteId}`;
 };
+
+export const bankTransactionDeepLink = (accountId: string, bankTransactionId: string) => {
+  return `https://go.xero.com/Bank/ViewTransaction.aspx?bankTransactionID=${bankTransactionId}&accountID=${accountId}`
+}
