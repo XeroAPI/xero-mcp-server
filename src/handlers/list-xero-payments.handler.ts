@@ -9,13 +9,11 @@ async function getPayments(
   {
     invoiceNumber,
     invoiceId,
-    contactId,
     paymentId,
     reference,
   }: {
     invoiceNumber?: string;
     invoiceId?: string;
-    contactId?: string;
     paymentId?: string;
     reference?: string;
   },
@@ -26,8 +24,6 @@ async function getPayments(
   const whereConditions: string[] = [];
   if (invoiceId)
     whereConditions.push(`Invoice.InvoiceID==guid("${invoiceId}")`);
-  if (contactId)
-    whereConditions.push(`Invoice.Contact.ContactID==guid("${contactId}")`);
   if (invoiceNumber)
     whereConditions.push(`Invoice.InvoiceNumber=="${invoiceNumber}"`);
   if (paymentId) whereConditions.push(`PaymentID==guid("${paymentId}")`);
@@ -58,13 +54,11 @@ export async function listXeroPayments(
   {
     invoiceNumber,
     invoiceId,
-    contactId,
     paymentId,
     reference,
   }: {
     invoiceNumber?: string;
     invoiceId?: string;
-    contactId?: string;
     paymentId?: string;
     reference?: string;
   },
@@ -73,7 +67,6 @@ export async function listXeroPayments(
     const payments = await getPayments(page, {
       invoiceNumber,
       invoiceId,
-      contactId,
       paymentId,
       reference,
     });
