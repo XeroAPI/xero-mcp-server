@@ -5,33 +5,79 @@ import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getPayments(
-  page: number,
-  paymentId?: string,
+  page: number = 1,
+  {
+    invoiceNumber,
+    invoiceId,
+    contactId,
+    paymentId,
+    reference,
+  }: {
+    invoiceNumber?: string;
+    invoiceId?: string;
+    contactId?: string;
+    paymentId?: string;
+    reference?: string;
+  },
 ): Promise<Payment[]> {
   await xeroClient.authenticate();
+
+  // Build where clause for filtering
+  const whereConditions: string[] = [];
+  if (invoiceId) whereConditions.push(`Invoice.InvoiceID=guid("${invoiceId}")`);
+  if (contactId)
+    whereConditions.push(`Invoice.Contact.ContactID=guid("${contactId}")`);
+  if (invoiceNumber)
+    whereConditions.push(`Invoice.InvoiceNumber="${invoiceNumber}"`);
+  if (paymentId) whereConditions.push(`PaymentID=guid("${paymentId}")`);
+  if (reference) whereConditions.push(`Reference="${reference}"`);
+
+  // Combine conditions
+  const where =
+    whereConditions.length > 0
+      ? `where=${whereConditions.join(" AND ")}`
+      : undefined;
 
   const response = await xeroClient.accountingApi.getPayments(
     xeroClient.tenantId,
     undefined, // ifModifiedSince
-    paymentId ? `PaymentId=guid("${paymentId}")` : undefined, // where
+    where,
     "UpdatedDateUTC DESC", // order
     page, // page
     10, // pageSize
-    getClientHeaders(),
+    getClientHeaders(), // options
   );
 
   return response.body.payments ?? [];
 }
 
 /**
- * List all credit notes from Xero
+ * List payments from Xero
  */
 export async function listXeroPayments(
   page: number = 1,
-  paymentId?: string,
+  {
+    invoiceNumber,
+    invoiceId,
+    contactId,
+    paymentId,
+    reference,
+  }: {
+    invoiceNumber?: string;
+    invoiceId?: string;
+    contactId?: string;
+    paymentId?: string;
+    reference?: string;
+  },
 ): Promise<XeroClientResponse<Payment[]>> {
   try {
-    const payments = await getPayments(page, paymentId);
+    const payments = await getPayments(page, {
+      invoiceNumber,
+      invoiceId,
+      contactId,
+      paymentId,
+      reference,
+    });
 
     return {
       result: payments,
