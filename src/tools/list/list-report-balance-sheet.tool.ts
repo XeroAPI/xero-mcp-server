@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { listXeroReportBalanceSheet } from "../../handlers/list-xero-report-balance-sheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { ListReportBalanceSheetParams } from "../../types/ListReportBalanceSheetParams.js";
+import { ListReportBalanceSheetParams } from "../../types/list-report-balance-sheet-params.js";
 
 const ListReportBalanceSheetTool = CreateXeroTool(
   "list-report-balance-sheet",

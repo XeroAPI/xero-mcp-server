@@ -21,7 +21,6 @@ export const ListTools = [
   ListTaxRatesTool,
   ListTrialBalanceTool,
   ListProfitAndLossTool,
-  ListPayrollEmployeesTool,
   ListBankTransactionsTool,
   ListPayrollEmployeesTool,
   ListReportBalanceSheetTool

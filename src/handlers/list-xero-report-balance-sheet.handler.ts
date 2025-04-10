@@ -4,7 +4,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 import { ReportWithRow } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
-import { ListReportBalanceSheetParams } from "../types/ListReportBalanceSheetParams.js";
+import { ListReportBalanceSheetParams } from "../types/list-report-balance-sheet-params.js";
 
 
 async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Promise<ReportWithRow | null> {
