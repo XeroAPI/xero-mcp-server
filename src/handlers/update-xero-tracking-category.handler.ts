@@ -50,7 +50,7 @@ export async function updateXeroTrackingCategory(
     const existingTrackingCategory = await getTrackingCategory(trackingCategoryId);
 
     if (!existingTrackingCategory) {
-      throw new Error("Could not find tracking category");
+      throw new Error("Could not find tracking category.");
     }
 
     const updatedTrackingCategory = await updateTrackingCategory(
@@ -61,14 +61,14 @@ export async function updateXeroTrackingCategory(
     );
 
     if (!updatedTrackingCategory) {
-      throw new Error("Failed to update tracking category");
+      throw new Error("Failed to update tracking category.");
     }
 
     return {
       result: existingTrackingCategory,
       isError: false,
       error: null
-    }
+    };
   } catch (error) {
     return {
       result: null,

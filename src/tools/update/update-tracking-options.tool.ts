@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { formatTrackingOption } from "../../helpers/format-tracking-option.js";
 import { trackingCategoryDeepLink } from "../../consts/deeplinks.js";
-import { updateXeroTrackingOption } from "../../handlers/update-xero-tracking-option.handler.js";
+import { updateXeroTrackingOption } from "../../handlers/update-xero-tracking-options.handler.js";
 
 const trackingOptionSchema = z.object({
   trackingOptionId: z.string(),

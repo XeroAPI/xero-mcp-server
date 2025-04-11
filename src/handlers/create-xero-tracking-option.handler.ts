@@ -8,6 +8,8 @@ async function createTrackingOption(
   trackingCategoryId: string,
   name: string
 ): Promise<TrackingOption | undefined> {
+  xeroClient.authenticate();
+  
   const response = await xeroClient.accountingApi.createTrackingOptions(
     xeroClient.tenantId,
     trackingCategoryId,

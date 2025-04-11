@@ -51,26 +51,27 @@ async function updateTrackingOption(
 
 export async function updateXeroTrackingOption(
   trackingCategoryId: string,
-  options?: TrackingOptionItem[]
+  options: TrackingOptionItem[]
 ): Promise<XeroClientResponse<TrackingOption[]>> {
   try {
+
     const existingTrackingOptions = await getTrackingOptions(trackingCategoryId);
 
     if (!existingTrackingOptions) {
       throw new Error("Could not find tracking options.");
     }
 
-    const updatedTrackingOptions = options?.map(async (option) => {
+    const updatedTrackingOptions = await Promise.all(options?.map(async (option) => {
       const existingTrackingOption = existingTrackingOptions
-        ?.find(existingOption => existingOption.trackingOptionID === option.trackingOptionId);
+        .find(existingOption => existingOption.trackingOptionID === option.trackingOptionId);
 
       return existingTrackingOption
         ? await updateTrackingOption(trackingCategoryId, option.trackingOptionId, existingTrackingOption, option.name, option.status)
         : undefined;
-    });
+    }));
 
     if (!updatedTrackingOptions) {
-      throw new Error("Failed to update tracking options.")
+      throw new Error("Failed to update tracking options.");
     }
 
     return {
@@ -79,7 +80,7 @@ export async function updateXeroTrackingOption(
         .map(option => option as TrackingOption),
       isError: false,
       error: null
-    }
+    };
   } catch (error) {
     return {
       result: null,
