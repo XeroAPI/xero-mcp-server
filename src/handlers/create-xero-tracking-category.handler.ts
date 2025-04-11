@@ -25,41 +25,14 @@ async function createTrackingCategory(
   return createdTrackingCategory;
 }
 
-async function createTrackingOption(
-  trackingCategoryId: string,
-  name: string
-): Promise<TrackingCategory | undefined> {
-  const response = await xeroClient.accountingApi.createTrackingOptions(
-    xeroClient.tenantId,
-    trackingCategoryId,
-    {
-      name: name
-    },
-    undefined, // idempotencyKey
-    getClientHeaders()
-  );
-
-  const createdTrackingOption = response.body.options?.[0];
-
-  return createdTrackingOption;
-}
-
 export async function createXeroTrackingCategory(
-  name: string,
-  optionNames: string[]
+  name: string
 ): Promise<XeroClientResponse<TrackingCategory>> {
   try {
     const createdTrackingCategory = await createTrackingCategory(name);
-    const trackingCategoryId = createdTrackingCategory?.trackingCategoryID;
 
-    if (!createdTrackingCategory || !trackingCategoryId) {
+    if (!createdTrackingCategory) {
       throw new Error("Tracking Category creation failed.");
-    }
-
-    const createdOptions = optionNames.map(optionName => createTrackingOption(trackingCategoryId, optionName));
-
-    if (createdOptions.some(option => !option)) {
-      throw new Error("Creation of one or more Tracking Options failed.");
     }
 
     return {
