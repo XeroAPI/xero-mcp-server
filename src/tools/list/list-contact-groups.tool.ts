@@ -1,12 +1,20 @@
+import { z } from "zod";
 import { listXeroContactGroups } from "../../handlers/list-xero-contact-groups.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListContactGroupsTool = CreateXeroTool(
   "list-contact-groups",
-  `List all contact groups in Xero.`,
-  {},
-  async () => {
-    const response = await listXeroContactGroups();
+  `List all contact groups in Xero.
+  You can optionally specify a contact group ID to retrieve details for that specific group, including its contacts.`,
+  {
+    contactGroupId: z
+      .string()
+      .optional()
+      .describe("Optional ID of the contact group to retrieve"),    
+  },
+  async (args) => {
+    const response = await listXeroContactGroups(args?.contactGroupId);
+    
     if (response.error !== null) {
       return {
         content: [
@@ -32,6 +40,13 @@ const ListContactGroupsTool = CreateXeroTool(
             `Contact Group ID: ${contactGroup.contactGroupID}`,
             `Name: ${contactGroup.name}`,
             `Status: ${contactGroup.status}`,
+            contactGroup.contacts
+              ? contactGroup.contacts.map(contact => [
+                  `Contact ID: ${contact.contactID}`,
+                  `Name: ${contact.name}`,
+                ].join('\n')
+              ).join('\n')
+              : "No contacts in this contact group.",            
           ]
             .filter(Boolean)
             .join("\n"),
