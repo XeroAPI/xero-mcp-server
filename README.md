@@ -17,15 +17,17 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - A Xero developer account with API credentials
 
 ## Docs and Links
-* [Xero Public API Documentation](https://developer.xero.com/documentation/api/)
-* [Xero API Explorer](https://api-explorer.xero.com/)
-* [Xero OpenAPI Specs](https://github.com/XeroAPI/Xero-OpenAPI)
-* [Xero-Node Public API SDK Docs](https://xeroapi.github.io/xero-node/accounting)
-* [Developer Documentation](https://developer.xero.com/)
+
+- [Xero Public API Documentation](https://developer.xero.com/documentation/api/)
+- [Xero API Explorer](https://api-explorer.xero.com/)
+- [Xero OpenAPI Specs](https://github.com/XeroAPI/Xero-OpenAPI)
+- [Xero-Node Public API SDK Docs](https://xeroapi.github.io/xero-node/accounting)
+- [Developer Documentation](https://developer.xero.com/)
 
 ## Setup
 
 ### Create a Xero Account
+
 If you don't already have a Xero account and organisation already, can create one by signing up [here](https://www.xero.com/au/signup/) using the free trial.
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
@@ -33,9 +35,11 @@ We recommend using a Demo Company to start with because it comes with some pre-l
 NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
 
 ### Authentication
+
 There are 2 modes of authentication supported in the Xero MCP server:
 
 #### 1. Custom Connections
+
 This is a better choice for testing and development which allows you to specify client id and secrets for a specific organisation.
 It is also the recommended approach if you are integrating this into 3rd party MCP clients such as Claude Desktop.
 
@@ -67,6 +71,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"command": "npx"` section change it to be the full path to the executable, ie: `your_home_directory/.nvm/versions/node/v22.14.0/bin/npx` on Mac / Linux or `"your_home_directory\\.nvm\\versions\\node\\v22.14.0\\bin\\npx"` on Windows
 
 #### 2. Bearer Token
+
 This is a better choice if you are to support multiple Xero accounts at runtime and allow the MCP client to execute an auth flow (such as PKCE) as required.
 In this case, use the following configuration:
 
@@ -88,25 +93,45 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 
 ### Available MCP Commands
 
-- `list-contacts`: Retrieve a list of contacts from Xero
-- `list-invoices`: Retrieve a list of invoices
 - `list-accounts`: Retrieve a list of accounts
-- `list-tax-rates` : Retrieve a list of tax rates
-- `list-quotes` : Retrieve a list of quotes
+- `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
+- `list-invoices`: Retrieve a list of invoices
+- `list-items`: Retrieve a list of items
+- `list-organisation-details`: Retrieve details about an organisation
+- `list-profit-and-loss`: Retrieve a profit and loss report
+- `list-quotes`: Retrieve a list of quotes
+- `list-tax-rates`: Retrieve a list of tax rates
+- `list-payments`: Retrieve a list of payments
 - `list-trial-balance`: Retrieve a trial balance report
 - `list-profit-and-loss`: Retrieve a profit and loss report
-- `list-items`: Retrieve a list of items
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-report-balance-sheet`: Retrieve a balance sheet report
+- `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
+- `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
+- `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
+- `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
+- `list-payroll-leave-types`: Retrieve a list of all avaliable leave types in Xero Payroll
+- `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
+- `list-aged-payables-by-contact`: Retrieves aged payables for a contact
 - `create-contact`: Create a new contact
+- `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
+- `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
 - `create-credit-note`: Create a new credit note
+- `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
 - `update-quote`: Update an existing draft quote
 - `update-credit-note`: Update an existing draft credit note
+- `update-payroll-timesheet-line`: Update a line on an existing Payroll Timesheet
+- `approve-payroll-timesheet`: Approve a Payroll Timesheet
+- `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
+- `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
+- `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
+- `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
