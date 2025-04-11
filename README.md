@@ -120,18 +120,10 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `create-invoice`: Create a new invoice
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
-- `create-credit-note`: Create a new credit note
-- `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `update-contact`: Update an existing contact
+- `update-credit-note`: Update an existing draft credit note
 - `update-invoice`: Update an existing draft invoice
 - `update-quote`: Update an existing draft quote
-- `update-credit-note`: Update an existing draft credit note
-- `update-payroll-timesheet-line`: Update a line on an existing Payroll Timesheet
-- `approve-payroll-timesheet`: Approve a Payroll Timesheet
-- `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
-- `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
-- `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
-- `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
