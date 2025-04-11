@@ -99,6 +99,7 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-items`: Retrieve a list of items
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-contact-groups`: Retrieve a list of contact groups
 - `create-contact`: Create a new contact
 - `create-invoice`: Create a new invoice
 - `create-quote`: Create a new quote
