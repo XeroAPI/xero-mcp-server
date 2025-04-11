@@ -37,7 +37,7 @@ async function updateTrackingOption(
     status: status ? TrackingOption.StatusEnum[status] : existingTrackingOption.status
   };
 
-  xeroClient.accountingApi.updateTrackingOptions(
+  await xeroClient.accountingApi.updateTrackingOptions(
     xeroClient.tenantId,
     trackingCategoryId,
     trackingOptionId,

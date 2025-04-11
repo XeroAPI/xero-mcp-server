@@ -28,4 +28,4 @@ export const bankTransactionDeepLink = (accountId: string, bankTransactionId: st
 
 export const trackingCategoryDeepLink = (trackingCategoryId: string) => {
   return `https://go.xero.com/Setup/Tracking.aspx?categoryID=${trackingCategoryId}`
-}
+};

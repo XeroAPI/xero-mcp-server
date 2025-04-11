@@ -30,7 +30,7 @@ async function updateTrackingCategory(
     status: status ? TrackingCategory.StatusEnum[status] : existingTrackingCategory.status
   };
 
-  xeroClient.accountingApi.updateTrackingCategory(
+  await xeroClient.accountingApi.updateTrackingCategory(
     xeroClient.tenantId,
     trackingCategoryId,
     trackingCategory,
