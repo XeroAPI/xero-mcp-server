@@ -115,6 +115,7 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-payroll-leave-types`: Retrieve a list of all avaliable leave types in Xero Payroll
 - `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
 - `list-aged-payables-by-contact`: Retrieves aged payables for a contact
+- `list-contact-groups`: Retrieve a list of contact groups
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
