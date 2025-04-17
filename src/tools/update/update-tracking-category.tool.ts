@@ -1,13 +1,10 @@
 import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { trackingCategoryDeepLink } from "../../consts/deeplinks.js";
 import { updateXeroTrackingCategory } from "../../handlers/update-xero-tracking-category.handler.js";
 
 const UpdateTrackingCategoryTool = CreateXeroTool(
   "update-tracking-category",
-  `Updates an existing tracking category in Xero. A deep link to the tracking category is returned.
-  This deep link can be used to view the tracking category in Xero directly.
-  This link should be displayed to the user.`,
+  `Updates an existing tracking category in Xero.`,
   {
     trackingCategoryId: z.string(),
     name: z.string().optional(),
@@ -28,7 +25,6 @@ const UpdateTrackingCategoryTool = CreateXeroTool(
     }
 
     const trackingCategory = response.result;
-    const deepLink = trackingCategoryDeepLink(trackingCategoryId);
     
     return {
       content: [
@@ -36,10 +32,6 @@ const UpdateTrackingCategoryTool = CreateXeroTool(
           type: "text" as const,
           text: `Updated the tracking category "${trackingCategory.name}" (${trackingCategory.trackingCategoryID}).`
         },
-        {
-          type: "text" as const,
-          text: `Link to view tracking category: ${deepLink}`
-        }
       ]
     };
   }
