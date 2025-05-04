@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Invoice } from "xero-node";
+import { Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
@@ -10,17 +10,20 @@ interface InvoiceLineItem {
   unitAmount: number;
   accountCode: string;
   taxType: string;
+  itemCode?: string;
+  tracking?: LineItemTracking[];
 }
 
 async function createInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
+  type: Invoice.TypeEnum,
   reference: string | undefined,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
   const invoice: Invoice = {
-    type: Invoice.TypeEnum.ACCREC,
+    type: type,
     contact: {
       contactID: contactId,
     },
@@ -53,10 +56,16 @@ async function createInvoice(
 export async function createXeroInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
+  type: Invoice.TypeEnum = Invoice.TypeEnum.ACCREC,
   reference?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
-    const createdInvoice = await createInvoice(contactId, lineItems, reference);
+    const createdInvoice = await createInvoice(
+      contactId,
+      lineItems,
+      type,
+      reference,
+    );
 
     if (!createdInvoice) {
       throw new Error("Invoice creation failed.");

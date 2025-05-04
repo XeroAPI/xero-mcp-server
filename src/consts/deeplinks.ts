@@ -28,3 +28,7 @@ export const bankTransactionDeepLink = (accountId: string, bankTransactionId: st
 export const manualJournalDeepLink = (journalId: string) => {
   return `https://go.xero.com/Journal/View.aspx?invoiceID=${journalId}`;
 };
+
+export const billDeepLink = (orgShortCode: string, billId: string) => {
+  return `https://go.xero.com/organisationlogin/default.aspx?shortcode=${orgShortCode}&redirecturl=/AccountsPayable/Edit.aspx?InvoiceID=${billId}`;
+};
