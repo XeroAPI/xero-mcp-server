@@ -1,12 +1,18 @@
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { z } from "zod";
 
 const ListContactsTool = CreateXeroTool(
   "list-contacts",
   "List all contacts in Xero. This includes Suppliers and Customers.",
-  {},
-  async () => {
-    const response = await listXeroContacts();
+  {
+    page: z.number().optional().describe("Optional page number to retrieve for pagination. \
+      If not provided, the first page will be returned. If 100 contacts are returned, \
+      call this tool again with the next page number."),
+  },
+  async (params) => {
+    const { page } = params;
+    const response = await listXeroContacts(page);
 
     if (response.isError) {
       return {
@@ -25,7 +31,7 @@ const ListContactsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${contacts?.length || 0} contacts:`,
+          text: `Found ${contacts?.length || 0} contacts${page ? ` (page ${page})` : ''}:`,
         },
         ...(contacts?.map((contact) => ({
           type: "text" as const,
