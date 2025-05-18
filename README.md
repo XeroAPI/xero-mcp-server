@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/xeroapi-xero-mcp-server-badge.png)](https://mseep.ai/app/xeroapi-xero-mcp-server)
+
 # Xero MCP Server
 
 This is a Model Context Protocol (MCP) server implementation for Xero. It provides a bridge between the MCP protocol and Xero's API, allowing for standardized access to Xero's accounting and business features.
