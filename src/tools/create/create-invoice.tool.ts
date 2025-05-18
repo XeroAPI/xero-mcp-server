@@ -33,16 +33,18 @@ const CreateInvoiceTool = CreateXeroTool(
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
+      
     lineItems: z.array(lineItemSchema),
     type: z.enum(["ACCREC", "ACCPAY"]).describe("The type of invoice to create. \
       ACCREC is for sales invoices, Accounts Receivable, or customer invoices. \
       ACCPAY is for purchase invoices, Accounts Payable invoices, supplier invoices, or bills. \
       If the type is not specified, the default is ACCREC."),
     reference: z.string().describe("A reference number for the invoice.").optional(),
+    date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
   },
-  async ({ contactId, lineItems, type, reference }) => {
+  async ({ contactId, lineItems, type, reference, date }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference);
+    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
     if (result.isError) {
       return {
         content: [
@@ -72,6 +74,7 @@ const CreateInvoiceTool = CreateXeroTool(
             `ID: ${invoice?.invoiceID}`,
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
+            `Date: ${invoice?.date}`,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,
