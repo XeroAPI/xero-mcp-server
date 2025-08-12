@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction } from "xero-node";
 import { formatError } from "../helpers/format-error.js";
@@ -15,13 +15,15 @@ interface BankTransactionLineItem {
 type BankTransactionType = "RECEIVE" | "SPEND";
 
 async function createBankTransaction(
+  bearerToken: string,
   type: BankTransactionType,
   bankAccountId: string,
   contactId: string,
   lineItems: BankTransactionLineItem[],
   reference?: string,
-  date?: string
+  date?: string,
 ): Promise<BankTransaction | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const bankTransaction: BankTransaction = {
@@ -55,6 +57,7 @@ async function createBankTransaction(
 }
 
 export async function createXeroBankTransaction(
+  bearerToken: string,
   type: BankTransactionType,
   bankAccountId: string,
   contactId: string,
@@ -63,8 +66,8 @@ export async function createXeroBankTransaction(
   date?: string
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
-    const createdTransaction = await createBankTransaction(type, bankAccountId, contactId, lineItems, reference, date);
-  
+    const createdTransaction = await createBankTransaction(bearerToken, type, bankAccountId, contactId, lineItems, reference, date);
+
     if (!createdTransaction) {
       throw new Error("Bank transaction creation failed.");
     }
@@ -78,7 +81,7 @@ export async function createXeroBankTransaction(
     return {
       result: null,
       isError: true,
-      error: formatError(error)  
+      error: formatError(error)
     };
   }
 }

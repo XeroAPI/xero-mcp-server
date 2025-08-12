@@ -1,10 +1,11 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { Employee } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
-async function getPayrollEmployees(): Promise<Employee[]> {
+async function getPayrollEmployees(bearerToken: string): Promise<Employee[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   // Call the Employees endpoint from the PayrollNZApi
@@ -21,11 +22,11 @@ async function getPayrollEmployees(): Promise<Employee[]> {
 /**
  * List all payroll employees from Xero
  */
-export async function listXeroPayrollEmployees(): Promise<
+export async function listXeroPayrollEmployees(bearerToken: string): Promise<
   XeroClientResponse<Employee[]>
 > {
   try {
-    const employees = await getPayrollEmployees();
+    const employees = await getPayrollEmployees(bearerToken);
 
     return {
       result: employees,

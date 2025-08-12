@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { LeavePeriod } from "xero-node/dist/gen/model/payroll-nz/leavePeriod.js";
@@ -12,11 +12,12 @@ interface FetchLeavePeriodParams {
 /**
  * Internal function to fetch employee leave periods from Xero
  */
-async function fetchLeavePeriods({
+async function fetchLeavePeriods(bearerToken: string, {
   employeeId,
   startDate,
   endDate,
 }: FetchLeavePeriodParams): Promise<LeavePeriod[] | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   if (!employeeId) {
@@ -40,12 +41,13 @@ async function fetchLeavePeriods({
  * @param endDate Optional end date in YYYY-MM-DD format
  */
 export async function listXeroPayrollLeavePeriods(
+  bearerToken: string,
   employeeId: string,
   startDate?: string,
   endDate?: string,
 ): Promise<XeroClientResponse<LeavePeriod[]>> {
   try {
-    const periods = await fetchLeavePeriods({ employeeId, startDate, endDate });
+    const periods = await fetchLeavePeriods(bearerToken, { employeeId, startDate, endDate });
 
     if (!periods) {
       return {

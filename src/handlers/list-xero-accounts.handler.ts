@@ -1,10 +1,11 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Account } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
-async function listAccounts(): Promise<Account[]> {
+async function listAccounts(bearerToken: string): Promise<Account[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getAccounts(
@@ -22,11 +23,11 @@ async function listAccounts(): Promise<Account[]> {
 /**
  * List all accounts from Xero
  */
-export async function listXeroAccounts(): Promise<
+export async function listXeroAccounts(bearerToken: string): Promise<
   XeroClientResponse<Account[]>
 > {
   try {
-    const accounts = await listAccounts();
+    const accounts = await listAccounts(bearerToken);
 
     return {
       result: accounts,

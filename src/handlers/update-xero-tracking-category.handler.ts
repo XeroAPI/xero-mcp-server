@@ -1,12 +1,13 @@
 import { TrackingCategory } from "xero-node";
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 type TrackingCategoryStatus = "ACTIVE" | "ARCHIVED";
 
-async function getTrackingCategory(trackingCategoryId: string): Promise<TrackingCategory | undefined> {
+async function getTrackingCategory(bearerToken: string, trackingCategoryId: string): Promise<TrackingCategory | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getTrackingCategory(
@@ -19,11 +20,15 @@ async function getTrackingCategory(trackingCategoryId: string): Promise<Tracking
 }
 
 async function updateTrackingCategory(
+  bearerToken: string,
   trackingCategoryId: string,
   existingTrackingCategory: TrackingCategory,
   name?: string,
   status?: TrackingCategoryStatus
 ): Promise<TrackingCategory | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
+  await xeroClient.authenticate();
+
   const trackingCategory: TrackingCategory = {
     trackingCategoryID: trackingCategoryId,
     name: name ? name : existingTrackingCategory.name,
@@ -42,18 +47,20 @@ async function updateTrackingCategory(
 }
 
 export async function updateXeroTrackingCategory(
+  bearerToken: string,
   trackingCategoryId: string,
   name?: string,
   status?: TrackingCategoryStatus
 ): Promise<XeroClientResponse<TrackingCategory>> {
   try {
-    const existingTrackingCategory = await getTrackingCategory(trackingCategoryId);
+    const existingTrackingCategory = await getTrackingCategory(bearerToken, trackingCategoryId);
 
     if (!existingTrackingCategory) {
       throw new Error("Could not find tracking category.");
     }
 
     const updatedTrackingCategory = await updateTrackingCategory(
+      bearerToken,
       trackingCategoryId,
       existingTrackingCategory,
       name,
@@ -65,7 +72,7 @@ export async function updateXeroTrackingCategory(
     }
 
     return {
-      result: existingTrackingCategory,
+      result: updatedTrackingCategory,
       isError: false,
       error: null
     };

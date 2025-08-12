@@ -1,15 +1,17 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { ReportWithRow } from "xero-node";
 
 async function listAgedPayablesByContact(
+  bearerToken: string,
   contactId: string,
   reportDate?: string,
   invoicesFromDate?: string,
   invoicesToDate?: string
 ): Promise<ReportWithRow | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getReportAgedPayablesByContact(
@@ -25,13 +27,14 @@ async function listAgedPayablesByContact(
 }
 
 export async function listXeroAgedPayablesByContact(
+  bearerToken: string,
   contactId: string,
   reportDate?: string,
   invoicesFromDate?: string,
   invoicesToDate?: string
 ): Promise<XeroClientResponse<ReportWithRow>> {
   try {
-    const agedPayables = await listAgedPayablesByContact(contactId, reportDate, invoicesFromDate, invoicesToDate);
+    const agedPayables = await listAgedPayablesByContact(bearerToken, contactId, reportDate, invoicesFromDate, invoicesToDate);
 
     if (!agedPayables) {
       return {

@@ -1,10 +1,11 @@
 import { Timesheet } from "xero-node/dist/gen/model/payroll-nz/timesheet.js";
 
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
-async function getTimesheet(timesheetID: string): Promise<Timesheet | null> {
+async function getTimesheet(bearerToken: string, timesheetID: string): Promise<Timesheet | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   // Call the Timesheet endpoint from the PayrollNZApi
@@ -19,11 +20,11 @@ async function getTimesheet(timesheetID: string): Promise<Timesheet | null> {
 /**
  * Get a single payroll timesheet from Xero
  */
-export async function getXeroPayrollTimesheet(timesheetID: string): Promise<
+export async function getXeroPayrollTimesheet(bearerToken: string, timesheetID: string): Promise<
   XeroClientResponse<Timesheet | null>
 > {
   try {
-    const timesheet = await getTimesheet(timesheetID);
+    const timesheet = await getTimesheet(bearerToken, timesheetID);
 
     return {
       result: timesheet,

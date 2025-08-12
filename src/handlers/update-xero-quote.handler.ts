@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Quote, QuoteStatusCodes } from "xero-node";
@@ -12,7 +12,8 @@ interface QuoteLineItem {
   taxType: string;
 }
 
-async function getQuote(quoteId: string): Promise<Quote | undefined> {
+async function getQuote(bearerToken: string, quoteId: string): Promise<Quote | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   // First, get the current quote to check its status
@@ -26,6 +27,7 @@ async function getQuote(quoteId: string): Promise<Quote | undefined> {
 }
 
 async function updateQuote(
+  bearerToken: string,
   quoteId: string,
   lineItems?: QuoteLineItem[],
   reference?: string,
@@ -38,6 +40,9 @@ async function updateQuote(
   expiryDate?: string,
   existingQuote?: Quote
 ): Promise<Quote | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
+  await xeroClient.authenticate();
+
   // Create quote object with only the fields that are being updated
   const quote: Quote = {
     lineItems: lineItems,
@@ -48,14 +53,15 @@ async function updateQuote(
     quoteNumber: quoteNumber,
     expiryDate: expiryDate,
   };
-  
+
+
   // Only add contact if contactId is provided, otherwise use existing
   if (contactId) {
     quote.contact = { contactID: contactId };
   } else if (existingQuote?.contact) {
     quote.contact = existingQuote.contact;
   }
-  
+
   // Only add date if provided, otherwise use existing
   if (date) {
     quote.date = date;
@@ -80,6 +86,7 @@ async function updateQuote(
  * Update an existing quote in Xero
  */
 export async function updateXeroQuote(
+  bearerToken: string,
   quoteId: string,
   lineItems?: QuoteLineItem[],
   reference?: string,
@@ -92,7 +99,7 @@ export async function updateXeroQuote(
   expiryDate?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
-    const existingQuote = await getQuote(quoteId);
+    const existingQuote = await getQuote(bearerToken, quoteId);
 
     const quoteStatus = existingQuote?.status;
 
@@ -106,6 +113,7 @@ export async function updateXeroQuote(
     }
 
     const updatedQuote = await updateQuote(
+      bearerToken,
       quoteId,
       lineItems,
       reference,

@@ -1,14 +1,16 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getInvoices(
+  bearerToken: string,
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
   page: number,
 ): Promise<Invoice[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const invoices = await xeroClient.accountingApi.getInvoices(
@@ -36,12 +38,13 @@ async function getInvoices(
  * List all invoices from Xero
  */
 export async function listXeroInvoices(
+  bearerToken: string,
   page: number = 1,
   contactIds?: string[],
   invoiceNumbers?: string[],
 ): Promise<XeroClientResponse<Invoice[]>> {
   try {
-    const invoices = await getInvoices(invoiceNumbers, contactIds, page);
+    const invoices = await getInvoices(bearerToken, invoiceNumbers, contactIds, page);
 
     return {
       result: invoices,

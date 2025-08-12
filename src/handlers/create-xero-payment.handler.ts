@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
@@ -12,13 +12,14 @@ type PaymentProps = {
   reference?: string;
 };
 
-async function createPayment({
+async function createPayment(bearerToken: string, {
   invoiceId,
   accountId,
   amount,
   date,
   reference,
 }: PaymentProps): Promise<Payment | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const payment: Payment = {
@@ -46,15 +47,16 @@ async function createPayment({
 /**
  * Create a new payment in Xero
  */
-export async function createXeroPayment({
+export async function createXeroPayment(bearerToken: string, {
   invoiceId,
   accountId,
   amount,
   date,
   reference,
+
 }: PaymentProps): Promise<XeroClientResponse<Payment>> {
   try {
-    const createdPayment = await createPayment({
+    const createdPayment = await createPayment(bearerToken, {
       invoiceId,
       accountId,
       amount,

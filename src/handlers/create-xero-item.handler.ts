@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Item, Items } from "xero-node";
@@ -24,8 +24,10 @@ interface ItemDetails {
 }
 
 async function createItem(
+  bearerToken: string,
   itemDetails: ItemDetails
 ): Promise<Item | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const item: Item = {
@@ -37,17 +39,17 @@ async function createItem(
     isSold: !!itemDetails.salesDetails,
     purchaseDetails: itemDetails.purchaseDetails
       ? {
-          unitPrice: itemDetails.purchaseDetails.unitPrice,
-          taxType: itemDetails.purchaseDetails.taxType,
-          accountCode: itemDetails.purchaseDetails.accountCode,
-        }
+        unitPrice: itemDetails.purchaseDetails.unitPrice,
+        taxType: itemDetails.purchaseDetails.taxType,
+        accountCode: itemDetails.purchaseDetails.accountCode,
+      }
       : undefined,
     salesDetails: itemDetails.salesDetails
       ? {
-          unitPrice: itemDetails.salesDetails.unitPrice,
-          taxType: itemDetails.salesDetails.taxType,
-          accountCode: itemDetails.salesDetails.accountCode,
-        }
+        unitPrice: itemDetails.salesDetails.unitPrice,
+        taxType: itemDetails.salesDetails.taxType,
+        accountCode: itemDetails.salesDetails.accountCode,
+      }
       : undefined,
     isTrackedAsInventory: itemDetails.isTrackedAsInventory,
     inventoryAssetAccountCode: itemDetails.inventoryAssetAccountCode,
@@ -73,10 +75,11 @@ async function createItem(
  * Create an item in Xero
  */
 export async function createXeroItem(
+  bearerToken: string,
   itemDetails: ItemDetails
 ): Promise<XeroClientResponse<Item | null>> {
   try {
-    const item = await createItem(itemDetails);
+    const item = await createItem(bearerToken, itemDetails);
 
     return {
       result: item,

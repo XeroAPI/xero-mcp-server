@@ -1,10 +1,11 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Contact, Phone, Address, Contacts } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function updateContact(
+  bearerToken: string,
   name: string,
   firstName: string | undefined,
   lastName: string | undefined,
@@ -13,6 +14,7 @@ async function updateContact(
   address: Address | undefined,
   contactId: string,
 ): Promise<Contact | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const contact: Contact = {
@@ -22,24 +24,24 @@ async function updateContact(
     emailAddress: email,
     phones: phone
       ? [
-          {
-            phoneNumber: phone,
-            phoneType: Phone.PhoneTypeEnum.MOBILE,
-          },
-        ]
+        {
+          phoneNumber: phone,
+          phoneType: Phone.PhoneTypeEnum.MOBILE,
+        },
+      ]
       : undefined,
     addresses: address
       ? [
-          {
-            addressType: Address.AddressTypeEnum.STREET,
-            addressLine1: address.addressLine1,
-            addressLine2: address.addressLine2,
-            city: address.city,
-            country: address.country,
-            postalCode: address.postalCode,
-            region: address.region,
-          },
-        ]
+        {
+          addressType: Address.AddressTypeEnum.STREET,
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          city: address.city,
+          country: address.country,
+          postalCode: address.postalCode,
+          region: address.region,
+        },
+      ]
       : undefined,
   };
 
@@ -63,6 +65,7 @@ async function updateContact(
  * Create a new invoice in Xero
  */
 export async function updateXeroContact(
+  bearerToken: string,
   contactId: string,
   name: string,
   firstName?: string,
@@ -73,6 +76,7 @@ export async function updateXeroContact(
 ): Promise<XeroClientResponse<Contact>> {
   try {
     const updatedContact = await updateContact(
+      bearerToken,
       name,
       firstName,
       lastName,

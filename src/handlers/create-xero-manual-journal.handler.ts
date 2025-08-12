@@ -4,12 +4,13 @@ import {
   ManualJournalLine,
   ManualJournals,
 } from "xero-node";
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 
 async function createManualJournal(
+  bearerToken: string,
   narration: string,
   manualJournalLines: ManualJournalLine[],
   date?: string,
@@ -18,6 +19,7 @@ async function createManualJournal(
   url?: string,
   showOnCashBasisReports?: boolean,
 ): Promise<ManualJournal | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const manualJournal: ManualJournal = {
@@ -63,6 +65,7 @@ async function createManualJournal(
  * @returns
  */
 export async function createXeroManualJournal(
+  bearerToken: string,
   narration: string,
   manualJournalLines: ManualJournalLine[],
   date?: string,
@@ -73,6 +76,7 @@ export async function createXeroManualJournal(
 ): Promise<XeroClientResponse<ManualJournal>> {
   try {
     const createdManualJournal = await createManualJournal(
+      bearerToken,
       narration,
       manualJournalLines,
       date,

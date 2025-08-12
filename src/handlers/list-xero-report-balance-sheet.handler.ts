@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
@@ -7,7 +7,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { ListReportBalanceSheetParams } from "../types/list-report-balance-sheet-params.js";
 
 
-async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Promise<ReportWithRow | null> {
+async function getReportBalanceSheet(bearerToken: string, params: ListReportBalanceSheetParams): Promise<ReportWithRow | null> {
     const {
         date,
         periods,
@@ -18,6 +18,7 @@ async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Prom
         paymentsOnly,
     } = params;
 
+    const xeroClient = createXeroClient(bearerToken);
     await xeroClient.authenticate();
 
     const response = await xeroClient.accountingApi.getReportBalanceSheet(
@@ -34,9 +35,9 @@ async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Prom
     return response.body.reports?.[0] ?? null;
 }
 
-export async function listXeroReportBalanceSheet(params: ListReportBalanceSheetParams): Promise<XeroClientResponse<ReportWithRow>> {
+export async function listXeroReportBalanceSheet(bearerToken: string, params: ListReportBalanceSheetParams): Promise<XeroClientResponse<ReportWithRow>> {
     try {
-        const balanceSheet = await getReportBalanceSheet(params);
+        const balanceSheet = await getReportBalanceSheet(bearerToken, params);
 
         if (!balanceSheet) {
             return {

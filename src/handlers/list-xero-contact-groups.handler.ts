@@ -1,10 +1,11 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { ContactGroup } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
-async function getContactGroups(contactGroupId?: string): Promise<ContactGroup[]> {
+async function getContactGroups(bearerToken: string, contactGroupId?: string): Promise<ContactGroup[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   if (contactGroupId) {
@@ -28,11 +29,11 @@ async function getContactGroups(contactGroupId?: string): Promise<ContactGroup[]
 /**
  * List all contact groups from Xero. If a contactGroupId is provided, it will return only that contact group.
  */
-export async function listXeroContactGroups(contactGroupId?: string): Promise<
+export async function listXeroContactGroups(bearerToken: string, contactGroupId?: string): Promise<
   XeroClientResponse<ContactGroup[]>
 > {
   try {
-    const contactGroups = await getContactGroups(contactGroupId);
+    const contactGroups = await getContactGroups(bearerToken, contactGroupId);
 
     return {
       result: contactGroups,

@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Item, Items } from "xero-node";
@@ -24,9 +24,11 @@ interface ItemDetails {
 }
 
 async function updateItem(
+  bearerToken: string,
   itemId: string,
   itemDetails: ItemDetails
 ): Promise<Item | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const item: Partial<Item> = {
@@ -63,11 +65,12 @@ async function updateItem(
  * @returns A response containing the updated item or error details
  */
 export async function updateXeroItem(
+  bearerToken: string,
   itemId: string,
   itemDetails: ItemDetails
 ): Promise<XeroClientResponse<Item | null>> {
   try {
-    const item = await updateItem(itemId, itemDetails);
+    const item = await updateItem(bearerToken, itemId, itemDetails);
 
     return {
       result: item,

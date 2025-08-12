@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -7,7 +7,8 @@ import { EmployeeLeaveBalance } from "xero-node/dist/gen/model/payroll-nz/employ
 /**
  * Internal function to fetch employee leave balances from Xero
  */
-async function fetchEmployeeLeaveBalances(employeeId: string): Promise<EmployeeLeaveBalance[] | null> {
+async function fetchEmployeeLeaveBalances(bearerToken: string, employeeId: string): Promise<EmployeeLeaveBalance[] | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   if (!employeeId) {
@@ -28,10 +29,11 @@ async function fetchEmployeeLeaveBalances(employeeId: string): Promise<EmployeeL
  * @param employeeId The ID of the employee to retrieve leave balances for
  */
 export async function listXeroPayrollEmployeeLeaveBalances(
+  bearerToken: string,
   employeeId: string,
 ): Promise<XeroClientResponse<EmployeeLeaveBalance[]>> {
   try {
-    const leaveBalances = await fetchEmployeeLeaveBalances(employeeId);
+    const leaveBalances = await fetchEmployeeLeaveBalances(bearerToken, employeeId);
 
     if (!leaveBalances) {
       return {

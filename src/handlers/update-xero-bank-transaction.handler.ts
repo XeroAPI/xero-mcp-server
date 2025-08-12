@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -14,7 +14,8 @@ interface BankTransactionLineItem {
 
 type BankTransactionType = "RECEIVE" | "SPEND";
 
-async function getBankTransaction(bankTransactionId: string): Promise<BankTransaction | undefined> {
+async function getBankTransaction(bearerToken: string, bankTransactionId: string): Promise<BankTransaction | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getBankTransaction(
@@ -28,6 +29,7 @@ async function getBankTransaction(bankTransactionId: string): Promise<BankTransa
 }
 
 async function updateBankTransaction(
+  bearerToken: string,
   bankTransactionId: string,
   existingBankTransaction: BankTransaction,
   type?: BankTransactionType,
@@ -46,6 +48,9 @@ async function updateBankTransaction(
     date: date ? date : existingBankTransaction.date
   };
 
+  const xeroClient = createXeroClient(bearerToken);
+  await xeroClient.authenticate();
+
   xeroClient.accountingApi.updateBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
@@ -59,6 +64,7 @@ async function updateBankTransaction(
 }
 
 export async function updateXeroBankTransaction(
+  bearerToken: string,
   bankTransactionId: string,
   type?: BankTransactionType,
   contactId?: string,
@@ -67,13 +73,14 @@ export async function updateXeroBankTransaction(
   date?: string
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
-    const existingBankTransaction = await getBankTransaction(bankTransactionId);
+    const existingBankTransaction = await getBankTransaction(bearerToken, bankTransactionId);
 
     if (!existingBankTransaction) {
       throw new Error(`Could not find bank transaction`);
     }
 
     const updatedBankTransaction = await updateBankTransaction(
+      bearerToken,
       bankTransactionId,
       existingBankTransaction,
       type,

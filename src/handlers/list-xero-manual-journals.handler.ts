@@ -1,14 +1,16 @@
 import { ManualJournal } from "xero-node";
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getManualJournals(
+  bearerToken: string,
   page: number,
   manualJournalId?: string,
   modifiedAfter?: string,
 ): Promise<ManualJournal[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   if (manualJournalId) {
@@ -38,12 +40,14 @@ async function getManualJournals(
  * List all manual journals from Xero.
  */
 export async function listXeroManualJournals(
+  bearerToken: string,
   page: number = 1,
   manualJournalId?: string,
   modifiedAfter?: string,
 ): Promise<XeroClientResponse<ManualJournal[]>> {
   try {
     const manualJournals = await getManualJournals(
+      bearerToken,
       page,
       manualJournalId,
       modifiedAfter,

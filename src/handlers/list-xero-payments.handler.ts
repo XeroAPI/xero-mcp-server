@@ -1,10 +1,11 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getPayments(
+  bearerToken: string,
   page: number = 1,
   {
     invoiceNumber,
@@ -18,6 +19,7 @@ async function getPayments(
     reference?: string;
   },
 ): Promise<Payment[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   // Build where clause for filtering
@@ -57,6 +59,7 @@ async function getPayments(
  * List payments from Xero
  */
 export async function listXeroPayments(
+  bearerToken: string,
   page: number = 1,
   {
     invoiceNumber,
@@ -71,7 +74,7 @@ export async function listXeroPayments(
   },
 ): Promise<XeroClientResponse<Payment[]>> {
   try {
-    const payments = await getPayments(page, {
+    const payments = await getPayments(bearerToken, page, {
       invoiceNumber,
       invoiceId,
       paymentId,

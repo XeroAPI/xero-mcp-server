@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -7,7 +7,8 @@ import { EmployeeLeaveType } from "xero-node/dist/gen/model/payroll-nz/employeeL
 /**
  * Internal function to fetch employee leave types from Xero
  */
-async function fetchEmployeeLeaveTypes(employeeId: string): Promise<EmployeeLeaveType[] | null> {
+async function fetchEmployeeLeaveTypes(bearerToken: string, employeeId: string): Promise<EmployeeLeaveType[] | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   if (!employeeId) {
@@ -28,10 +29,11 @@ async function fetchEmployeeLeaveTypes(employeeId: string): Promise<EmployeeLeav
  * @param employeeId The ID of the employee to retrieve leave types for
  */
 export async function listXeroPayrollEmployeeLeaveTypes(
+  bearerToken: string,
   employeeId: string,
 ): Promise<XeroClientResponse<EmployeeLeaveType[]>> {
   try {
-    const leaveTypes = await fetchEmployeeLeaveTypes(employeeId);
+    const leaveTypes = await fetchEmployeeLeaveTypes(bearerToken, employeeId);
 
     if (!leaveTypes) {
       return {

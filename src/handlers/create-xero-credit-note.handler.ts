@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
@@ -13,10 +13,12 @@ interface CreditNoteLineItem {
 }
 
 async function createCreditNote(
+  bearerToken: string,
   contactId: string,
   lineItems: CreditNoteLineItem[],
   reference: string | undefined,
 ): Promise<CreditNote | undefined> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const creditNote: CreditNote = {
@@ -48,12 +50,14 @@ async function createCreditNote(
  * Create a new credit note in Xero
  */
 export async function createXeroCreditNote(
+  bearerToken: string,
   contactId: string,
   lineItems: CreditNoteLineItem[],
   reference?: string,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const createdCreditNote = await createCreditNote(
+      bearerToken,
       contactId,
       lineItems,
       reference,

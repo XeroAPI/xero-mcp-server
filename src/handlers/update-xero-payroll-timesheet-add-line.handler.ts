@@ -2,11 +2,12 @@ import {
   TimesheetLine,
 } from "xero-node/dist/gen/model/payroll-nz/timesheetLine.js";
 
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
-async function addTimesheetLine(timesheetID: string, timesheetLine: TimesheetLine): Promise<TimesheetLine | null> {
+async function addTimesheetLine(bearerToken: string, timesheetID: string, timesheetLine: TimesheetLine): Promise<TimesheetLine | null> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   // Call the createTimesheetLine endpoint from the PayrollNZApi
@@ -22,11 +23,11 @@ async function addTimesheetLine(timesheetID: string, timesheetLine: TimesheetLin
 /**
  * Add a timesheet line to an existing payroll timesheet in Xero
  */
-export async function updateXeroPayrollTimesheetAddLine(timesheetID: string, timesheetLine: TimesheetLine): Promise<
+export async function updateXeroPayrollTimesheetAddLine(bearerToken: string, timesheetID: string, timesheetLine: TimesheetLine): Promise<
   XeroClientResponse<TimesheetLine | null>
 > {
   try {
-    const newLine = await addTimesheetLine(timesheetID, timesheetLine);
+    const newLine = await addTimesheetLine(bearerToken, timesheetID, timesheetLine);
 
     return {
       result: newLine,

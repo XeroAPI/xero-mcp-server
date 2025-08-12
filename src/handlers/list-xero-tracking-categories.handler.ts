@@ -1,12 +1,14 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import { TrackingCategory } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 
 async function getTrackingCategories(
+  bearerToken: string,
   includeArchived?: boolean
 ): Promise<TrackingCategory[]> {
+  const xeroClient = createXeroClient(bearerToken);
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getTrackingCategories(
@@ -21,10 +23,11 @@ async function getTrackingCategories(
 }
 
 export async function listXeroTrackingCategories(
+  bearerToken: string,
   includeArchived?: boolean
 ): Promise<XeroClientResponse<TrackingCategory[]>> {
   try {
-    const trackingCategories = await getTrackingCategories(includeArchived);
+    const trackingCategories = await getTrackingCategories(bearerToken, includeArchived);
 
     return {
       result: trackingCategories,
