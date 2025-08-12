@@ -1,4 +1,4 @@
-import { xeroClient } from "../clients/xero-client.js";
+import { createXeroClient } from "../clients/xero-client.js";
 import {
   contactDeepLink,
   creditNoteDeepLink,
@@ -24,9 +24,13 @@ export enum DeepLinkType {
  * This will also fetch the org short code from the Xero client.
  * @param type
  * @param itemId
+ * @param bearerToken - Bearer token for Xero authentication
  * @returns
  */
-export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
+export const getDeepLink = async (type: DeepLinkType, itemId: string, bearerToken: string) => {
+  const xeroClient = createXeroClient(bearerToken);
+  await xeroClient.authenticate();
+
   const orgShortCode = await xeroClient.getShortCode();
 
   if (!orgShortCode) {
