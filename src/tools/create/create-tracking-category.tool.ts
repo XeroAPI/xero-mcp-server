@@ -6,10 +6,11 @@ const CreateTrackingCategoryTool = CreateXeroTool(
   "create-tracking-category",
   `Create a tracking category in Xero.`,
   {
-    name: z.string()
+    bearerToken: z.string(),
+    name: z.string(),
   },
-  async ({ name }) => {
-    const response = await createXeroTrackingCategory(name);
+  async ({ bearerToken, name }) => {
+    const response = await createXeroTrackingCategory(bearerToken, name);
 
     if (response.isError) {
       return {
@@ -23,7 +24,7 @@ const CreateTrackingCategoryTool = CreateXeroTool(
     }
 
     const trackingCategory = response.result;
-    
+
     return {
       content: [
         {

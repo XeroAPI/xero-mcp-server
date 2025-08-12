@@ -9,11 +9,11 @@ const RevertPayrollTimesheetTool = CreateXeroTool(
   "revert-timesheet",
   `Revert a payroll timesheet to draft in Xero by its ID.`,
   {
+    bearerToken: z.string(),
     timesheetID: z.string().describe("The ID of the timesheet to revert."),
   },
-  async (params: { timesheetID: string }) => {
-    const { timesheetID } = params;
-    const response = await revertXeroPayrollTimesheet(timesheetID);
+  async ({ bearerToken, timesheetID }) => {
+    const response = await revertXeroPayrollTimesheet(bearerToken, timesheetID);
 
     if (response.isError) {
       return {

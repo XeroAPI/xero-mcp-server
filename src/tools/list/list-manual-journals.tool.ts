@@ -12,6 +12,7 @@ The response presents a complete overview of all manual journals currently regis
 Ask the user if they want the next page of manual journals after running this tool if 10 manual journals are returned.
 If they want the next page, call this tool again with the next page number, modified date, and the manual journal ID if one was provided in the previous call.`,
   {
+    bearerToken: z.string(),
     manualJournalId: z
       .string()
       .optional()
@@ -25,12 +26,8 @@ If they want the next page, call this tool again with the next page number, modi
     page: z.number().optional().describe("Optional page number for pagination"),
     // TODO: where, order
   },
-  async (args) => {
-    const response = await listXeroManualJournals(
-      args?.page,
-      args?.manualJournalId,
-      args?.modifiedAfter,
-    );
+  async ({ bearerToken, page, manualJournalId, modifiedAfter }) => {
+    const response = await listXeroManualJournals(bearerToken, page, manualJournalId, modifiedAfter);
 
     if (response.isError) {
       return {
@@ -61,21 +58,21 @@ If they want the next page, call this tool again with the next page number, modi
             journal.date ? `Date: ${journal.date}` : null,
             journal.journalLines
               ? journal.journalLines.map((line) => ({
-                  type: "text" as const,
-                  text: [
-                    `Line Amount: ${line.lineAmount}`,
-                    line.accountCode
-                      ? `Account Code: ${line.accountCode}`
-                      : "No account code",
-                    line.description
-                      ? `Description: ${line.description}`
-                      : "No description",
-                    line.taxType ? `Tax Type: ${line.taxType}` : "No tax type",
-                    `Tax Amount: ${line.taxAmount}`,
-                  ]
-                    .filter(Boolean)
-                    .join("\n"),
-                }))
+                type: "text" as const,
+                text: [
+                  `Line Amount: ${line.lineAmount}`,
+                  line.accountCode
+                    ? `Account Code: ${line.accountCode}`
+                    : "No account code",
+                  line.description
+                    ? `Description: ${line.description}`
+                    : "No description",
+                  line.taxType ? `Tax Type: ${line.taxType}` : "No tax type",
+                  `Tax Amount: ${line.taxAmount}`,
+                ]
+                  .filter(Boolean)
+                  .join("\n"),
+              }))
               : [{ type: "text" as const, text: "No journal lines" }],
             journal.lineAmountTypes
               ? `Line Amount Types: ${journal.lineAmountTypes}`

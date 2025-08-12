@@ -13,6 +13,7 @@ const CreateManualJournalTool = CreateXeroTool(
   use basic accounting account types pairing when not specified, \
   and make sure journal line pairs have credit and debit balanced.",
   {
+    bearerToken: z.string(),
     narration: z
       .string()
       .describe("Description of manual journal being posted"),
@@ -63,16 +64,17 @@ const CreateManualJournalTool = CreateXeroTool(
         "Optional boolean to show on cash basis reports, default is true",
       ),
   },
-  async (args) => {
+  async ({ bearerToken, narration, manualJournalLines, date, lineAmountTypes, status, url, showOnCashBasisReports }) => {
     try {
       const response = await createXeroManualJournal(
-        args.narration,
-        args.manualJournalLines,
-        args.date,
-        args.lineAmountTypes as LineAmountTypes | undefined,
-        args.status as ManualJournal.StatusEnum | undefined,
-        args.url,
-        args.showOnCashBasisReports,
+        bearerToken,
+        narration,
+        manualJournalLines,
+        date,
+        lineAmountTypes as LineAmountTypes | undefined,
+        status as ManualJournal.StatusEnum | undefined,
+        url,
+        showOnCashBasisReports,
       );
 
       if (response.isError) {
@@ -89,9 +91,10 @@ const CreateManualJournalTool = CreateXeroTool(
       const manualJournal = response.result;
       const deepLink = manualJournal.manualJournalID
         ? await getDeepLink(
-            DeepLinkType.MANUAL_JOURNAL,
-            manualJournal.manualJournalID,
-          )
+          DeepLinkType.MANUAL_JOURNAL,
+          manualJournal.manualJournalID,
+          bearerToken,
+        )
         : null;
 
       return {
@@ -106,23 +109,23 @@ const CreateManualJournalTool = CreateXeroTool(
                 : "No status",
               manualJournal.journalLines
                 ? manualJournal.journalLines.map((line) => ({
-                    type: "text" as const,
-                    text: [
-                      `Line Amount: ${line.lineAmount}`,
-                      line.accountCode
-                        ? `Account Code: ${line.accountCode}`
-                        : "No account code",
-                      line.description
-                        ? `Description: ${line.description}`
-                        : "No description",
-                      line.taxType
-                        ? `Tax Type: ${line.taxType}`
-                        : "No tax type",
-                      `Tax Amount: ${line.taxAmount}`,
-                    ]
-                      .filter(Boolean)
-                      .join("\n"),
-                  }))
+                  type: "text" as const,
+                  text: [
+                    `Line Amount: ${line.lineAmount}`,
+                    line.accountCode
+                      ? `Account Code: ${line.accountCode}`
+                      : "No account code",
+                    line.description
+                      ? `Description: ${line.description}`
+                      : "No description",
+                    line.taxType
+                      ? `Tax Type: ${line.taxType}`
+                      : "No tax type",
+                    `Tax Amount: ${line.taxAmount}`,
+                  ]
+                    .filter(Boolean)
+                    .join("\n"),
+                }))
                 : [{ type: "text" as const, text: "No journal lines" }],
               `Show on Cash Basis Reports: ${manualJournal.showOnCashBasisReports}`,
               deepLink ? `Link to view: ${deepLink}` : null,

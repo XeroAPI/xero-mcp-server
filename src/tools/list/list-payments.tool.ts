@@ -17,22 +17,22 @@ function paymentFormatter(payment: Payment): string {
       : null,
     payment.invoice
       ? [
-          `Invoice:`,
-          `  Invoice Number: ${payment.invoice.invoiceNumber || "Unknown"}`,
-          `  Invoice ID: ${payment.invoice.invoiceID || "Unknown"}`,
-          payment.invoice.contact
-            ? `  Contact: ${payment.invoice.contact.name || "Unknown"} (${payment.invoice.contact.contactID || "Unknown ID"})`
-            : null,
-          payment.invoice.type ? `  Type: ${payment.invoice.type}` : null,
-          payment.invoice.total !== undefined
-            ? `  Total: ${payment.invoice.total}`
-            : null,
-          payment.invoice.amountDue !== undefined
-            ? `  Amount Due: ${payment.invoice.amountDue}`
-            : null,
-        ]
-          .filter(Boolean)
-          .join("\n")
+        `Invoice:`,
+        `  Invoice Number: ${payment.invoice.invoiceNumber || "Unknown"}`,
+        `  Invoice ID: ${payment.invoice.invoiceID || "Unknown"}`,
+        payment.invoice.contact
+          ? `  Contact: ${payment.invoice.contact.name || "Unknown"} (${payment.invoice.contact.contactID || "Unknown ID"})`
+          : null,
+        payment.invoice.type ? `  Type: ${payment.invoice.type}` : null,
+        payment.invoice.total !== undefined
+          ? `  Total: ${payment.invoice.total}`
+          : null,
+        payment.invoice.amountDue !== undefined
+          ? `  Amount Due: ${payment.invoice.amountDue}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n")
       : null,
   ]
     .filter(Boolean)
@@ -47,14 +47,15 @@ const ListPaymentsTool = CreateXeroTool(
   Ask the user if they want to see payments for a specific invoice, contact, payment or reference before running.
   If many payments are returned, ask the user if they want to see the next page.`,
   {
+    bearerToken: z.string(),
     page: z.number().default(1),
     invoiceNumber: z.string().optional(),
     invoiceId: z.string().optional(),
     paymentId: z.string().optional(),
     reference: z.string().optional(),
   },
-  async ({ page, invoiceNumber, invoiceId, paymentId, reference }) => {
-    const response = await listXeroPayments(page, {
+  async ({ bearerToken, page, invoiceNumber, invoiceId, paymentId, reference }) => {
+    const response = await listXeroPayments(bearerToken, page, {
       invoiceNumber,
       invoiceId,
       paymentId,

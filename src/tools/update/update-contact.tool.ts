@@ -11,6 +11,7 @@ const UpdateContactTool = CreateXeroTool(
  This deep link can be used to view the contact in Xero directly. \
  This link should be displayed to the user.",
   {
+    bearerToken: z.string(),
     contactId: z.string(),
     name: z.string(),
     firstName: z.string().optional(),
@@ -28,7 +29,7 @@ const UpdateContactTool = CreateXeroTool(
       })
       .optional(),
   },
-  async ({
+  async ({ bearerToken,
     contactId,
     name,
     firstName,
@@ -37,6 +38,7 @@ const UpdateContactTool = CreateXeroTool(
     phone,
     address,
   }: {
+    bearerToken: string;
     contactId: string;
     name: string;
     email?: string;
@@ -54,6 +56,7 @@ const UpdateContactTool = CreateXeroTool(
   }) => {
     try {
       const response = await updateXeroContact(
+        bearerToken,
         contactId,
         name,
         firstName,
@@ -76,7 +79,7 @@ const UpdateContactTool = CreateXeroTool(
       const contact = response.result;
 
       const deepLink = contact.contactID
-        ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID)
+        ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID, bearerToken)
         : null;
 
       return {

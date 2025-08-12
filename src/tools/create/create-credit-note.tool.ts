@@ -18,12 +18,13 @@ const CreateCreditNoteTool = CreateXeroTool(
  This deep link can be used to view the credit note in Xero directly. \
  This link should be displayed to the user.",
   {
+    bearerToken: z.string(),
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),
     reference: z.string().optional(),
   },
-  async ({ contactId, lineItems, reference }) => {
-    const result = await createXeroCreditNote(contactId, lineItems, reference);
+  async ({ bearerToken, contactId, lineItems, reference }) => {
+    const result = await createXeroCreditNote(bearerToken, contactId, lineItems, reference);
     if (result.isError) {
       return {
         content: [
@@ -38,7 +39,7 @@ const CreateCreditNoteTool = CreateXeroTool(
     const creditNote = result.result;
 
     const deepLink = creditNote.creditNoteID
-      ? await getDeepLink(DeepLinkType.CREDIT_NOTE, creditNote.creditNoteID)
+      ? await getDeepLink(DeepLinkType.CREDIT_NOTE, creditNote.creditNoteID, bearerToken)
       : null;
 
     return {

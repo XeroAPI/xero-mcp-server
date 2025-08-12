@@ -7,12 +7,13 @@ const ListPayrollEmployeeLeaveTypesTool = CreateXeroTool(
   "list-payroll-employee-leave-types",
   "List all leave types available for a specific employee in Xero. This shows detailed information about the types of leave an employee can take, including schedule of accrual, leave type name, and entitlement.",
   {
+    bearerToken: z.string(),
     employeeId: z
       .string()
       .describe("The Xero employee ID to fetch leave types for"),
   },
-  async ({ employeeId }) => {
-    const response = await listXeroPayrollEmployeeLeaveTypes(employeeId);
+  async ({ bearerToken, employeeId }) => {
+    const response = await listXeroPayrollEmployeeLeaveTypes(bearerToken, employeeId);
     if (response.isError) {
       return {
         content: [

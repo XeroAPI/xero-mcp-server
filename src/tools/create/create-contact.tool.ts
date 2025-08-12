@@ -15,9 +15,9 @@ const CreateContactTool = CreateXeroTool(
     email: z.string().email().optional(),
     phone: z.string().optional(),
   },
-  async ({ name, email, phone }) => {
+  async ({ bearerToken, name, email, phone }) => {
     try {
-      const response = await createXeroContact(name, email, phone);
+      const response = await createXeroContact(bearerToken, name, email, phone);
       if (response.isError) {
         return {
           content: [
@@ -32,7 +32,7 @@ const CreateContactTool = CreateXeroTool(
       const contact = response.result;
 
       const deepLink = contact.contactID
-        ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID)
+        ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID, bearerToken)
         : null;
 
       return {

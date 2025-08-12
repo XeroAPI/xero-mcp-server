@@ -8,6 +8,7 @@ const ListAgedReceivablesByContact = CreateXeroTool(
   `Lists the aged receivables in Xero.
   This shows aged receivables for a certain contact up to a report date.`,
   {
+    bearerToken: z.string(),
     contactId: z.string(),
     reportDate: z.string().optional()
       .describe("Optional date to retrieve aged receivables in YYYY-MM-DD format. If none is provided, defaults to end of the current month."),
@@ -16,9 +17,9 @@ const ListAgedReceivablesByContact = CreateXeroTool(
     invoicesToDate: z.string().optional()
       .describe("Optional to date in YYYY-MM-DD format. If provided, will only show payable invoices before this date for the contact."),
   },
-  async ({ contactId, reportDate, invoicesFromDate, invoicesToDate }) => {
-    const response = await listXeroAgedReceivablesByContact(contactId, reportDate, invoicesFromDate, invoicesToDate);
-    
+  async ({ bearerToken, contactId, reportDate, invoicesFromDate, invoicesToDate }) => {
+    const response = await listXeroAgedReceivablesByContact(bearerToken, contactId, reportDate, invoicesFromDate, invoicesToDate);
+
     if (response.isError) {
       return {
         content: [

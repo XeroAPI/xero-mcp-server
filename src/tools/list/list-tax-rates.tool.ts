@@ -1,12 +1,15 @@
 import { listXeroTaxRates } from "../../handlers/list-xero-tax-rates.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { z } from "zod";
 
 const ListTaxRatesTool = CreateXeroTool(
   "list-tax-rates",
   "Lists all tax rates in Xero. Use this tool to get the tax rates to be used when creating invoices in Xero",
-  {},
-  async () => {
-    const response = await listXeroTaxRates();
+  {
+    bearerToken: z.string(),
+  },
+  async ({ bearerToken }) => {
+    const response = await listXeroTaxRates(bearerToken);
     if (response.error !== null) {
       return {
         content: [
@@ -36,11 +39,11 @@ const ListTaxRatesTool = CreateXeroTool(
             `Effective Rate: ${taxRate.effectiveRate || "0.0000"}%`,
             taxRate.taxComponents?.length
               ? `Tax Components:\n${taxRate.taxComponents
-                  .map(
-                    (comp) =>
-                      `  - ${comp.name}: ${comp.rate}%${comp.isCompound ? " (Compound)" : ""}${comp.isNonRecoverable ? " (Non-recoverable)" : ""}`,
-                  )
-                  .join("\n")}`
+                .map(
+                  (comp) =>
+                    `  - ${comp.name}: ${comp.rate}%${comp.isCompound ? " (Compound)" : ""}${comp.isNonRecoverable ? " (Non-recoverable)" : ""}`,
+                )
+                .join("\n")}`
               : null,
             `Can Apply To:${[
               taxRate.canApplyToAssets ? " Assets" : "",

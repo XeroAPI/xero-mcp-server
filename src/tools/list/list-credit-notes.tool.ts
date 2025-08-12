@@ -12,11 +12,12 @@ const ListCreditNotesTool = CreateXeroTool(
   If they want the next page, call this tool again with the next page number 
   and the contact if one was provided in the previous call.`,
   {
+    bearerToken: z.string(),
     page: z.number(),
     contactId: z.string().optional(),
   },
-  async ({ page, contactId }) => {
-    const response = await listXeroCreditNotes(page, contactId);
+  async ({ bearerToken, page, contactId }) => {
+    const response = await listXeroCreditNotes(bearerToken, page, contactId);
     if (response.error !== null) {
       return {
         content: [

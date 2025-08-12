@@ -7,11 +7,12 @@ const ListTrackingCategoriesTool = CreateXeroTool(
   "list-tracking-categories",
   "List all tracking categories in Xero, along with their associated tracking options.",
   {
+    bearerToken: z.string(),
     includeArchived: z.boolean().optional()
       .describe("Determines whether or not archived categories will be returned. By default, no archived categories will be returned.")
   },
-  async ({ includeArchived }) => {
-    const response = await listXeroTrackingCategories(includeArchived);
+  async ({ bearerToken, includeArchived }) => {
+    const response = await listXeroTrackingCategories(bearerToken, includeArchived);
 
     if (response.isError) {
       return {

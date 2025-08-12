@@ -31,9 +31,10 @@ const CreateInvoiceTool = CreateXeroTool(
  This deep link can be used to view the invoice in Xero directly. \
  This link should be displayed to the user.",
   {
+    bearerToken: z.string(),
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
-      
+
     lineItems: z.array(lineItemSchema),
     type: z.enum(["ACCREC", "ACCPAY"]).describe("The type of invoice to create. \
       ACCREC is for sales invoices, Accounts Receivable, or customer invoices. \
@@ -42,9 +43,9 @@ const CreateInvoiceTool = CreateXeroTool(
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
   },
-  async ({ contactId, lineItems, type, reference, date }) => {
+  async ({ bearerToken, contactId, lineItems, type, reference, date }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
+    const result = await createXeroInvoice(bearerToken, contactId, lineItems, xeroInvoiceType, reference, date);
     if (result.isError) {
       return {
         content: [
@@ -60,9 +61,10 @@ const CreateInvoiceTool = CreateXeroTool(
 
     const deepLink = invoice.invoiceID
       ? await getDeepLink(
-          invoice.type === Invoice.TypeEnum.ACCREC ? DeepLinkType.INVOICE : DeepLinkType.BILL,
-          invoice.invoiceID,
-        )
+        invoice.type === Invoice.TypeEnum.ACCREC ? DeepLinkType.INVOICE : DeepLinkType.BILL,
+        invoice.invoiceID,
+        bearerToken,
+      )
       : null;
 
     return {

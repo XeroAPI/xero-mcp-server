@@ -11,6 +11,7 @@ const CreatePayrollTimesheetTool = CreateXeroTool(
   `Create a new payroll timesheet in Xero.
 This allows you to specify details such as the employee ID, payroll calendar ID, start and end dates, and timesheet lines.`,
   {
+    bearerToken: z.string(),
     payrollCalendarID: z.string().describe("The ID of the payroll calendar."),
     employeeID: z.string().describe("The ID of the employee."),
     startDate: z.string().describe("The start date of the timesheet period (YYYY-MM-DD)."),
@@ -26,8 +27,14 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
       .optional()
       .describe("The lines of the timesheet."),
   },
-  async (params: Timesheet) => {
-    const response = await createXeroPayrollTimesheet(params);
+  async ({ bearerToken, payrollCalendarID, employeeID, startDate, endDate, timesheetLines }) => {
+    const response = await createXeroPayrollTimesheet(bearerToken, {
+      payrollCalendarID,
+      employeeID,
+      startDate,
+      endDate,
+      timesheetLines,
+    });
 
     if (response.isError) {
       return {

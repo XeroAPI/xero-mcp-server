@@ -13,11 +13,12 @@ const UpdateTrackingOptionsTool = CreateXeroTool(
   "update-tracking-options",
   `Updates tracking options for a tracking category in Xero.`,
   {
+    bearerToken: z.string(),
     trackingCategoryId: z.string(),
     options: z.array(trackingOptionSchema).max(10)
   },
-  async ({ trackingCategoryId, options }) => {
-    const response = await updateXeroTrackingOption(trackingCategoryId, options);
+  async ({ bearerToken, trackingCategoryId, options }) => {
+    const response = await updateXeroTrackingOption(bearerToken, trackingCategoryId, options);
 
     if (response.isError) {
       return {
@@ -31,7 +32,7 @@ const UpdateTrackingOptionsTool = CreateXeroTool(
     }
 
     const trackingOptions = response.result;
-    
+
     return {
       content: [
         {

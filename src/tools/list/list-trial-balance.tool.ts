@@ -6,11 +6,12 @@ const ListTrialBalanceTool = CreateXeroTool(
   "list-trial-balance",
   "Lists trial balance in Xero. This provides a snapshot of the general ledger, showing debit and credit balances for each account.",
   {
+    bearerToken: z.string(),
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
     paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
   },
-  async (args) => {
-    const response = await listXeroTrialBalance(args?.date, args?.paymentsOnly);
+  async ({ bearerToken, date, paymentsOnly }) => {
+    const response = await listXeroTrialBalance(bearerToken, date, paymentsOnly);
     if (response.error !== null) {
       return {
         content: [
@@ -22,7 +23,7 @@ const ListTrialBalanceTool = CreateXeroTool(
       };
     }
 
-   const trialBalanceReport = response.result;
+    const trialBalanceReport = response.result;
 
     return {
       content: [

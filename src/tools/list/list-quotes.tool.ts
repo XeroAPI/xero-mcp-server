@@ -9,12 +9,13 @@ const ListQuotesTool = CreateXeroTool(
   Ask the user if they want the next page of quotes after running this tool if 10 quotes are returned. 
   If they do, call this tool again with the page number and the contact provided in the previous call.`,
   {
+    bearerToken: z.string(),
     page: z.number(),
     contactId: z.string().optional(),
     quoteNumber: z.string().optional(),
   },
-  async ({ page, contactId, quoteNumber }) => {
-    const response = await listXeroQuotes(page, contactId, quoteNumber);
+  async ({ bearerToken, page, contactId, quoteNumber }) => {
+    const response = await listXeroQuotes(bearerToken, page, contactId, quoteNumber);
     if (response.error !== null) {
       return {
         content: [

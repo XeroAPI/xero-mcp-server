@@ -12,6 +12,7 @@ const UpdatePayrollTimesheetLineTool = CreateXeroTool(
   "update-timesheet-line",
   `Update an existing timesheet line in a payroll timesheet in Xero.`,
   {
+    bearerToken: z.string(),
     timesheetID: z.string().describe("The ID of the timesheet to update."),
     timesheetLineID: z.string().describe("The ID of the timesheet line to update."),
     timesheetLine: z.object({
@@ -20,9 +21,8 @@ const UpdatePayrollTimesheetLineTool = CreateXeroTool(
       date: z.string().describe("The date for the timesheet line (YYYY-MM-DD)."),
     }).describe("The details of the timesheet line to update."),
   },
-  async (params: { timesheetID: string; timesheetLineID: string; timesheetLine: TimesheetLine }) => {
-    const { timesheetID, timesheetLineID, timesheetLine } = params;
-    const response = await updateXeroPayrollTimesheetUpdateLine(timesheetID, timesheetLineID, timesheetLine);
+  async ({ bearerToken, timesheetID, timesheetLineID, timesheetLine }) => {
+    const response = await updateXeroPayrollTimesheetUpdateLine(bearerToken, timesheetID, timesheetLineID, timesheetLine);
 
     if (response.isError) {
       return {

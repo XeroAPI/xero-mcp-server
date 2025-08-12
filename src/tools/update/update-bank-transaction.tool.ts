@@ -18,6 +18,7 @@ const UpdateBankTransactionTool = CreateXeroTool(
   This deep link can be used to view the bank transaction in Xero directly.
   This link should be displayed to the user.`,
   {
+    bearerToken: z.string(),
     bankTransactionId: z.string(),
     type: z.enum(["RECEIVE", "SPEND"]).optional(),
     contactId: z.string().optional(),
@@ -30,6 +31,7 @@ const UpdateBankTransactionTool = CreateXeroTool(
   },
   async (
     {
+      bearerToken,
       bankTransactionId,
       type,
       contactId,
@@ -38,7 +40,7 @@ const UpdateBankTransactionTool = CreateXeroTool(
       date
     }
   ) => {
-    const result = await updateXeroBankTransaction(bankTransactionId, type, contactId, lineItems, reference, date);
+    const result = await updateXeroBankTransaction(bearerToken, bankTransactionId, type, contactId, lineItems, reference, date);
 
     if (result.isError) {
       return {

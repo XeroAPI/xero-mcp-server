@@ -1,13 +1,16 @@
 import { listXeroOrganisationDetails } from "../../handlers/list-xero-organisation-details.handler.js";
 import { getExternalLink } from "../../helpers/get-external-link.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { z } from "zod";
 
 const ListOrganisationDetailsTool = CreateXeroTool(
   "list-organisation-details",
   "Lists the organisation details from Xero. Use this tool to get information about the current Xero organisation.",
-  {},
-  async () => {
-    const response = await listXeroOrganisationDetails();
+  {
+    bearerToken: z.string(),
+  },
+  async ({ bearerToken }) => {
+    const response = await listXeroOrganisationDetails(bearerToken);
     if (response.error !== null) {
       return {
         content: [
@@ -47,15 +50,14 @@ const ListOrganisationDetailsTool = CreateXeroTool(
     }).join("\n") || "No addresses available.";
 
     const paymentTerms = organisation.paymentTerms
-    ? Object.entries(organisation.paymentTerms).map(([key, value], index) => {
+      ? Object.entries(organisation.paymentTerms).map(([key, value], index) => {
         return `${index + 1}. ${key}: ${value}`;
       }).join("\n")
-    : "No payment terms available.";
+      : "No payment terms available.";
 
     const phones = organisation.phones?.map((phone, index) => {
-      return `Phone ${index + 1}: ${phone.phoneType || "Unknown type"} - ${
-        phone.phoneNumber || "No number"
-      }`;
+      return `Phone ${index + 1}: ${phone.phoneType || "Unknown type"} - ${phone.phoneNumber || "No number"
+        }`;
     }).join("\n") || "No phone numbers available.";
 
     const organisationDetails = [

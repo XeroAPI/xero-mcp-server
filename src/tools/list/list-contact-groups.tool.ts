@@ -7,14 +7,15 @@ const ListContactGroupsTool = CreateXeroTool(
   `List all contact groups in Xero.
   You can optionally specify a contact group ID to retrieve details for that specific group, including its contacts.`,
   {
+    bearerToken: z.string(),
     contactGroupId: z
       .string()
       .optional()
-      .describe("Optional ID of the contact group to retrieve"),    
+      .describe("Optional ID of the contact group to retrieve"),
   },
-  async (args) => {
-    const response = await listXeroContactGroups(args?.contactGroupId);
-    
+  async ({ bearerToken, contactGroupId }) => {
+    const response = await listXeroContactGroups(bearerToken, contactGroupId);
+
     if (response.error !== null) {
       return {
         content: [
@@ -42,11 +43,11 @@ const ListContactGroupsTool = CreateXeroTool(
             `Status: ${contactGroup.status}`,
             contactGroup.contacts
               ? contactGroup.contacts.map(contact => [
-                  `Contact ID: ${contact.contactID}`,
-                  `Name: ${contact.name}`,
-                ].join('\n')
+                `Contact ID: ${contact.contactID}`,
+                `Name: ${contact.name}`,
+              ].join('\n')
               ).join('\n')
-              : "No contacts in this contact group.",            
+              : "No contacts in this contact group.",
           ]
             .filter(Boolean)
             .join("\n"),

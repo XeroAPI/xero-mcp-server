@@ -7,11 +7,12 @@ const CreateTrackingOptionsTool = CreateXeroTool(
   "create-tracking-options",
   `Create tracking options for a tracking category in Xero.`,
   {
+    bearerToken: z.string(),
     trackingCategoryId: z.string(),
     optionNames: z.array(z.string()).max(10)
   },
-  async ({ trackingCategoryId, optionNames }) => {
-    const response = await createXeroTrackingOptions(trackingCategoryId, optionNames);
+  async ({ bearerToken, trackingCategoryId, optionNames }) => {
+    const response = await createXeroTrackingOptions(bearerToken, trackingCategoryId, optionNames);
 
     if (response.isError) {
       return {
@@ -25,7 +26,7 @@ const CreateTrackingOptionsTool = CreateXeroTool(
     }
 
     const trackingOptions = response.result;
-    
+
     return {
       content: [
         {

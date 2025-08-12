@@ -1,12 +1,15 @@
+import { z } from "zod";
 import { listXeroAccounts } from "../../handlers/list-xero-accounts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListAccountsTool = CreateXeroTool(
   "list-accounts",
   "Lists all accounts in Xero. Use this tool to get the account codes and names to be used when creating invoices in Xero",
-  {},
-  async () => {
-    const response = await listXeroAccounts();
+  {
+    bearerToken: z.string(),
+  },
+  async ({ bearerToken }) => {
+    const response = await listXeroAccounts(bearerToken);
     if (response.error !== null) {
       return {
         content: [

@@ -6,13 +6,13 @@ const ListContactsTool = CreateXeroTool(
   "list-contacts",
   "List all contacts in Xero. This includes Suppliers and Customers.",
   {
+    bearerToken: z.string(),
     page: z.number().optional().describe("Optional page number to retrieve for pagination. \
       If not provided, the first page will be returned. If 100 contacts are returned, \
       call this tool again with the next page number."),
   },
-  async (params) => {
-    const { page } = params;
-    const response = await listXeroContacts(page);
+  async ({ bearerToken, page }) => {
+    const response = await listXeroContacts(bearerToken, page);
 
     if (response.isError) {
       return {
@@ -49,13 +49,12 @@ const ListContactsTool = CreateXeroTool(
             contact.accountsPayableTaxType
               ? `AP Tax Type: ${contact.accountsPayableTaxType}`
               : null,
-            `Type: ${
-              [
-                contact.isCustomer ? "Customer" : null,
-                contact.isSupplier ? "Supplier" : null,
-              ]
-                .filter(Boolean)
-                .join(", ") || "Unknown"
+            `Type: ${[
+              contact.isCustomer ? "Customer" : null,
+              contact.isSupplier ? "Supplier" : null,
+            ]
+              .filter(Boolean)
+              .join(", ") || "Unknown"
             }`,
             contact.defaultCurrency
               ? `Default Currency: ${contact.defaultCurrency}`

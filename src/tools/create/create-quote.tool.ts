@@ -18,6 +18,7 @@ const CreateQuoteTool = CreateXeroTool(
  This deep link can be used to view the quote in Xero directly. \
  This link should be displayed to the user.",
   {
+    bearerToken: z.string(),
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),
     reference: z.string().optional(),
@@ -27,6 +28,7 @@ const CreateQuoteTool = CreateXeroTool(
     summary: z.string().optional(),
   },
   async ({
+    bearerToken,
     contactId,
     lineItems,
     reference,
@@ -36,6 +38,7 @@ const CreateQuoteTool = CreateXeroTool(
     summary,
   }) => {
     const result = await createXeroQuote(
+      bearerToken,
       contactId,
       lineItems,
       reference,
@@ -58,7 +61,7 @@ const CreateQuoteTool = CreateXeroTool(
     const quote = result.result;
 
     const deepLink = quote.quoteID
-      ? await getDeepLink(DeepLinkType.QUOTE, quote.quoteID)
+      ? await getDeepLink(DeepLinkType.QUOTE, quote.quoteID, bearerToken)
       : null;
 
     return {

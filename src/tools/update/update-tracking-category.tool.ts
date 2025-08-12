@@ -6,12 +6,13 @@ const UpdateTrackingCategoryTool = CreateXeroTool(
   "update-tracking-category",
   `Updates an existing tracking category in Xero.`,
   {
+    bearerToken: z.string(),
     trackingCategoryId: z.string(),
     name: z.string().optional(),
     status: z.enum(["ACTIVE", "ARCHIVED"]).optional()
   },
-  async ({ trackingCategoryId, name, status }) => {
-    const response = await updateXeroTrackingCategory(trackingCategoryId, name, status);
+  async ({ bearerToken, trackingCategoryId, name, status }) => {
+    const response = await updateXeroTrackingCategory(bearerToken, trackingCategoryId, name, status);
 
     if (response.isError) {
       return {
@@ -25,7 +26,7 @@ const UpdateTrackingCategoryTool = CreateXeroTool(
     }
 
     const trackingCategory = response.result;
-    
+
     return {
       content: [
         {

@@ -13,6 +13,7 @@ const ListInvoicesTool = CreateXeroTool(
   If they want the next page, call this tool again with the next page number \
   and the contact or invoice number if one was provided in the previous call.",
   {
+    bearerToken: z.string(),
     page: z.number(),
     contactIds: z.array(z.string()).optional(),
     invoiceNumbers: z
@@ -20,8 +21,8 @@ const ListInvoicesTool = CreateXeroTool(
       .optional()
       .describe("If provided, invoice line items will also be returned"),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ bearerToken, page, contactIds, invoiceNumbers }) => {
+    const response = await listXeroInvoices(bearerToken, page, contactIds, invoiceNumbers);
     if (response.error !== null) {
       return {
         content: [

@@ -6,10 +6,11 @@ const ListItemsTool = CreateXeroTool(
   "list-items",
   "Lists all items in Xero. Use this tool to get the item codes and descriptions to be used when creating invoices in Xero",
   {
+    bearerToken: z.string(),
     page: z.number(),
   },
-  async ({ page }) => {
-    const response = await listXeroItems(page);
+  async ({ bearerToken, page }) => {
+    const response = await listXeroItems(bearerToken, page);
 
     if (response.isError) {
       return {
