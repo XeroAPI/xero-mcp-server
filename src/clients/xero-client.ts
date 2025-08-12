@@ -1,24 +1,9 @@
 import axios, { AxiosError } from "axios";
-import dotenv from "dotenv";
 import {
   IXeroClientConfig,
   Organisation,
-  TokenSet,
   XeroClient,
 } from "xero-node";
-
-import { ensureError } from "../helpers/ensure-error.js";
-
-dotenv.config();
-
-const client_id = process.env.XERO_CLIENT_ID;
-const client_secret = process.env.XERO_CLIENT_SECRET;
-const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
-const grant_type = "client_credentials";
-
-if (!bearer_token && (!client_id || !client_secret)) {
-  throw Error("Environment Variables not set - please check your .env file");
-}
 
 abstract class MCPXeroClient extends XeroClient {
   public tenantId: string;
@@ -63,86 +48,23 @@ abstract class MCPXeroClient extends XeroClient {
         const organisation = await this.getOrganisation();
         this.shortCode = organisation.shortCode ?? "";
       } catch (error: unknown) {
-        const err = ensureError(error);
-
-        throw new Error(
-          `Failed to get Organisation short code: ${err.message}`,
-        );
+        // Provide more specific error handling
+        if (error instanceof Error) {
+          throw new Error(
+            `Failed to get Organisation short code for tenant ID: ${this.tenantId} - ${error.message}`,
+          );
+        } else {
+          throw new Error(
+            `Failed to get Organisation short code for tenant ID: ${this.tenantId} - ${String(error)}`,
+          );
+        }
       }
     }
     return this.shortCode;
   }
 }
 
-class CustomConnectionsXeroClient extends MCPXeroClient {
-  private readonly clientId: string;
-  private readonly clientSecret: string;
-
-  constructor(config: {
-    clientId: string;
-    clientSecret: string;
-    grantType: string;
-  }) {
-    super(config);
-    this.clientId = config.clientId;
-    this.clientSecret = config.clientSecret;
-  }
-
-  public async getClientCredentialsToken(): Promise<TokenSet> {
-    const scope =
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.settings payroll.employees payroll.timesheets";
-    const credentials = Buffer.from(
-      `${this.clientId}:${this.clientSecret}`,
-    ).toString("base64");
-
-    try {
-      const response = await axios.post(
-        "https://identity.xero.com/connect/token",
-        `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
-        {
-          headers: {
-            Authorization: `Basic ${credentials}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "application/json",
-          },
-        },
-      );
-
-      // Get the tenant ID from the connections endpoint
-      const token = response.data.access_token;
-      const connectionsResponse = await axios.get(
-        "https://api.xero.com/connections",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        },
-      );
-
-      if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-        this.tenantId = connectionsResponse.data[0].tenantId;
-      }
-
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      throw new Error(
-        `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
-      );
-    }
-  }
-
-  public async authenticate() {
-    const tokenResponse = await this.getClientCredentialsToken();
-
-    this.setTokenSet({
-      access_token: tokenResponse.access_token,
-      expires_in: tokenResponse.expires_in,
-      token_type: tokenResponse.token_type,
-    });
-  }
-}
+// CustomConnectionsXeroClient removed - only BearerTokenXeroClient is used
 
 class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
@@ -157,16 +79,44 @@ class BearerTokenXeroClient extends MCPXeroClient {
       access_token: this.bearerToken,
     });
 
+    // Get tenant ID from connections endpoint first
+    try {
+      const connectionsResponse = await axios.get(
+        "https://api.xero.com/connections",
+        {
+          headers: {
+            Authorization: `Bearer ${this.bearerToken}`,
+            Accept: "application/json",
+          },
+        },
+      );
+
+      if (connectionsResponse.data && connectionsResponse.data.length > 0) {
+        this.tenantId = connectionsResponse.data[0].tenantId;
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const errorDetail = axiosError.response?.data && typeof axiosError.response.data === 'object' && 'Detail' in axiosError.response.data
+        ? (axiosError.response.data as any).Detail
+        : axiosError.message;
+      throw new Error(
+        `Failed to get Xero connections for tenant ID in BearerTokenXeroClient: ${this.tenantId} - ${errorDetail}`,
+      );
+    }
+
     await this.updateTenants();
   }
 }
 
-export const xeroClient = bearer_token
-  ? new BearerTokenXeroClient({
-      bearerToken: bearer_token,
-    })
-  : new CustomConnectionsXeroClient({
-      clientId: client_id!,
-      clientSecret: client_secret!,
-      grantType: grant_type,
-    });
+// Factory function to create Xero client with bearer token
+export function createXeroClient(bearerToken: string): MCPXeroClient {
+  if (!bearerToken || bearerToken.trim() === "") {
+    throw Error("Bearer token must be provided for Xero authentication");
+  }
+
+  return new BearerTokenXeroClient({
+    bearerToken: bearerToken,
+  });
+}
+
+// Legacy singleton removed - each tool call should create its own client with bearer token
