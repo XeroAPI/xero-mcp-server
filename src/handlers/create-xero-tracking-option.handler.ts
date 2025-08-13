@@ -10,7 +10,7 @@ async function createTrackingOption(
   name: string
 ): Promise<TrackingOption | undefined> {
   const xeroClient = createXeroClient(bearerToken);
-  xeroClient.authenticate();
+  await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.createTrackingOptions(
     xeroClient.tenantId,

@@ -9,7 +9,7 @@ async function createTrackingCategory(
   name: string
 ): Promise<TrackingCategory | undefined> {
   const xeroClient = createXeroClient(bearerToken);
-  xeroClient.authenticate();
+  await xeroClient.authenticate();
 
   const trackingCategory: TrackingCategory = {
     name: name
