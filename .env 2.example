@@ -1,0 +1,3 @@
+# Xero API Configuration for Custom Connections
+XERO_CLIENT_ID=your_client_id_here
+XERO_CLIENT_SECRET=your_client_secret_here 
