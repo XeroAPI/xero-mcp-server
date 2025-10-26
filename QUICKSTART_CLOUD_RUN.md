@@ -1,6 +1,6 @@
 # Quick Start: Deploy to Cloud Run in 10 Minutes
 
-This guide will get your Xero MCP Server running on Google Cloud Run as quickly as possible.
+This guide will get your Xero MCP Server running on Google Cloud Run with OAuth 2.0 authentication for Claude.ai.
 
 ## Prerequisites
 
@@ -43,10 +43,10 @@ gcloud services enable cloudbuild.googleapis.com run.googleapis.com secretmanage
 echo -n "YOUR_XERO_CLIENT_ID" | gcloud secrets create xero-client-id --data-file=-
 echo -n "YOUR_XERO_CLIENT_SECRET" | gcloud secrets create xero-client-secret --data-file=-
 
-# Authentication secrets
-openssl rand -base64 32 | gcloud secrets create jwt-secret --data-file=-
-openssl rand -base64 32 | gcloud secrets create api-key --data-file=-
-echo -n "admin123" | gcloud secrets create auth-password --data-file=-
+# OAuth 2.0 credentials for Claude.ai
+echo -n "claude-ai-client" | gcloud secrets create oauth-client-id --data-file=-
+openssl rand -hex 32 | gcloud secrets create oauth-client-secret --data-file=-
+openssl rand -base64 32 | gcloud secrets create oauth-token-secret --data-file=-
 ```
 
 ## Step 4: Deploy (3 minutes)
@@ -61,38 +61,57 @@ export GCP_REGION="us-central1"
 ./deploy.sh
 ```
 
-## Step 5: Test
+## Step 5: Get OAuth Credentials
 
 ```bash
-# Get service URL
+# Service URL
 SERVICE_URL=$(gcloud run services describe xero-mcp-server --region us-central1 --format 'value(status.url)')
 
-# Test health
-curl $SERVICE_URL/health
+# OAuth Client ID
+OAUTH_CLIENT_ID=$(gcloud secrets versions access latest --secret=oauth-client-id)
 
-# Get auth token
-curl -X POST $SERVICE_URL/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}' | jq -r '.token'
+# OAuth Client Secret
+OAUTH_CLIENT_SECRET=$(gcloud secrets versions access latest --secret=oauth-client-secret)
+
+echo "Service URL: $SERVICE_URL"
+echo "OAuth Client ID: $OAUTH_CLIENT_ID"
+echo "OAuth Client Secret: $OAUTH_CLIENT_SECRET"
 ```
 
-## Step 6: Connect to Claude.ai
-
-1. Go to Claude.ai → Settings → Integrations
-2. Add MCP Server:
-   - **URL**: Your `SERVICE_URL` from above
-   - **Auth**: Use API key or JWT token
+## Step 6: Test OAuth Flow
 
 ```bash
-# Get your API key
-gcloud secrets versions access latest --secret=api-key
+# Get access token
+curl -X POST $SERVICE_URL/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=$OAUTH_CLIENT_ID&client_secret=$OAUTH_CLIENT_SECRET"
 ```
+
+## Step 7: Connect to Claude.ai
+
+1. Go to Claude.ai → Settings → Integrations → MCP Servers
+2. Add new MCP Server with:
+
+```json
+{
+  "name": "Xero",
+  "url": "YOUR_SERVICE_URL/mcp",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "YOUR_SERVICE_URL/oauth/token",
+    "client_id": "YOUR_OAUTH_CLIENT_ID",
+    "client_secret": "YOUR_OAUTH_CLIENT_SECRET"
+  }
+}
+```
+
+Replace YOUR_SERVICE_URL, YOUR_OAUTH_CLIENT_ID, and YOUR_OAUTH_CLIENT_SECRET with your values.
 
 3. Test in Claude: "List my Xero contacts"
 
 ## Done! 🎉
 
-Your Xero MCP Server is now running on Cloud Run.
+Your Xero MCP Server is now running on Cloud Run with OAuth 2.0 authentication.
 
 ## Next Steps
 
@@ -112,8 +131,12 @@ Typical usage: **$0-5/month** (first 2M requests free)
 gcloud run services logs tail xero-mcp-server --region us-central1
 ```
 
+**OAuth token fails?**
+- Verify secrets: `gcloud secrets describe oauth-client-id`
+- Check client credentials match
+
 **Xero auth fails?**
-- Verify secrets: `gcloud secrets describe xero-client-id`
+- Verify Xero secrets: `gcloud secrets describe xero-client-id`
 - Check custom connection is active in Xero
 
 **Need help?**

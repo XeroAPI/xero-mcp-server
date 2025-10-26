@@ -75,7 +75,7 @@ echo -e "${GREEN}Checking for required secrets...${NC}"
 
 SECRETS_MISSING=false
 
-for SECRET in xero-client-id xero-client-secret jwt-secret api-key auth-password; do
+for SECRET in xero-client-id xero-client-secret oauth-client-id oauth-client-secret oauth-token-secret; do
     if ! gcloud secrets describe $SECRET &> /dev/null; then
         echo -e "${YELLOW}Warning: Secret '$SECRET' not found${NC}"
         SECRETS_MISSING=true
@@ -87,11 +87,15 @@ done
 if [ "$SECRETS_MISSING" = true ]; then
     echo ""
     echo -e "${YELLOW}To create missing secrets, run:${NC}"
+    echo ""
+    echo "# Xero API credentials (required)"
     echo "gcloud secrets create xero-client-id --data-file=- <<< 'YOUR_XERO_CLIENT_ID'"
     echo "gcloud secrets create xero-client-secret --data-file=- <<< 'YOUR_XERO_CLIENT_SECRET'"
-    echo "gcloud secrets create jwt-secret --data-file=- <<< 'YOUR_JWT_SECRET'"
-    echo "gcloud secrets create api-key --data-file=- <<< 'YOUR_API_KEY'"
-    echo "gcloud secrets create auth-password --data-file=- <<< 'YOUR_AUTH_PASSWORD'"
+    echo ""
+    echo "# OAuth 2.0 credentials for Claude.ai (required)"
+    echo "gcloud secrets create oauth-client-id --data-file=- <<< 'claude-ai-client'"
+    echo "gcloud secrets create oauth-client-secret --data-file=- <<< '\$(openssl rand -hex 32)'"
+    echo "gcloud secrets create oauth-token-secret --data-file=- <<< '\$(openssl rand -base64 32)'"
     echo ""
     read -p "Continue with deployment? (y/N) " -n 1 -r
     echo
@@ -113,9 +117,9 @@ gcloud run deploy $SERVICE_NAME \
     --set-env-vars "ALLOWED_ORIGINS=https://claude.ai,https://www.claude.ai" \
     --set-secrets "XERO_CLIENT_ID=xero-client-id:latest" \
     --set-secrets "XERO_CLIENT_SECRET=xero-client-secret:latest" \
-    --set-secrets "JWT_SECRET=jwt-secret:latest" \
-    --set-secrets "API_KEY=api-key:latest" \
-    --set-secrets "AUTH_PASSWORD=auth-password:latest" \
+    --set-secrets "OAUTH_CLIENT_ID=oauth-client-id:latest" \
+    --set-secrets "OAUTH_CLIENT_SECRET=oauth-client-secret:latest" \
+    --set-secrets "OAUTH_TOKEN_SECRET=oauth-token-secret:latest" \
     --min-instances 0 \
     --max-instances 10 \
     --memory 512Mi \
@@ -132,10 +136,29 @@ echo -e "${GREEN}=== Deployment Complete ===${NC}"
 echo -e "${GREEN}Service URL:${NC} $SERVICE_URL"
 echo ""
 echo -e "${YELLOW}Health check:${NC} $SERVICE_URL/health"
-echo -e "${YELLOW}Get auth token:${NC} curl -X POST $SERVICE_URL/auth/token -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"YOUR_PASSWORD\"}'"
+echo ""
+
+# Get OAuth credentials for display
+OAUTH_CLIENT_ID=$(gcloud secrets versions access latest --secret=oauth-client-id 2>/dev/null || echo "not-found")
+OAUTH_CLIENT_SECRET=$(gcloud secrets versions access latest --secret=oauth-client-secret 2>/dev/null || echo "not-found")
+
+echo -e "${GREEN}OAuth 2.0 Configuration for Claude.ai:${NC}"
+echo "  Token Endpoint: $SERVICE_URL/oauth/token"
+echo "  MCP Endpoint: $SERVICE_URL/mcp"
+echo "  Client ID: $OAUTH_CLIENT_ID"
+echo "  Client Secret: ${OAUTH_CLIENT_SECRET:0:10}... (use: gcloud secrets versions access latest --secret=oauth-client-secret)"
+echo ""
+echo -e "${YELLOW}Test OAuth flow:${NC}"
+echo "curl -X POST $SERVICE_URL/oauth/token \\"
+echo "  -H 'Content-Type: application/x-www-form-urlencoded' \\"
+echo "  -d 'grant_type=client_credentials&client_id=$OAUTH_CLIENT_ID&client_secret=YOUR_SECRET'"
 echo ""
 echo -e "${GREEN}Next steps:${NC}"
 echo "1. Test the health endpoint: curl $SERVICE_URL/health"
-echo "2. Get an authentication token from the /auth/token endpoint"
-echo "3. Configure this URL in Claude.ai MCP settings"
+echo "2. Test OAuth token endpoint (see command above)"
+echo "3. Configure in Claude.ai MCP settings:"
+echo "   - Server URL: $SERVICE_URL/mcp"
+echo "   - OAuth Token URL: $SERVICE_URL/oauth/token"
+echo "   - Client ID: $OAUTH_CLIENT_ID"
+echo "   - Client Secret: (from Secret Manager)"
 echo ""
