@@ -9,6 +9,31 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Chart of Accounts management
 - Invoice creation and management
 - MCP protocol compliance
+- Cloud deployment support (Google Cloud Run)
+- HTTP/HTTPS transport for web-based MCP clients
+
+## Deployment Modes
+
+This MCP server can be deployed in two ways:
+
+### 1. Local Mode (Claude Desktop)
+
+Run the server locally as a subprocess of Claude Desktop. Best for:
+- Personal use
+- Development and testing
+- Single-user scenarios
+
+See [Integrating with Claude Desktop](#integrating-with-claude-desktop) below for setup instructions.
+
+### 2. Cloud Mode (Claude.ai and Web Clients)
+
+Deploy to Google Cloud Run and access via HTTPS. Best for:
+- Team access from Claude.ai
+- Multiple users sharing one Xero organization
+- Production deployments
+- Public API access with authentication
+
+**📚 [See Cloud Run Deployment Guide](CLOUD_RUN_DEPLOYMENT.md)** for complete setup instructions.
 
 ## Prerequisites
 

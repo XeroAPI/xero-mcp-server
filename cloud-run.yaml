@@ -1,0 +1,93 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: xero-mcp-server
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '0'
+        autoscaling.knative.dev/maxScale: '10'
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      - name: xero-mcp-server
+        image: REGION-docker.pkg.dev/PROJECT_ID/REPOSITORY/xero-mcp-server:TAG
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        # Xero Configuration (Required)
+        - name: XERO_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: xero-client-id
+              key: latest
+        - name: XERO_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: xero-client-secret
+              key: latest
+
+        # Authentication Configuration (Optional - for securing MCP access)
+        - name: AUTH_ENABLED
+          value: "true"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: jwt-secret
+              key: latest
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-key
+              key: latest
+
+        # Optional: CORS Configuration
+        - name: ALLOWED_ORIGINS
+          value: "https://claude.ai,https://www.claude.ai"
+
+        # Optional: Basic Auth for /auth/token endpoint
+        - name: AUTH_USERNAME
+          value: "admin"
+        - name: AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-password
+              key: latest
+
+        resources:
+          limits:
+            cpu: '2'
+            memory: 512Mi
+          requests:
+            cpu: '1'
+            memory: 256Mi
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+
+  traffic:
+  - percent: 100
+    latestRevision: true
