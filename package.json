@@ -38,5 +38,9 @@
     "shx": "^0.3.4",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1"
+  },
+  "peerDependencies": {
+    "axios": ">=1.12.0",
+    "form-data": ">=4.0.4"
   }
 }
