@@ -5,16 +5,24 @@ export class XeroMcpServer {
 
   private constructor() {}
 
+  private static createServer(): McpServer {
+    return new McpServer({
+      name: "Xero MCP Server",
+      version: "1.0.0",
+      capabilities: {
+        tools: {},
+      },
+    });
+  }
+
   public static GetServer(): McpServer {
     if (XeroMcpServer.instance === null) {
-      XeroMcpServer.instance = new McpServer({
-        name: "Xero MCP Server",
-        version: "1.0.0",
-        capabilities: {
-          tools: {},
-        },
-      });
+      XeroMcpServer.instance = XeroMcpServer.createServer();
     }
     return XeroMcpServer.instance;
+  }
+
+  public static CreateServerInstance(): McpServer {
+    return XeroMcpServer.createServer();
   }
 }
