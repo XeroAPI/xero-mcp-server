@@ -61,7 +61,8 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here"
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "MCP_API_KEY": "optional_shared_secret"
       }
     }
   }
@@ -82,7 +83,8 @@ In this case, use the following configuration:
       "command": "npx",
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
-        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token"
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "MCP_API_KEY": "optional_shared_secret"
       }
     }
   }
@@ -90,6 +92,21 @@ In this case, use the following configuration:
 ```
 
 NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_ID` if defined.
+
+Set `MCP_API_KEY` when exposing the HTTP transport (for example by running `node dist/server.js`) to require clients to include an `Authorization: Bearer <MCP_API_KEY>` header on every call to `/mcp`. Leave the variable undefined for local testing without authentication.
+
+### Environment variables
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `XERO_CLIENT_ID` | yes (unless `XERO_CLIENT_BEARER_TOKEN` is provided) | OAuth client id from the Xero developer portal. |
+| `XERO_CLIENT_SECRET` | yes (unless `XERO_CLIENT_BEARER_TOKEN` is provided) | OAuth client secret for the configured custom connection. |
+| `XERO_CLIENT_BEARER_TOKEN` | optional | Pre-issued bearer token; when set it is preferred over the client/secret flow. |
+| `MCP_API_KEY` | optional (recommended for HTTP) | Shared secret required by the HTTP transport. Clients must send `Authorization: Bearer <MCP_API_KEY>`. |
+| `HOST` | optional | Bind address for the HTTP server (default `0.0.0.0`). |
+| `PORT` | optional | Listen port for the HTTP server (default `3000`). |
+
+> Tip: ensure environment values are free from leading or trailing whitespace—any surrounding quotes or spaces will cause Xero to reject the client credentials.
 
 ### Available MCP Commands
 
@@ -172,12 +189,137 @@ NOTE: For Windows ensure the `args` path escapes the `\` between folders ie. `"C
       "args": ["insert-your-file-path-here/xero-mcp-server/dist/index.js"],
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here"
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "MCP_API_KEY": "optional_shared_secret"
       }
     }
   }
 }
 ```
+
+### HTTP Transport
+
+The project exposes an HTTP/SSE transport in `dist/server.js`. Set `MCP_API_KEY` to require callers to include `Authorization: Bearer <MCP_API_KEY>` headers. Leave it undefined for local unauthenticated experiments.
+
+#### Modes at a glance
+
+- **STDIO**: `node dist/index.js` (or invoke via `npx @xeroapi/xero-mcp-server`). This is the default when integrating with MCP-compatible clients that communicate over stdin/stdout.
+- **HTTP/SSE**: `node dist/server.js` (documented below). This listens for `/mcp` SSE sessions and exposes `/healthz` for readiness checks.
+
+#### Run the HTTP server locally
+
+```bash
+# Build TypeScript -> JavaScript
+npm run build
+
+# Export the credentials you want the server to use
+export MCP_API_KEY=optional_shared_secret
+export XERO_CLIENT_ID=your_client_id
+export XERO_CLIENT_SECRET=your_client_secret
+
+# Optionally override HOST/PORT (defaults: 0.0.0.0:3000)
+export PORT=3300
+export HOST=127.0.0.1
+
+# Start the HTTP transport
+node dist/server.js
+```
+
+Check readiness with `curl http://127.0.0.1:3300/healthz` (expect `ok`) and post to `/mcp` using the `Authorization: Bearer optional_shared_secret` header.
+
+#### Run the HTTP server with Docker
+
+```bash
+# Build the Docker image
+docker build -t xero-mcp .
+
+# Run with your environment (either --env or --env-file)
+docker run \
+  --rm \
+  --name xero-mcp-http \
+  --env-file .env \        # contains MCP_API_KEY, XERO_CLIENT_ID, XERO_CLIENT_SECRET
+  -e PORT=3300 \
+  -p 3300:3300 \
+  xero-mcp
+```
+
+Validate the container with:
+
+```bash
+curl http://127.0.0.1:3300/healthz
+```
+
+When the server is running in Docker you can reuse the local harness by skipping the spawn step:
+
+```bash
+MCP_API_KEY=optional_shared_secret \
+MCP_TEST_SKIP_SPAWN=true \
+MCP_TEST_HOST=127.0.0.1 \
+MCP_TEST_PORT=3300 \
+node examples/http-read-only-test.mjs
+```
+
+The harness connects to the existing container, lists advertised tools, and invokes the read-only tool you specify.
+
+### Read-only HTTP Verification
+
+To smoke-test the HTTP transport without Docker, let the harness spawn the server for you:
+
+```bash
+export MCP_API_KEY=optional_shared_secret
+export XERO_CLIENT_ID=your_client_id
+export XERO_CLIENT_SECRET=your_client_secret
+npm run build
+node examples/http-read-only-test.mjs
+```
+
+Optional environment overrides:
+
+- `MCP_TEST_TOOL` — tool name to invoke (default `list-organisation-details`)
+- `MCP_TEST_HOST`/`MCP_TEST_PORT` — bind address for the spawned server (default `127.0.0.1:3300`)
+
+The harness authenticates using `MCP_API_KEY`, lists available tools, and prints the JSON result of the selected read-only tool call.
+
+#### Manual verification checklist
+
+```bash
+# 1. Build the Docker image
+$ docker build -t xero-mcp .
+...
+#14 naming to docker.io/library/xero-mcp:latest done
+
+# 2. Run the container with your env file
+$ docker run --rm --name xero-mcp-http --env-file .env -e PORT=3300 -p 3300:3300 xero-mcp
+HTTP MCP server listening on http://0.0.0.0:3300
+
+# 3. Health endpoint
+$ curl http://127.0.0.1:3300/healthz
+ok
+
+# 4. /mcp requires Authorization
+$ curl -i http://127.0.0.1:3300/mcp
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="xero-mcp-server"
+Missing or invalid MCP API key
+
+$ curl --max-time 2 -i -H "Authorization: Bearer optional_shared_secret" http://127.0.0.1:3300/mcp
+HTTP/1.1 200 OK
+Content-Type: text/event-stream
+event: endpoint
+data: /mcp?sessionId=...
+
+# 5. Invoke a tool via the harness (against the running container)
+$ MCP_API_KEY=optional_shared_secret \
+  MCP_TEST_SKIP_SPAWN=true \
+  MCP_TEST_HOST=127.0.0.1 \
+  MCP_TEST_PORT=3300 \
+  node examples/http-read-only-test.mjs
+Connected to MCP server at http://127.0.0.1:3300/mcp
+Tool response:
+{ "content": [ ... organisation details ... ] }
+```
+
+Capture these transcripts (or equivalent) in your PR description to satisfy review requirements.
 
 ## License
 

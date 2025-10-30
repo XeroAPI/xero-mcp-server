@@ -11,9 +11,9 @@ import { ensureError } from "../helpers/ensure-error.js";
 
 dotenv.config();
 
-const client_id = process.env.XERO_CLIENT_ID;
-const client_secret = process.env.XERO_CLIENT_SECRET;
-const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
+const client_id = process.env.XERO_CLIENT_ID?.trim();
+const client_secret = process.env.XERO_CLIENT_SECRET?.trim();
+const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN?.trim();
 const grant_type = "client_credentials";
 
 if (!bearer_token && (!client_id || !client_secret)) {
