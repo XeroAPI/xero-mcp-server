@@ -142,3 +142,6 @@ dist
 
 # Cursor IDE
 .cursor/
+
+# Claude IDE
+.claude/

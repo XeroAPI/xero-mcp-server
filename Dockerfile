@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (skip prepare script as source files aren't copied yet)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -25,8 +25,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install production dependencies only (skip prepare script)
+RUN npm ci --only=production --ignore-scripts
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist

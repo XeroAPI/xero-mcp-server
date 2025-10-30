@@ -64,11 +64,10 @@ IMAGE_URL="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME/$SERVICE_NAME:$IM
 LATEST_URL="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME/$SERVICE_NAME:latest"
 
 echo -e "${GREEN}Building Docker image...${NC}"
-echo -e "${YELLOW}Image URL:${NC} $IMAGE_URL"
+echo -e "${YELLOW}Image URL:${NC} $LATEST_URL"
 
-gcloud builds submit \
-    --tag $IMAGE_URL \
-    --tag $LATEST_URL
+# Build with both tags (gcloud doesn't support multiple --tag, so we'll use latest)
+gcloud builds submit --tag $LATEST_URL
 
 # Check if secrets exist, if not, provide instructions
 echo -e "${GREEN}Checking for required secrets...${NC}"
@@ -109,17 +108,12 @@ fi
 echo -e "${GREEN}Deploying to Cloud Run...${NC}"
 
 gcloud run deploy $SERVICE_NAME \
-    --image $IMAGE_URL \
+    --image $LATEST_URL \
     --platform managed \
     --region $REGION \
     --allow-unauthenticated \
-    --set-env-vars "AUTH_ENABLED=true" \
-    --set-env-vars "ALLOWED_ORIGINS=https://claude.ai,https://www.claude.ai" \
-    --set-secrets "XERO_CLIENT_ID=xero-client-id:latest" \
-    --set-secrets "XERO_CLIENT_SECRET=xero-client-secret:latest" \
-    --set-secrets "OAUTH_CLIENT_ID=oauth-client-id:latest" \
-    --set-secrets "OAUTH_CLIENT_SECRET=oauth-client-secret:latest" \
-    --set-secrets "OAUTH_TOKEN_SECRET=oauth-token-secret:latest" \
+    --set-env-vars "AUTH_ENABLED=true,ALLOWED_ORIGINS=https://claude.ai^:^https://www.claude.ai" \
+    --set-secrets "XERO_CLIENT_ID=xero-client-id:latest,XERO_CLIENT_SECRET=xero-client-secret:latest,OAUTH_CLIENT_ID=oauth-client-id:latest,OAUTH_CLIENT_SECRET=oauth-client-secret:latest,OAUTH_TOKEN_SECRET=oauth-token-secret:latest" \
     --min-instances 0 \
     --max-instances 10 \
     --memory 512Mi \
