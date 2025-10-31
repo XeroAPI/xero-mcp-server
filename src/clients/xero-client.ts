@@ -96,6 +96,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     ).toString("base64");
 
     try {
+      console.log("[Xero Auth] Requesting access token from Xero...");
       const response = await axios.post(
         "https://identity.xero.com/connect/token",
         `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
@@ -108,8 +109,11 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
         },
       );
 
+      console.log("[Xero Auth] Successfully obtained access token");
+
       // Get the tenant ID from the connections endpoint
       const token = response.data.access_token;
+      console.log("[Xero Auth] Fetching tenant connections...");
       const connectionsResponse = await axios.get(
         "https://api.xero.com/connections",
         {
@@ -122,13 +126,19 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 
       if (connectionsResponse.data && connectionsResponse.data.length > 0) {
         this.tenantId = connectionsResponse.data[0].tenantId;
+        console.log(`[Xero Auth] Connected to tenant: ${this.tenantId}`);
+      } else {
+        console.error("[Xero Auth] ERROR: No tenant connections found");
       }
 
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
+      console.error("[Xero Auth] ERROR: Failed to authenticate with Xero");
+      console.error("[Xero Auth] Error details:", axiosError.response?.data || axiosError.message);
+      console.error("[Xero Auth] Status code:", axiosError.response?.status);
       throw new Error(
-        `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
+        `Failed to get Xero token: ${JSON.stringify(axiosError.response?.data) || axiosError.message}`,
       );
     }
   }

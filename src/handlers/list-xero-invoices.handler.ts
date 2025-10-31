@@ -41,7 +41,9 @@ export async function listXeroInvoices(
   invoiceNumbers?: string[],
 ): Promise<XeroClientResponse<Invoice[]>> {
   try {
+    console.log(`[Xero API] Fetching invoices (page ${page})...`);
     const invoices = await getInvoices(invoiceNumbers, contactIds, page);
+    console.log(`[Xero API] Successfully fetched ${invoices.length} invoices`);
 
     return {
       result: invoices,
@@ -49,10 +51,14 @@ export async function listXeroInvoices(
       error: null,
     };
   } catch (error) {
+    console.error("[Xero API] ERROR: Failed to fetch invoices");
+    console.error("[Xero API] Error details:", error);
+    const formattedError = formatError(error);
+    console.error("[Xero API] Formatted error:", formattedError);
     return {
       result: null,
       isError: true,
-      error: formatError(error),
+      error: formattedError,
     };
   }
 }

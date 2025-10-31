@@ -9,6 +9,102 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Chart of Accounts management
 - Invoice creation and management
 - MCP protocol compliance
+- Cloud deployment support (Google Cloud Run)
+- HTTP/HTTPS transport for web-based MCP clients
+
+## Deployment Modes
+
+This MCP server can be deployed in two ways:
+
+### 1. Local Mode (Claude Desktop)
+
+Run the server locally as a subprocess of Claude Desktop. Best for:
+- Personal use
+- Development and testing
+- Single-user scenarios
+
+See [Integrating with Claude Desktop](#integrating-with-claude-desktop) below for setup instructions.
+
+### 2. Cloud Mode (Claude.ai and Web Clients)
+
+Deploy to Google Cloud Run and access via HTTPS. Best for:
+- Team access from Claude.ai
+- Multiple users sharing one Xero organization
+- Production deployments
+- Public API access with authentication
+
+**📚 [See Cloud Run Deployment Guide](CLOUD_RUN_DEPLOYMENT.md)** for complete setup instructions.
+
+## Cloud Run Enhancements
+
+This fork has been significantly enhanced to support production deployment on Google Cloud Run for use with web-based MCP clients like Claude.ai. The following features have been added:
+
+### OAuth 2.0 Authorization Code Flow with PKCE
+
+- **Third-Party Authorization**: Implements the MCP specification's third-party authorization flow, allowing Claude.ai users to authorize access through a secure OAuth flow
+- **PKCE Security**: Full support for Proof Key for Code Exchange (PKCE) to prevent authorization code interception attacks
+- **Authorization Endpoint**: `/authorize` endpoint with user consent UI for approving/denying access
+- **Token Endpoint**: `/oauth/token` endpoint supporting authorization code exchange with PKCE verification
+- **Long-Lived Tokens**: 30-day OAuth token expiry (configurable via `TOKEN_EXPIRY` env var) to reduce re-authorization frequency
+- **Session Management**: Secure session handling with cryptographic session IDs and automatic cleanup
+
+### Multi-Session Support
+
+- **Concurrent Chat Sessions**: Supports multiple simultaneous Claude.ai chat sessions from the same user
+- **Session Isolation**: Each chat session gets its own isolated MCP server instance and transport
+- **Cookie-Based Routing**: Uses HTTP cookies (`mcp-session-id`) to route requests to the correct session
+- **Automatic Session Creation**: New MCP sessions are created automatically when users start new chats
+- **Session Cleanup**: Stale sessions (inactive for 30+ minutes) are automatically cleaned up to free resources
+
+### HTTP Transport Layer
+
+- **StreamableHTTPServerTransport**: Integrated MCP SDK's HTTP transport for web-based clients
+- **RESTful Endpoints**:
+  - `HEAD /mcp` - Endpoint discovery
+  - `GET /mcp` - Session information
+  - `POST /mcp` - MCP protocol message handling
+- **OAuth Middleware**: All MCP endpoints protected by Bearer token authentication
+- **CORS Support**: Configurable CORS with `ALLOWED_ORIGINS` environment variable
+
+### Production-Ready Features
+
+- **Health Checks**: `/health` endpoint for Cloud Run health monitoring
+- **Structured Logging**: Comprehensive logging for OAuth, MCP sessions, and Xero API calls
+- **Error Handling**: Detailed error responses for debugging authentication and API issues
+- **Security Headers**: Helmet.js integration for security best practices
+- **Secret Management**: Integration with Google Cloud Secret Manager for secure credential storage
+
+### Deployment Infrastructure
+
+- **Dockerfile**: Multi-stage Docker build optimized for Cloud Run
+- **Deployment Script**: `deploy.sh` automates building and deploying to Cloud Run
+- **Environment Configuration**:
+  - `AUTH_ENABLED` - Toggle OAuth authentication
+  - `ALLOWED_ORIGINS` - CORS configuration
+  - `TOKEN_EXPIRY` - OAuth token lifetime
+  - Secret Manager integration for `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, OAuth credentials
+- **Auto-Scaling**: Cloud Run configuration with min/max instances
+- **Resource Limits**: Configured memory (512Mi), CPU (1), timeout (300s), and concurrency (80)
+
+### Session Architecture
+
+```
+Claude.ai Chat #1 → OAuth Token → Cookie: session-abc → MCP Instance #1 → Xero API
+Claude.ai Chat #2 → OAuth Token → Cookie: session-def → MCP Instance #2 → Xero API
+Claude.ai Chat #3 → OAuth Token → Cookie: session-ghi → MCP Instance #3 → Xero API
+```
+
+Each chat maintains an independent session that doesn't interfere with others, allowing seamless multi-window usage.
+
+### Authentication Flow
+
+1. User adds MCP server in Claude.ai Settings
+2. Claude.ai redirects user to `/authorize` endpoint
+3. User reviews and approves access
+4. Authorization code returned to Claude.ai with PKCE challenge
+5. Claude.ai exchanges code for access token at `/oauth/token` with PKCE verifier
+6. Access token used for all subsequent MCP requests (valid for 30 days)
+7. Each new chat session creates isolated MCP instance using cookie-based routing
 
 ## Prerequisites
 
