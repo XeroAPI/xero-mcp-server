@@ -1,8 +1,8 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { Employee } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { Employee } from "xero-node/dist/gen/model/payroll-nz/employee.js";
 
 async function getPayrollEmployees(): Promise<Employee[]> {
   await xeroClient.authenticate();

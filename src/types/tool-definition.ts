@@ -1,8 +1,11 @@
 import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ZodRawShape } from "zod";
+import {
+  ZodRawShapeCompat,
+  AnySchema,
+} from "@modelcontextprotocol/sdk/server/zod-compat.js";
 
 export interface ToolDefinition<
-  Args extends undefined | ZodRawShape = undefined,
+  Args extends undefined | ZodRawShapeCompat | AnySchema = undefined,
 > {
   name: string;
   description: string;

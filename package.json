@@ -22,11 +22,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.0",
+    "@modelcontextprotocol/sdk": "^1.23.4",
     "dotenv": "^16.4.7",
     "openid-client": "^6.3.4",
-    "xero-node": "^10.0.0",
-    "zod": "^3.24.2"
+    "xero-node": "^13.3.0",
+    "zod": "3.25"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
