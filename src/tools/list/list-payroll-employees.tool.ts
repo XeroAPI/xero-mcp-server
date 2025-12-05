@@ -1,4 +1,4 @@
-import { Employee } from "xero-node/dist/gen/model/payroll-nz/employee.js"
+import { Employee } from "xero-node/dist/gen/model/payroll-nz/employee.js";
 import { listXeroPayrollEmployees } from "../../handlers/list-xero-payroll-employees.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
@@ -38,11 +38,15 @@ The response presents a complete overview of all staff currently registered in y
             employee.gender ? `Gender: ${employee.gender}` : null,
             employee.phoneNumber ? `Phone: ${employee.phoneNumber}` : null,
             employee.startDate ? `Start Date: ${employee.startDate}` : null,
-            employee.engagementType ? `Engagement Type: ${employee.engagementType}` : "No status", // Permanent, FixedTerm, Casual
+            employee.engagementType
+              ? `Engagement Type: ${employee.engagementType}`
+              : "No status", // Permanent, FixedTerm, Casual
             employee.title ? `Title: ${employee.title}` : null,
             employee.firstName ? `First Name: ${employee.firstName}` : null,
             employee.lastName ? `Last Name: ${employee.lastName}` : null,
-            employee.updatedDateUTC ? `Last Updated: ${employee.updatedDateUTC}` : null,
+            employee.updatedDateUTC
+              ? `Last Updated: ${employee.updatedDateUTC}`
+              : null,
           ]
             .filter(Boolean)
             .join("\n"),

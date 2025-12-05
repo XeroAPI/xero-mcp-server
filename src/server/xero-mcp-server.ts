@@ -10,9 +10,6 @@ export class XeroMcpServer {
       XeroMcpServer.instance = new McpServer({
         name: "Xero MCP Server",
         version: "1.0.0",
-        capabilities: {
-          tools: {},
-        },
       });
     }
     return XeroMcpServer.instance;
