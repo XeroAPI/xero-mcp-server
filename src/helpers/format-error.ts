@@ -7,6 +7,18 @@ export function formatError(error: unknown): string {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
     const detail = error.response?.data?.Detail;
+    const method = error.config?.method?.toUpperCase();
+    const url = error.config?.url;
+
+    console.log("Xero API error:", {
+      status,
+      method,
+      url,
+      title: error.response?.data?.Title,
+      detail,
+      type: error.response?.data?.Type,
+      instance: error.response?.data?.Instance,
+    });
 
     switch (status) {
       case 401:
