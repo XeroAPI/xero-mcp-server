@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { logError, logInfo, logWarn } from "../helpers/logger.js";
 
 dotenv.config();
 
@@ -19,6 +20,18 @@ const grant_type = "client_credentials";
 if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
+
+const logAuthConfig = () => {
+  logInfo("Xero auth configuration:");
+  logInfo(`- XERO_CLIENT_ID set: ${Boolean(client_id)}`);
+  logInfo(`- XERO_CLIENT_SECRET set: ${Boolean(client_secret)}`);
+  logInfo(`- XERO_CLIENT_BEARER_TOKEN set: ${Boolean(bearer_token)}`);
+  logInfo(
+    `- Auth mode: ${bearer_token ? "bearer token" : "custom connection"}`,
+  );
+};
+
+logAuthConfig();
 
 abstract class MCPXeroClient extends XeroClient {
   public tenantId: string;
@@ -37,6 +50,11 @@ abstract class MCPXeroClient extends XeroClient {
     await super.updateTenants(fullOrgDetails);
     if (this.tenants && this.tenants.length > 0) {
       this.tenantId = this.tenants[0].tenantId;
+    }
+    if (!this.tenantId) {
+      logWarn("No Xero tenant ID resolved from /connections.");
+    } else {
+      logInfo(`Using Xero tenant ID: ${this.tenantId}`);
     }
     return this.tenants;
   }
@@ -96,6 +114,13 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     ).toString("base64");
 
     try {
+      logInfo("Requesting Xero access token via client credentials.");
+      logInfo(`- Client ID length: ${this.clientId.length}`);
+      logInfo(`- Client Secret length: ${this.clientSecret.length}`);
+      logInfo(`- Token scope: ${scope}`);
+      logInfo(
+        "- Token request Authorization header: Basic <redacted>",
+      );
       const response = await axios.post(
         "https://identity.xero.com/connect/token",
         `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
@@ -107,6 +132,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
           },
         },
       );
+      logInfo(`Token response status: ${response.status}`);
 
       // Get the tenant ID from the connections endpoint
       const token = response.data.access_token;
@@ -119,14 +145,22 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
           },
         },
       );
+      logInfo(`Connections response status: ${connectionsResponse.status}`);
 
       if (connectionsResponse.data && connectionsResponse.data.length > 0) {
         this.tenantId = connectionsResponse.data[0].tenantId;
+      } else {
+        logWarn("No connections returned from Xero.");
       }
 
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        logError(
+          `Xero token request failed with status ${axiosError.response.status}.`,
+        );
+      }
       throw new Error(
         `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
       );
@@ -134,6 +168,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async authenticate() {
+    logInfo("Authenticating with Xero using custom connection.");
     const tokenResponse = await this.getClientCredentialsToken();
 
     this.setTokenSet({
@@ -153,11 +188,18 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 
   async authenticate(): Promise<void> {
+    logInfo("Authenticating with Xero using bearer token.");
     this.setTokenSet({
       access_token: this.bearerToken,
     });
 
-    await this.updateTenants();
+    try {
+      await this.updateTenants();
+    } catch (error) {
+      const err = ensureError(error);
+      logError(`Failed to update tenants with bearer token: ${err.message}`);
+      throw error;
+    }
   }
 }
 
