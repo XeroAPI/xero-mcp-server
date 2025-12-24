@@ -129,7 +129,7 @@ const main = async () => {
     return;
   }
 
-  console.log("MCP transport: stdio");
+  // Avoid stdout/stderr logging in stdio mode to prevent protocol corruption.
   const transport = new StdioServerTransport();
   await server.connect(transport);
 };
