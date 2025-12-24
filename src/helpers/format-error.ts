@@ -1,4 +1,5 @@
 import { AxiosError } from "axios";
+import { logError } from "./logger.js";
 
 /**
  * Format error messages in a user-friendly way
@@ -10,7 +11,7 @@ export function formatError(error: unknown): string {
     const method = error.config?.method?.toUpperCase();
     const url = error.config?.url;
 
-    console.log("Xero API error:", {
+    logError("Xero API error:", {
       status,
       method,
       url,

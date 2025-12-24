@@ -4,6 +4,7 @@ import { createServer, type IncomingMessage } from "node:http";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { XeroMcpServer } from "./server/xero-mcp-server.js";
+import { logError, logInfo } from "./helpers/logger.js";
 import { ToolFactory } from "./tools/tool-factory.js";
 
 const normalizePath = (value: string): string => {
@@ -99,22 +100,22 @@ const startHttpTransport = async (server: ReturnType<typeof XeroMcpServer.GetSer
     } catch (error) {
       res.statusCode = 500;
       res.end("Internal Server Error");
-      console.error("HTTP transport error:", error);
+      logError("HTTP transport error:", error);
     }
   });
 
   await new Promise<void>((resolve, reject) => {
     httpServer.once("error", (error: NodeJS.ErrnoException) => {
       if (error.code === "EADDRINUSE") {
-        console.error(`HTTP server failed to start: ${host}:${port} is already in use.`);
+        logError(`HTTP server failed to start: ${host}:${port} is already in use.`);
       }
       reject(error);
     });
     httpServer.listen(port, host, () => resolve());
   });
 
-  console.log(`MCP transport: http (${host}:${port}${mcpPath})`);
-  console.log(`Health endpoint: ${healthPath}`);
+  logInfo(`MCP transport: http (${host}:${port}${mcpPath})`);
+  logInfo(`Health endpoint: ${healthPath}`);
 };
 
 const main = async () => {
@@ -129,12 +130,11 @@ const main = async () => {
     return;
   }
 
-  // Avoid stdout/stderr logging in stdio mode to prevent protocol corruption.
   const transport = new StdioServerTransport();
   await server.connect(transport);
 };
 
 main().catch((error) => {
-  console.error("Error:", error);
+  logError("Error:", error);
   process.exit(1);
 });
