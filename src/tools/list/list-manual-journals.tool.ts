@@ -60,9 +60,8 @@ If they want the next page, call this tool again with the next page number, modi
               : "No description",
             journal.date ? `Date: ${journal.date}` : null,
             journal.journalLines
-              ? journal.journalLines.map((line) => ({
-                  type: "text" as const,
-                  text: [
+              ? journal.journalLines.map((line) =>
+                  [
                     `Line Amount: ${line.lineAmount}`,
                     line.accountCode
                       ? `Account Code: ${line.accountCode}`
@@ -74,9 +73,9 @@ If they want the next page, call this tool again with the next page number, modi
                     `Tax Amount: ${line.taxAmount}`,
                   ]
                     .filter(Boolean)
-                    .join("\n"),
-                }))
-              : [{ type: "text" as const, text: "No journal lines" }],
+                    .join("\n")
+                ).join("\n\n")
+              : "No journal lines",
             journal.lineAmountTypes
               ? `Line Amount Types: ${journal.lineAmountTypes}`
               : "No line amount types",
