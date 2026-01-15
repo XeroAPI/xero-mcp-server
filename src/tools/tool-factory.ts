@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+import { AttachTools } from "./attach/index.js";
 import { CreateTools } from "./create/index.js";
 import { DeleteTools } from "./delete/index.js";
 import { GetTools } from "./get/index.js";
@@ -8,6 +9,9 @@ import { UpdateTools } from "./update/index.js";
 
 export function ToolFactory(server: McpServer) {
 
+  AttachTools.map((tool) => tool()).forEach((tool) =>
+    server.tool(tool.name, tool.description, tool.schema, tool.handler),
+  );
   DeleteTools.map((tool) => tool()).forEach((tool) =>
     server.tool(tool.name, tool.description, tool.schema, tool.handler),
   );
