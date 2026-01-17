@@ -96,7 +96,7 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-accounts`: Retrieve a list of accounts
 - `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
-- `list-invoices`: Retrieve a list of invoices
+- `list-invoices`: Retrieve a list of invoices with advanced filtering
 - `list-items`: Retrieve a list of items
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
