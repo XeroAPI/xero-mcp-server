@@ -2,6 +2,7 @@ import { z } from "zod";
 import { updateXeroInvoice } from "../../handlers/update-xero-invoice.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { Invoice } from "xero-node";
 
 const trackingSchema = z.object({
   name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
@@ -90,7 +91,10 @@ const UpdateInvoiceTool = CreateXeroTool(
     const invoice = result.result;
 
     const deepLink = invoice.invoiceID
-      ? await getDeepLink(DeepLinkType.INVOICE, invoice.invoiceID)
+      ? await getDeepLink(
+          invoice.type === Invoice.TypeEnum.ACCREC ? DeepLinkType.INVOICE : DeepLinkType.BILL,
+          invoice.invoiceID,
+        )
       : null;
 
     return {
