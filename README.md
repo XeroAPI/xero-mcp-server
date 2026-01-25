@@ -1,10 +1,21 @@
-# Xero MCP Server
+# Xero MCP Server (OAuth Fork)
 
-This is a Model Context Protocol (MCP) server implementation for Xero. It provides a bridge between the MCP protocol and Xero's API, allowing for standardized access to Xero's accounting and business features.
+This is a fork of the [official Xero MCP Server](https://github.com/XeroAPI/xero-mcp-server) with added **browser-based OAuth authentication** that works in all regions.
+
+## Why This Fork?
+
+The official Xero MCP server only supports:
+1. **Custom Connections** - Requires a paid subscription ($5/month) and is **only available in AU, NZ, UK, and US**
+2. **Bearer Token** - Tokens expire after 30 minutes with no automatic refresh
+
+This fork adds:
+3. **Browser OAuth with PKCE** - Works in **all regions**, handles token refresh automatically, one-time browser login
 
 ## Features
 
-- Xero OAuth2 authentication with custom connections
+- **Browser-based OAuth2** - First run opens browser for login, subsequent runs use saved tokens
+- **Automatic token refresh** - Tokens refresh automatically before expiry
+- **Works in all regions** - No Custom Connections subscription needed
 - Contact management
 - Chart of Accounts management
 - Invoice creation and management
@@ -36,29 +47,69 @@ NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
 
 ### Authentication
 
-There are 2 modes of authentication supported in the Xero MCP server:
+There are 3 modes of authentication supported:
 
-#### 1. Custom Connections
+#### 1. Browser OAuth (RECOMMENDED)
 
-This is a better choice for testing and development which allows you to specify client id and secrets for a specific organisation.
-It is also the recommended approach if you are integrating this into 3rd party MCP clients such as Claude Desktop.
+This is the recommended approach for most users. It works in all regions and handles token refresh automatically.
 
-##### Configuring your Xero Developer account
+##### Setup
 
-Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
+1. Create a Web App at https://developer.xero.com/app/manage
+2. Set the redirect URI to: `http://localhost:8749/callback`
+3. Note your Client ID and Client Secret
+4. Select the scopes you need (see below)
 
-Currently the following scopes are required for all sessions: [scopes](src/clients/xero-client.ts#L91-L92)
-
-##### Integrating the MCP server with Claude Desktop
-
-To add the MCP server to Claude go to Settings > Developer > Edit config and add the following to your claude_desktop_config.json file:
+##### Configuration
 
 ```json
 {
   "mcpServers": {
     "xero": {
-      "command": "npx",
-      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "command": "node",
+      "args": ["/path/to/xero-mcp-server-fork/dist/index.js"],
+      "env": {
+        "XERO_USE_BROWSER_AUTH": "true",
+        "XERO_CLIENT_ID": "your_client_id_here",
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "XERO_SCOPES": "accounting.transactions accounting.contacts accounting.settings.read accounting.reports.read"
+      }
+    }
+  }
+}
+```
+
+##### How it works
+
+1. First run: Opens browser for Xero login
+2. You authorize the app
+3. Tokens are saved to `~/.xero-mcp-tokens.json`
+4. Subsequent runs: Uses saved tokens, auto-refreshes when needed
+
+##### Recommended Scopes
+
+For read-only access:
+```
+accounting.transactions.read accounting.contacts.read accounting.settings.read accounting.reports.read
+```
+
+For read/write access:
+```
+accounting.transactions accounting.contacts accounting.settings.read accounting.reports.read
+```
+
+#### 2. Custom Connections (AU/NZ/UK/US only)
+
+This requires a Custom Connections subscription ($5/month) and is only available in Australia, New Zealand, UK, and USA.
+
+Set up following: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
+
+```json
+{
+  "mcpServers": {
+    "xero": {
+      "command": "node",
+      "args": ["/path/to/xero-mcp-server-fork/dist/index.js"],
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
         "XERO_CLIENT_SECRET": "your_client_secret_here"
@@ -68,19 +119,16 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 }
 ```
 
-NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"command": "npx"` section change it to be the full path to the executable, ie: `your_home_directory/.nvm/versions/node/v22.14.0/bin/npx` on Mac / Linux or `"your_home_directory\\.nvm\\versions\\node\\v22.14.0\\bin\\npx"` on Windows
+#### 3. Bearer Token
 
-#### 2. Bearer Token
-
-This is a better choice if you are to support multiple Xero accounts at runtime and allow the MCP client to execute an auth flow (such as PKCE) as required.
-In this case, use the following configuration:
+Manual token management. Token expires after 30 minutes with no automatic refresh.
 
 ```json
 {
   "mcpServers": {
     "xero": {
-      "command": "npx",
-      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "command": "node",
+      "args": ["/path/to/xero-mcp-server-fork/dist/index.js"],
       "env": {
         "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token"
       }
@@ -89,7 +137,7 @@ In this case, use the following configuration:
 }
 ```
 
-NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_ID` if defined.
+NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over other auth methods if defined.
 
 ### Available MCP Commands
 
