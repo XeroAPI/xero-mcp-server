@@ -19,11 +19,13 @@
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "lint:fix": "eslint --fix",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "oauth-setup": "node dist/oauth-setup.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.23.4",
     "dotenv": "^16.4.7",
+    "open": "^10.1.0",
     "openid-client": "^6.8.1",
     "xero-node": "^13.3.0",
     "zod": "3.25"
