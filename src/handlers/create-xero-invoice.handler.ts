@@ -33,7 +33,9 @@ async function createInvoice(
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split("T")[0], // 30 days from now
-    reference: reference,
+    ...(type === Invoice.TypeEnum.ACCPAY
+      ? { invoiceNumber: reference }
+      : { reference: reference }),
     status: Invoice.StatusEnum.DRAFT,
   };
 
