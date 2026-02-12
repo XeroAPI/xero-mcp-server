@@ -1,14 +1,14 @@
 {
-  "name": "@xeroapi/xero-mcp-server",
-  "version": "0.0.13",
-  "description": "MCP server implementation for Xero integration",
+  "name": "xero-mcp-server-oauth",
+  "version": "0.1.0",
+  "description": "MCP server for Xero with browser-based OAuth (works in all regions)",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/XeroAPI/xero-mcp-server.git"
   },
-  "author": "Xero (https://xero.com)",
+  "author": "Fork of Xero MCP Server with OAuth browser flow",
   "type": "module",
   "bin": "./dist/index.js",
   "files": [
@@ -24,6 +24,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.23.4",
     "dotenv": "^16.4.7",
+    "open": "^11.0.0",
     "openid-client": "^6.8.1",
     "xero-node": "^13.3.0",
     "zod": "3.25"
