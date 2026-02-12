@@ -46,7 +46,7 @@ async function updateBankTransaction(
     date: date ? date : existingBankTransaction.date
   };
 
-  xeroClient.accountingApi.updateBankTransaction(
+  const response = await xeroClient.accountingApi.updateBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
     { bankTransactions: [bankTransaction] }, // bankTransactions
@@ -55,7 +55,7 @@ async function updateBankTransaction(
     getClientHeaders() // options
   );
 
-  return bankTransaction;
+  return response.body.bankTransactions?.[0];
 }
 
 export async function updateXeroBankTransaction(
