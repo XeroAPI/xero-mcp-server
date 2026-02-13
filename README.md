@@ -136,6 +136,73 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
+## Configuration
+
+### Authentication
+
+| Env Var | Purpose | Default | Required |
+| --- | --- | --- | --- |
+| XERO_CLIENT_ID | Xero app client ID for custom connections | None | Required for Custom Connection auth |
+| XERO_CLIENT_SECRET | Xero app client secret for custom connections | None | Required for Custom Connection auth |
+| XERO_CLIENT_BEARER_TOKEN | OAuth bearer token for runtime auth | None | Required for Bearer Token auth (takes precedence if set) |
+
+### Transport
+
+| Env Var | Purpose | Default | Required |
+| --- | --- | --- | --- |
+| MCP_TRANSPORT | Select transport mode (`stdio` or `http`) | `stdio` | Optional |
+
+## HTTP Transport (optional)
+
+Set `MCP_TRANSPORT=http` to run the server over HTTP (STDIO remains the default when unset):
+
+```bash
+MCP_TRANSPORT=http \
+node dist/index.js
+```
+
+HTTP transport configuration:
+
+| Env Var | Purpose | Default | Required |
+| --- | --- | --- | --- |
+| HTTP_HOST | Bind host for HTTP transport | `0.0.0.0` | Optional |
+| HTTP_PORT | Bind port for HTTP transport | `8080` | Optional |
+| HTTP_PATH | MCP route path for HTTP transport | `/mcp` | Optional |
+| HEALTH_PATH | Health check path for HTTP transport | `/healthz` | Optional |
+
+Health check:
+
+```bash
+curl http://localhost:8080/healthz
+```
+
+## Docker
+
+Build the image:
+
+```bash
+docker build -t xero-mcp-server .
+```
+
+Run with HTTP transport:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e MCP_TRANSPORT=http \
+  -e XERO_CLIENT_ID=your_client_id_here \
+  -e XERO_CLIENT_SECRET=your_client_secret_here \
+  xero-mcp-server
+```
+
+Run with bearer token auth:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e MCP_TRANSPORT=http \
+  -e XERO_CLIENT_BEARER_TOKEN=your_bearer_token \
+  xero-mcp-server
+```
+
 ## For Developers
 
 ### Installation
@@ -157,6 +224,10 @@ npm run build
 # Using pnpm
 pnpm build
 ```
+
+### Contributing
+
+Create a feature branch for changes and open a PR against `XeroAPI/xero-mcp-server` when ready.
 
 ### Integrating with Claude Desktop
 
