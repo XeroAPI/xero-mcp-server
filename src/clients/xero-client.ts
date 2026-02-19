@@ -77,6 +77,10 @@ abstract class MCPXeroClient extends XeroClient {
 class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private tokenObtainedAt: number = 0;
+  private tokenExpiresInMs: number = 0;
+
+  private static readonly REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 
   constructor(config: {
     clientId: string;
@@ -86,6 +90,12 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     super(config);
     this.clientId = config.clientId;
     this.clientSecret = config.clientSecret;
+  }
+
+  private isTokenValid(): boolean {
+    if (this.tokenExpiresInMs === 0) return false;
+    const elapsed = Date.now() - this.tokenObtainedAt;
+    return elapsed < this.tokenExpiresInMs - CustomConnectionsXeroClient.REFRESH_BUFFER_MS;
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
@@ -134,7 +144,14 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async authenticate() {
+    if (this.isTokenValid()) return;
+
     const tokenResponse = await this.getClientCredentialsToken();
+
+    this.tokenObtainedAt = Date.now();
+    if (tokenResponse.expires_in) {
+      this.tokenExpiresInMs = tokenResponse.expires_in * 1000;
+    }
 
     this.setTokenSet({
       access_token: tokenResponse.access_token,
