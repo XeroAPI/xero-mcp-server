@@ -90,7 +90,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
     const scope =
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.settings payroll.employees payroll.timesheets";
+      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read accounting.attachments.read payroll.settings payroll.employees payroll.timesheets";
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
@@ -127,6 +127,15 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
+      const errorData = axiosError.response?.data as Record<string, unknown> | undefined;
+      if (errorData && typeof errorData === 'object' && errorData.error === 'invalid_scope') {
+        throw new Error(
+          'Xero authentication failed: your Custom Connection is missing required scopes. ' +
+          'Go to https://developer.xero.com/app/manage, select your app, and ensure these scopes are enabled: ' +
+          'accounting.transactions, accounting.contacts, accounting.settings, accounting.reports.read, ' +
+          'accounting.attachments.read, payroll.settings, payroll.employees, payroll.timesheets',
+        );
+      }
       throw new Error(
         `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
       );
