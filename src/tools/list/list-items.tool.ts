@@ -4,7 +4,11 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListItemsTool = CreateXeroTool(
   "list-items",
-  "Lists all items in Xero. Use this tool to get the item codes and descriptions to be used when creating invoices in Xero",
+  `Lists all items in Xero. Use this tool to get the item codes and descriptions to be used when creating invoices in Xero.
+
+COMMON MISTAKES:
+- Only use the params listed above. Do not invent additional filter or sort params.
+- There is no "search", "query", "filter", "sortBy", "limit", or "offset" param.`,
   {
     page: z.number(),
   },

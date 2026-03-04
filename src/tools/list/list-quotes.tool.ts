@@ -7,7 +7,11 @@ const ListQuotesTool = CreateXeroTool(
   `List all quotes in Xero. 
   Ask the user if they want to see quotes for a specific contact before running. 
   Ask the user if they want the next page of quotes after running this tool if 10 quotes are returned. 
-  If they do, call this tool again with the page number and the contact provided in the previous call.`,
+  If they do, call this tool again with the page number and the contact provided in the previous call.
+
+COMMON MISTAKES:
+- Only use the params listed above. Do not invent additional filter or sort params.
+- There is no "search", "query", "filter", "sortBy", "limit", or "offset" param.`,
   {
     page: z.number(),
     contactId: z.string().optional(),

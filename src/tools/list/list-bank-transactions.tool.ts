@@ -8,10 +8,14 @@ const ListBankTransactionsTool = CreateXeroTool(
   `List all bank transactions in Xero.
   Ask the user if they want to see bank transactions for a specific bank account,
   or to see all bank transactions before running.
-  Ask the user if they want the next page of quotes after running this tool if
+  Ask the user if they want the next page of bank transactions after running this tool if
   10 bank transactions are returned.
   If they do, call this tool again with the next page number and the bank account
-  if one was provided in the provided in the previous call.`,
+  if one was provided in the provided in the previous call.
+
+COMMON MISTAKES:
+- Only use the params listed above. Do not invent additional filter or sort params.
+- There is no "search", "query", "filter", "sortBy", "limit", or "offset" param.`,
   {
     page: z.number(),
     bankAccountId: z.string().optional()
