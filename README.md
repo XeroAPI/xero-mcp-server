@@ -91,6 +91,12 @@ In this case, use the following configuration:
 
 NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_ID` if defined.
 
+##### Required Scopes for Bearer Token
+
+When obtaining a bearer token, you must request the appropriate scopes. The scopes you request should match what your Xero app has been configured with.
+
+See [Xero OAuth 2.0 Scopes](https://developer.xero.com/documentation/guides/oauth2/scopes/) for the complete list of available scopes.
+
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
