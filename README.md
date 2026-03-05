@@ -108,13 +108,11 @@ accounting.banktransactions
 accounting.banktransactions.read
 accounting.manualjournals
 accounting.manualjournals.read
-
 accounting.reports.read (Deprecated)
 accounting.reports.aged.read
 accounting.reports.balancesheet.read
 accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
-
 accounting.contacts 
 accounting.settings 
 payroll.settings 
