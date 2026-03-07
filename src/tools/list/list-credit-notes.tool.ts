@@ -10,7 +10,11 @@ const ListCreditNotesTool = CreateXeroTool(
   Ask the user if they want the next page of credit notes after running this tool 
   if 10 credit notes are returned. 
   If they want the next page, call this tool again with the next page number 
-  and the contact if one was provided in the previous call.`,
+  and the contact if one was provided in the previous call.
+
+COMMON MISTAKES:
+- Only use the params listed above. Do not invent additional filter or sort params.
+- There is no "search", "query", "filter", "sortBy", "limit", or "offset" param.`,
   {
     page: z.number(),
     contactId: z.string().optional(),

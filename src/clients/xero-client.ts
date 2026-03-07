@@ -77,6 +77,10 @@ abstract class MCPXeroClient extends XeroClient {
 class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private tokenObtainedAt: number = 0;
+  private tokenExpiresInMs: number = 0;
+
+  private static readonly REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 min before expiry
 
   constructor(config: {
     clientId: string;
@@ -88,9 +92,15 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     this.clientSecret = config.clientSecret;
   }
 
+  private isTokenValid(): boolean {
+    if (this.tokenExpiresInMs === 0) return false;
+    const elapsed = Date.now() - this.tokenObtainedAt;
+    return elapsed < this.tokenExpiresInMs - CustomConnectionsXeroClient.REFRESH_BUFFER_MS;
+  }
+
   public async getClientCredentialsToken(): Promise<TokenSet> {
     const scope =
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.settings payroll.employees payroll.timesheets";
+      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read accounting.attachments.read payroll.settings payroll.employees payroll.timesheets";
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
@@ -127,6 +137,15 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
+      const errorData = axiosError.response?.data as Record<string, unknown> | undefined;
+      if (errorData && typeof errorData === 'object' && errorData.error === 'invalid_scope') {
+        throw new Error(
+          'Xero authentication failed: your Custom Connection is missing required scopes. ' +
+          'Go to https://developer.xero.com/app/manage, select your app, and ensure these scopes are enabled: ' +
+          'accounting.transactions, accounting.contacts, accounting.settings, accounting.reports.read, ' +
+          'accounting.attachments.read, payroll.settings, payroll.employees, payroll.timesheets',
+        );
+      }
       throw new Error(
         `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
       );
@@ -134,7 +153,14 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async authenticate() {
+    if (this.isTokenValid()) return;
+
     const tokenResponse = await this.getClientCredentialsToken();
+
+    this.tokenObtainedAt = Date.now();
+    if (tokenResponse.expires_in) {
+      this.tokenExpiresInMs = tokenResponse.expires_in * 1000;
+    }
 
     this.setTokenSet({
       access_token: tokenResponse.access_token,
