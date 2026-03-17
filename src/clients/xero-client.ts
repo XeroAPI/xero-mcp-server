@@ -78,6 +78,38 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
 
+  // Legacy scopes (deprecated but still supported for existing apps)
+  private readonly LEGACY_SCOPES = [
+    "accounting.transactions",
+    "accounting.contacts",
+    "accounting.settings",
+    "accounting.reports.read",
+    "payroll.settings",
+    "payroll.employees",
+    "payroll.timesheets",
+  ].join(" ");
+
+  // Granular scopes (required for new apps)
+  private readonly GRANULAR_SCOPES = [
+    "accounting.invoices",
+    "accounting.invoices.read",
+    "accounting.payments",
+    "accounting.payments.read",
+    "accounting.banktransactions",
+    "accounting.banktransactions.read",
+    "accounting.manualjournals",
+    "accounting.manualjournals.read",
+    "accounting.reports.aged.read",
+    "accounting.reports.balancesheet.read",
+    "accounting.reports.profitandloss.read",
+    "accounting.reports.trialbalance.read",
+    "accounting.contacts",
+    "accounting.settings",
+    "payroll.settings",
+    "payroll.employees",
+    "payroll.timesheets",
+  ].join(" ");
+
   constructor(config: {
     clientId: string;
     clientSecret: string;
@@ -89,48 +121,59 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
-    const scope =
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.settings payroll.employees payroll.timesheets";
+    // Try legacy scopes first (for existing apps), fallback to granular scopes (for new apps)
+    try {
+      return await this.requestToken(this.LEGACY_SCOPES);
+    } catch {
+      try {
+        return await this.requestToken(this.GRANULAR_SCOPES);
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        throw new Error(
+          `Failed to get Xero token: ${
+            typeof axiosError.response?.data === "object"
+              ? JSON.stringify(axiosError.response?.data)
+              : axiosError.response?.data || axiosError.message
+          }`,
+        );
+      }
+    }
+  }
+
+  private async requestToken(scope: string): Promise<TokenSet> {
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
 
-    try {
-      const response = await axios.post(
-        "https://identity.xero.com/connect/token",
-        `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
-        {
-          headers: {
-            Authorization: `Basic ${credentials}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-            Accept: "application/json",
-          },
+    const response = await axios.post(
+      "https://identity.xero.com/connect/token",
+      `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
         },
-      );
+      },
+    );
 
-      // Get the tenant ID from the connections endpoint
-      const token = response.data.access_token;
-      const connectionsResponse = await axios.get(
-        "https://api.xero.com/connections",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
+    // Get the tenant ID from the connections endpoint
+    const token = response.data.access_token;
+    const connectionsResponse = await axios.get(
+      "https://api.xero.com/connections",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
-      );
+      },
+    );
 
-      if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-        this.tenantId = connectionsResponse.data[0].tenantId;
-      }
-
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      throw new Error(
-        `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
-      );
+    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
+      this.tenantId = connectionsResponse.data[0].tenantId;
     }
+
+    return response.data;
   }
 
   public async authenticate() {
