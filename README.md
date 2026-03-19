@@ -196,7 +196,9 @@ payroll.timesheets
 ### Files and Attachments Notes
 
 - `list-attachments`, `add-attachment`, and `get-attachment` all work for both sales invoices (`ACCREC`) and bills (`ACCPAY`) by using `objectType: Invoices`.
-- `add-attachment` and `upload-file` both accept base64 content, but they do different things: `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
+- `add-attachment` and `upload-file` both accept base64 content or an absolute local `filePath`. If both `filePath` and `fileContent` are provided, `filePath` takes precedence.
+- If `contentType` is omitted while using `filePath`, the server attempts to infer the MIME type from the file extension.
+- `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
 - `get-attachment` and `get-file` return base64 content and responses can be large.
 - `list-files` can be filtered by `folderId`.
 - `upload-file` works best with an explicit non-Inbox `folderId` for reliable placement. Prefer creating a named folder such as `Invoices` and uploading directly to it. If no folder is specified, files may land in Archive rather than Inbox in the Xero UI.

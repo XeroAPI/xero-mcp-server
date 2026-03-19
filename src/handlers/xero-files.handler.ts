@@ -2,10 +2,10 @@ import axios from "axios";
 import FormData from "form-data";
 
 import { xeroClient } from "../clients/xero-client.js";
-import { decodeBase64FileContent } from "../helpers/decode-base64-file-content.js";
 import { formatBinaryContent } from "../helpers/format-binary-content.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { resolveFileInput } from "../helpers/resolve-file-input.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 type FileSortField = "Name" | "Size" | "CreatedDateUTC";
@@ -188,14 +188,16 @@ async function assertUploadFolderIsSupported(folderId?: string): Promise<void> {
 
 async function uploadFileToXero(
   fileName: string,
-  fileContent: string,
-  contentType: string,
+  fileContent?: string,
+  contentType?: string,
   name?: string,
   folderId?: string,
+  filePath?: string,
 ): Promise<XeroFile> {
   await xeroClient.authenticate();
 
-  const body = decodeBase64FileContent(fileContent);
+  const resolvedFile = await resolveFileInput(filePath, fileContent, contentType);
+  const body = resolvedFile.body;
   const uploadName = resolveUploadName(fileName, name);
   const accessToken = xeroClient.readTokenSet().access_token;
 
@@ -207,12 +209,12 @@ async function uploadFileToXero(
   // Xero's Files API expects the binary part name to be the uploaded file name.
   formData.append(uploadName, body, {
     filename: fileName,
-    contentType,
+    contentType: resolvedFile.contentType,
     knownLength: body.byteLength,
   });
   formData.append("name", uploadName);
   formData.append("filename", fileName);
-  formData.append("mimeType", contentType);
+  formData.append("mimeType", resolvedFile.contentType);
 
   const contentLength = await new Promise<number>((resolve, reject) => {
     formData.getLength((error, length) => {
@@ -495,10 +497,11 @@ async function getXeroFileDocument(fileId: string): Promise<XeroFileDocument> {
 
 export async function uploadXeroFile(
   fileName: string,
-  fileContent: string,
-  contentType: string,
+  fileContent?: string,
+  contentType?: string,
   name?: string,
   folderId?: string,
+  filePath?: string,
 ): Promise<XeroClientResponse<XeroFile>> {
   try {
     const file = await uploadFileToXero(
@@ -507,6 +510,7 @@ export async function uploadXeroFile(
       contentType,
       name,
       folderId,
+      filePath,
     );
 
     return {

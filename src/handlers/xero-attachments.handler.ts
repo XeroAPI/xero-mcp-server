@@ -1,10 +1,10 @@
 import { Attachment, Attachments } from "xero-node";
 
 import { xeroClient } from "../clients/xero-client.js";
-import { decodeBase64FileContent } from "../helpers/decode-base64-file-content.js";
 import { formatError } from "../helpers/format-error.js";
 import { formatBinaryContent } from "../helpers/format-binary-content.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { resolveFileInput } from "../helpers/resolve-file-input.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { XeroAttachmentObjectType } from "../types/xero-attachment-object-type.js";
 
@@ -317,19 +317,21 @@ async function uploadAttachment(
   objectType: XeroAttachmentObjectType,
   objectId: string,
   fileName: string,
-  fileContent: string,
-  contentType: string,
+  fileContent?: string,
+  contentType?: string,
+  filePath?: string,
 ): Promise<Attachment> {
   await xeroClient.authenticate();
 
-  const body = decodeBase64FileContent(fileContent);
+  const resolvedFile = await resolveFileInput(filePath, fileContent, contentType);
+  const body = resolvedFile.body;
   const attachmentMethods = attachmentApiMethods[objectType];
   const response = await attachmentMethods.create(
     xeroClient.tenantId,
     objectId,
     fileName,
     body,
-    contentType,
+    resolvedFile.contentType,
   );
 
   return getFirstAttachment(response, fileName);
@@ -406,8 +408,9 @@ export async function addXeroAttachment(
   objectType: XeroAttachmentObjectType,
   objectId: string,
   fileName: string,
-  fileContent: string,
-  contentType: string,
+  fileContent?: string,
+  contentType?: string,
+  filePath?: string,
 ): Promise<XeroClientResponse<Attachment>> {
   try {
     const attachment = await uploadAttachment(
@@ -416,6 +419,7 @@ export async function addXeroAttachment(
       fileName,
       fileContent,
       contentType,
+      filePath,
     );
 
     return {
