@@ -5,7 +5,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const GetFileTool = CreateXeroTool(
   "get-file",
-  "Retrieve the binary content of a Xero Files document and return it as base64.",
+  "Retrieve the binary content of a Xero Files document and return it as base64. Responses can be large.",
   {
     fileId: z
       .string()
@@ -38,7 +38,7 @@ const GetFileTool = CreateXeroTool(
             `Name: ${file.name ?? "Unknown"}`,
             file.mimeType ? `Content Type: ${file.mimeType}` : null,
             file.size !== undefined ? `Size: ${file.size} bytes` : null,
-            file.folderId ? `Folder ID: ${file.folderId}` : "Folder: Inbox",
+            file.folderId ? `Folder ID: ${file.folderId}` : "Folder ID: Not returned by Xero",
             file.createdDateUtc ? `Created: ${file.createdDateUtc}` : null,
             file.updatedDateUtc ? `Updated: ${file.updatedDateUtc}` : null,
             file.user?.fullName

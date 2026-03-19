@@ -131,7 +131,7 @@ payroll.timesheets
 - `list-attachments`: Retrieve attachments for a supported Xero object
 - `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
-- `list-file-folders`: Retrieve folders from Xero Files
+- `list-file-folders`: Retrieve folders from Xero Files, including the Inbox folder metadata
 - `list-files`: Retrieve files from Xero Files
 - `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
@@ -169,7 +169,7 @@ payroll.timesheets
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
-- `upload-file`: Upload a file to Xero Files
+- `upload-file`: Upload a file to Xero Files. If no folder is specified the file appears in Archive in the Xero UI; direct Inbox uploads are not supported
 - `update-bank-transaction`: Update an existing bank transaction
 - `update-contact`: Update an existing contact
 - `update-file`: Update a Xero Files document
@@ -192,6 +192,19 @@ payroll.timesheets
 - `get-attachment`: Retrieve the contents of an accounting attachment
 - `get-file`: Retrieve the contents of a Xero Files document
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
+
+### Files and Attachments Notes
+
+- `list-attachments`, `add-attachment`, and `get-attachment` all work for both sales invoices (`ACCREC`) and bills (`ACCPAY`) by using `objectType: Invoices`.
+- `add-attachment` and `upload-file` both accept base64 content, but they do different things: `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
+- `get-attachment` and `get-file` return base64 content and responses can be large.
+- `list-files` can be filtered by `folderId`.
+- `upload-file` works best with an explicit non-Inbox `folderId` for reliable placement. Prefer creating a named folder such as `Invoices` and uploading directly to it. If no folder is specified, files may land in Archive rather than Inbox in the Xero UI.
+- `update-file` can rename a file and move it between folders.
+- `delete-file` permanently deletes the file.
+- `list-file-folders` returns the Inbox plus any custom folders.
+- `update-file-folder` renames a folder only.
+- `delete-file-folder` cannot delete the Inbox folder.
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

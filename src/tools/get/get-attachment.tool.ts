@@ -6,11 +6,13 @@ import { xeroAttachmentObjectTypes } from "../../types/xero-attachment-object-ty
 
 const GetAttachmentTool = CreateXeroTool(
   "get-attachment",
-  "Retrieve the binary content of an accounting attachment from Xero and return it as base64. Provide either an attachment ID or filename.",
+  "Retrieve the binary content of an accounting attachment from Xero and return it as base64. Provide either an attachment ID or filename. Responses can be large.",
   {
     objectType: z
       .enum(xeroAttachmentObjectTypes)
-      .describe("The type of Xero object the attachment belongs to."),
+      .describe(
+        "The type of Xero object the attachment belongs to. Use `Invoices` for both sales invoices and bills.",
+      ),
     objectId: z
       .string()
       .describe("The Xero object ID that owns the attachment."),

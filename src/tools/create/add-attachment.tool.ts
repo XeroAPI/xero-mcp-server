@@ -6,11 +6,13 @@ import { xeroAttachmentObjectTypes } from "../../types/xero-attachment-object-ty
 
 const AddAttachmentTool = CreateXeroTool(
   "add-attachment",
-  "Upload a file attachment to a Xero object such as an invoice, bank transaction, contact, credit note, or manual journal.",
+  "Upload a base64-encoded file attachment directly to a specific Xero object such as an invoice, bill, bank transaction, contact, credit note, or manual journal. This is different from `upload-file`, which stores a standalone document in Xero Files. Use objectType `Invoices` for both ACCREC invoices and ACCPAY bills.",
   {
     objectType: z
       .enum(xeroAttachmentObjectTypes)
-      .describe("The type of Xero object to attach the file to."),
+      .describe(
+        "The type of Xero object to attach the file to. Use `Invoices` for both sales invoices and bills.",
+      ),
     objectId: z
       .string()
       .describe("The Xero object ID to attach the file to."),

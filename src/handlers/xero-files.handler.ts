@@ -164,9 +164,9 @@ function resolveUploadName(fileName: string, name?: string): string {
   return hasExtension ? name : fileName;
 }
 
-async function resolveUploadFolderId(folderId?: string): Promise<string> {
-  if (folderId) {
-    return folderId;
+async function assertUploadFolderIsSupported(folderId?: string): Promise<void> {
+  if (!folderId) {
+    return;
   }
 
   const inboxResponse = await xeroClient.filesApi.getInbox(
@@ -176,10 +176,14 @@ async function resolveUploadFolderId(folderId?: string): Promise<string> {
   const inbox = mapXeroFolder(inboxResponse.body);
 
   if (!inbox.id) {
-    throw new Error("Failed to resolve the Xero Files inbox folder ID.");
+    return;
   }
 
-  return inbox.id;
+  if (folderId === inbox.id) {
+    throw new Error(
+      "Direct uploads to the Xero Files Inbox are not supported. Omit folderId to use Xero's default upload destination, which appears in Archive in the Xero UI, or provide a non-Inbox folder ID such as an Invoices folder.",
+    );
+  }
 }
 
 async function uploadFileToXero(
@@ -220,8 +224,10 @@ async function uploadFileToXero(
       resolve(length);
     });
   });
-  const targetFolderId = await resolveUploadFolderId(folderId);
-  const uploadPath = `${xeroClient.filesApi.basePath}/Files/${encodeURIComponent(targetFolderId)}`;
+  await assertUploadFolderIsSupported(folderId);
+  const uploadPath = folderId
+    ? `${xeroClient.filesApi.basePath}/Files/${encodeURIComponent(folderId)}`
+    : `${xeroClient.filesApi.basePath}/Files`;
   const response = await axios.post<XeroFilesUploadApiResponse>(
     uploadPath,
     formData,

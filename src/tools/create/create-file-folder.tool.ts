@@ -5,7 +5,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const CreateFileFolderTool = CreateXeroTool(
   "create-file-folder",
-  "Create a folder in Xero Files.",
+  "Create a custom folder in Xero Files.",
   {
     name: z
       .string()

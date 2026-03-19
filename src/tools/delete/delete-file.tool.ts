@@ -5,7 +5,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const DeleteFileTool = CreateXeroTool(
   "delete-file",
-  "Delete a document from Xero Files.",
+  "Delete a document from Xero Files permanently.",
   {
     fileId: z
       .string()

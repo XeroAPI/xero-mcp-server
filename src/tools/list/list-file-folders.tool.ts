@@ -7,7 +7,7 @@ const fileSortFields = ["Name", "Size", "CreatedDateUTC"] as const;
 
 const ListFileFoldersTool = CreateXeroTool(
   "list-file-folders",
-  "List folders available in Xero Files, including the inbox folder details when available.",
+  "List folders available in Xero Files, including the inbox folder details when available. The inbox is informational only and is not a supported direct upload target.",
   {
     sort: z
       .enum(fileSortFields)
@@ -55,7 +55,9 @@ const ListFileFoldersTool = CreateXeroTool(
             folder.fileCount !== undefined
               ? `File Count: ${folder.fileCount}`
               : null,
-            folder.isInbox ? "Inbox: Yes" : null,
+            folder.isInbox
+              ? "Inbox: Yes (informational only; direct uploads to Inbox are not supported)"
+              : null,
             folder.email ? `Inbox Email: ${folder.email}` : null,
           ]
             .filter(Boolean)

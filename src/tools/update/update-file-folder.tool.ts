@@ -5,7 +5,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const UpdateFileFolderTool = CreateXeroTool(
   "update-file-folder",
-  "Rename an existing Xero Files folder. The inbox folder cannot be renamed.",
+  "Rename an existing Xero Files folder. Rename only; the inbox folder cannot be renamed.",
   {
     folderId: z
       .string()

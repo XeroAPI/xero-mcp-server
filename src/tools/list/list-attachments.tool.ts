@@ -6,11 +6,13 @@ import { xeroAttachmentObjectTypes } from "../../types/xero-attachment-object-ty
 
 const ListAttachmentsTool = CreateXeroTool(
   "list-attachments",
-  "List file attachments for a Xero invoice, bank transaction, contact, credit note, or manual journal.",
+  "List file attachments for a Xero invoice, bill, bank transaction, contact, credit note, or manual journal. Use objectType `Invoices` for both ACCREC invoices and ACCPAY bills.",
   {
     objectType: z
       .enum(xeroAttachmentObjectTypes)
-      .describe("The type of Xero object whose attachments should be listed."),
+      .describe(
+        "The type of Xero object whose attachments should be listed. Use `Invoices` for both sales invoices and bills.",
+      ),
     objectId: z
       .string()
       .describe("The Xero object ID whose attachments should be listed."),

@@ -13,7 +13,7 @@ const UpdateFileTool = CreateXeroTool(
     name: z
       .string()
       .optional()
-      .describe("Optional new file name."),
+      .describe("Optional new file name used to rename the file."),
     folderId: z
       .string()
       .optional()
