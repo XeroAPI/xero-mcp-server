@@ -1,16 +1,21 @@
 {
-  "name": "@xeroapi/xero-mcp-server",
-  "version": "0.0.14",
+  "name": "@velocitysoft/xero-mcp-server",
+  "version": "1.0.16",
   "description": "MCP server implementation for Xero integration",
   "license": "MIT",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/XeroAPI/xero-mcp-server.git"
+    "url": "git+ssh://git@github.com/Velocity-Software-Ltd/xero-mcp-server.git"
   },
   "author": "Xero (https://xero.com)",
   "type": "module",
-  "bin": "./dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "xero-mcp-server": "dist/index.js"
+  },
   "files": [
     "dist"
   ],
