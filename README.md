@@ -102,6 +102,8 @@ accounting.transactions (Deprecated)
 accounting.transactions.read (Deprecated)
 accounting.invoices
 accounting.invoices.read
+accounting.attachments
+accounting.attachments.read
 accounting.payments
 accounting.payments.read
 accounting.banktransactions
@@ -115,6 +117,8 @@ accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
 accounting.contacts 
 accounting.settings 
+files
+files.read
 payroll.settings 
 payroll.employees 
 payroll.timesheets
@@ -124,8 +128,11 @@ payroll.timesheets
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
+- `list-attachments`: Retrieve attachments for a supported Xero object
 - `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
+- `list-file-folders`: Retrieve folders from Xero Files
+- `list-files`: Retrieve files from Xero Files
 - `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
 - `list-manual-journals`: Retrieve a list of manual journals
@@ -149,8 +156,11 @@ payroll.timesheets
 - `list-contact-groups`: Retrieve a list of contact groups
 - `list-tracking-categories`: Retrieve a list of tracking categories
 - `create-bank-transaction`: Create a new bank transaction
+- `add-attachment`: Upload an attachment to a supported Xero object
+- `associate-file`: Associate a Xero Files document with a Xero object
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
+- `create-file-folder`: Create a folder in Xero Files
 - `create-invoice`: Create a new invoice
 - `create-item`: Create a new item
 - `create-manual-journal`: Create a new manual journal
@@ -159,8 +169,11 @@ payroll.timesheets
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
+- `upload-file`: Upload a file to Xero Files
 - `update-bank-transaction`: Update an existing bank transaction
 - `update-contact`: Update an existing contact
+- `update-file`: Update a Xero Files document
+- `update-file-folder`: Update a Xero Files folder
 - `update-invoice`: Update an existing draft invoice
 - `update-item`: Update an existing item
 - `update-manual-journal`: Update an existing manual journal
@@ -172,7 +185,12 @@ payroll.timesheets
 - `approve-payroll-timesheet`: Approve a Payroll Timesheet
 - `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
 - `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
+- `delete-file`: Delete a Xero Files document
+- `delete-file-folder`: Delete a Xero Files folder
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
+- `remove-file-association`: Remove an association between a Xero Files document and a Xero object
+- `get-attachment`: Retrieve the contents of an accounting attachment
+- `get-file`: Retrieve the contents of a Xero Files document
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
