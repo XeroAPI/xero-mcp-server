@@ -47,7 +47,19 @@ It is also the recommended approach if you are integrating this into 3rd party M
 
 Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
 
-Currently the following scopes are required for all sessions: [scopes](src/clients/xero-client.ts#L91-L92)
+The following [scopes](src/clients/xero-client.ts#L91-L92) are requested by default for all custom connection sessions:
+
+```
+accounting.transactions
+accounting.contacts
+accounting.settings
+accounting.reports.read
+payroll.settings
+payroll.employees
+payroll.timesheets
+```
+
+You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
 
 ##### Integrating the MCP server with Claude Desktop
 
@@ -61,12 +73,15 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here"
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "XERO_SCOPES": "accounting.transactions accounting.contacts accounting.settings"
       }
     }
   }
 }
 ```
+
+The `XERO_SCOPES` variable is optional. If omitted, the default scopes listed above will be used.
 
 NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"command": "npx"` section change it to be the full path to the executable, ie: `your_home_directory/.nvm/versions/node/v22.14.0/bin/npx` on Mac / Linux or `"your_home_directory\\.nvm\\versions\\node\\v22.14.0\\bin\\npx"` on Windows
 
