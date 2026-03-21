@@ -3,10 +3,12 @@ import { z } from "zod";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { getContactRoleLabel } from "../../helpers/get-contact-role-label.js";
 
 const UpdateContactTool = CreateXeroTool(
   "update-contact",
   "Update a contact in Xero.\
+ This tool cannot set Xero's `Customer` or `Supplier` flags because those fields are read-only and automatically managed by Xero based on AR and AP activity. \
  When a contact is updated, a deep link to the contact in Xero is returned. \
  This deep link can be used to view the contact in Xero directly. \
  This link should be displayed to the user.",
@@ -85,6 +87,7 @@ const UpdateContactTool = CreateXeroTool(
             type: "text" as const,
             text: [
               `Contact updated: ${contact.name} (ID: ${contact.contactID})`,
+              `Role: ${getContactRoleLabel(contact.isCustomer, contact.isSupplier)}`,
               deepLink ? `Link to view: ${deepLink}` : null,
             ]
               .filter(Boolean)

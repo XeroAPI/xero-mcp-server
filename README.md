@@ -208,6 +208,14 @@ payroll.timesheets
 - `update-file-folder` renames a folder only.
 - `delete-file-folder` cannot delete the Inbox folder.
 
+### Contact Notes
+
+- Xero contacts do expose `Supplier` and `Customer` flags, but Xero marks both as read-only.
+- `Supplier` is automatically set by Xero once the contact has AP activity such as bills.
+- `Customer` is automatically set by Xero once the contact has AR activity such as sales invoices.
+- `create-contact` and `update-contact` do not accept writable supplier or customer fields because Xero will reject them.
+- `list-contacts`, `create-contact`, and `update-contact` surface the current contact role in MCP responses when Xero returns it.
+
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
 ## For Developers
