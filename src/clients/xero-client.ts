@@ -79,7 +79,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientSecret: string;
 
   // Legacy scopes (deprecated but still supported for existing apps)
-  private readonly LEGACY_SCOPES = [
+  private readonly SCOPES_V1 = [
     "accounting.transactions",
     "accounting.contacts",
     "accounting.settings",
@@ -90,7 +90,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   ].join(" ");
 
   // Granular scopes (required for new apps)
-  private readonly GRANULAR_SCOPES = [
+  private readonly SCOPES_V2 = [
     "accounting.invoices",
     "accounting.invoices.read",
     "accounting.payments",
@@ -123,10 +123,10 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   public async getClientCredentialsToken(): Promise<TokenSet> {
     // Try legacy scopes first (for existing apps), fallback to granular scopes (for new apps)
     try {
-      return await this.requestToken(this.LEGACY_SCOPES);
+      return await this.requestToken(this.SCOPES_V1);
     } catch {
       try {
-        return await this.requestToken(this.GRANULAR_SCOPES);
+        return await this.requestToken(this.SCOPES_V2);
       } catch (error) {
         const axiosError = error as AxiosError;
         throw new Error(

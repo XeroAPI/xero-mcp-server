@@ -47,7 +47,16 @@ It is also the recommended approach if you are integrating this into 3rd party M
 
 Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
 
-Currently the following scopes are required for all sessions: [scopes](src/clients/xero-client.ts#L91-L92)
+##### Required Scopes
+
+Custom connections require different scopes depending on when they were created. **All scopes in the relevant list must be added to your custom connection:**
+
+| Custom Connection Created | Required Scopes |
+|---------------------------|-----------------|
+| Before Apr 27, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
+| After Apr 27, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+
+> **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 
 ##### Integrating the MCP server with Claude Desktop
 
