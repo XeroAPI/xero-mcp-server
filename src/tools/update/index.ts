@@ -1,4 +1,7 @@
 import ApprovePayrollTimesheetTool from "./approve-payroll-timesheet.tool.js";
+import ApproveAndEmailInvoiceTool from "./approve-and-email-invoice.tool.js";
+import ApproveInvoiceTool from "./approve-invoice.tool.js";
+import EmailInvoiceTool from "./email-invoice.tool.js";
 import RevertPayrollTimesheetTool from "./revert-payroll-timesheet.tool.js";
 import UpdateBankTransactionTool from "./update-bank-transaction.tool.js";
 import UpdateContactTool from "./update-contact.tool.js";
@@ -16,8 +19,11 @@ import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
 
 export const UpdateTools = [
+  ApproveAndEmailInvoiceTool,
+  ApproveInvoiceTool,
   UpdateContactTool,
   UpdateCreditNoteTool,
+  EmailInvoiceTool,
   UpdateFileTool,
   UpdateFileFolderTool,
   UpdateInvoiceTool,

@@ -171,6 +171,9 @@ payroll.timesheets
 - `create-tracking-option`: Create a new tracking option
 - `upload-file`: Upload a file to Xero Files. If no folder is specified the file appears in Archive in the Xero UI; direct Inbox uploads are not supported
 - `update-bank-transaction`: Update an existing bank transaction
+- `approve-invoice`: Approve an invoice or bill by setting it to `AUTHORISED`
+- `email-invoice`: Send an approved invoice to the related contact by email
+- `approve-and-email-invoice`: Approve an invoice and send it by email in one step
 - `update-contact`: Update an existing contact
 - `update-file`: Update a Xero Files document
 - `update-file-folder`: Update a Xero Files folder
@@ -215,6 +218,12 @@ payroll.timesheets
 - `Customer` is automatically set by Xero once the contact has AR activity such as sales invoices.
 - `create-contact` and `update-contact` do not accept writable supplier or customer fields because Xero will reject them.
 - `list-contacts`, `create-contact`, and `update-contact` surface the current contact role in MCP responses when Xero returns it.
+
+### Invoice Workflow Notes
+
+- `approve-invoice` sets a DRAFT or SUBMITTED invoice or bill to `AUTHORISED`.
+- `email-invoice` uses Xero's invoice email endpoint and requires the invoice to already be approved and the related contact to have an email address.
+- `approve-and-email-invoice` approves a DRAFT or SUBMITTED invoice first, then emails it in the same MCP action.
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
