@@ -177,6 +177,7 @@ payroll.timesheets
 - `update-contact`: Update an existing contact
 - `update-file`: Update a Xero Files document
 - `update-file-folder`: Update a Xero Files folder
+- `update-invoice-fields`: Update specific invoice or bill fields such as due date without sending line items
 - `update-invoice`: Update an existing draft invoice
 - `update-item`: Update an existing item
 - `update-manual-journal`: Update an existing manual journal
@@ -221,9 +222,12 @@ payroll.timesheets
 
 ### Invoice Workflow Notes
 
+- `list-invoices` supports server-side `statuses` filtering, for example `["DRAFT"]`, so you can page only through draft invoices instead of all invoices.
 - `approve-invoice` sets a DRAFT or SUBMITTED invoice or bill to `AUTHORISED`.
 - `email-invoice` uses Xero's invoice email endpoint and requires the invoice to already be approved and the related contact to have an email address.
 - `approve-and-email-invoice` approves a DRAFT or SUBMITTED invoice first, then emails it in the same MCP action.
+- `update-invoice-fields` supports targeted top-level invoice changes such as `dueDate`, `date`, `reference`, `contactId`, `expectedPaymentDate`, and `plannedPaymentDate` without sending line items.
+- `update-invoice` remains the draft-only tool for full invoice edits where line items are being changed.
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

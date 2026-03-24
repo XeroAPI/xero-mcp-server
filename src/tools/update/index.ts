@@ -15,6 +15,7 @@ import UpdateManualJournalTool from "./update-manual-journal-tool.js";
 import UpdateQuoteTool from "./update-quote.tool.js";
 import UpdateFileFolderTool from "./update-file-folder.tool.js";
 import UpdateFileTool from "./update-file.tool.js";
+import UpdateInvoiceFieldsTool from "./update-invoice-fields.tool.js";
 import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
 
@@ -26,6 +27,7 @@ export const UpdateTools = [
   EmailInvoiceTool,
   UpdateFileTool,
   UpdateFileFolderTool,
+  UpdateInvoiceFieldsTool,
   UpdateInvoiceTool,
   UpdateManualJournalTool,
   UpdateQuoteTool,
