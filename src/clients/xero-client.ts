@@ -120,22 +120,33 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     this.clientSecret = config.clientSecret;
   }
 
+  private formatTokenError(error: unknown, context: string): Error {
+    const axiosError = error as AxiosError;
+    const data = axiosError.response?.data;
+    const message =
+      typeof data === "object" ? JSON.stringify(data) : data || axiosError.message;
+    return new Error(`Failed to get Xero token${context}: ${message}`);
+  }
+
   public async getClientCredentialsToken(): Promise<TokenSet> {
-    // Try legacy scopes first (for existing apps), fallback to granular scopes (for new apps)
+    // Try V1 scopes first (for existing apps), fallback to V2 scopes (for new apps) only on invalid_scope error
     try {
       return await this.requestToken(this.XERO_DEFAULT_AUTH_SCOPES_V1);
-    } catch {
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const isInvalidScope =
+        axiosError.response?.status === 400 &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (axiosError.response?.data as any)?.error === "invalid_scope";
+
+      if (!isInvalidScope) {
+        throw this.formatTokenError(error, " with V1 scopes");
+      }
+
       try {
         return await this.requestToken(this.XERO_DEFAULT_AUTH_SCOPES_V2);
-      } catch (error) {
-        const axiosError = error as AxiosError;
-        throw new Error(
-          `Failed to get Xero token: ${
-            typeof axiosError.response?.data === "object"
-              ? JSON.stringify(axiosError.response?.data)
-              : axiosError.response?.data || axiosError.message
-          }`,
-        );
+      } catch (v2Error) {
+        throw this.formatTokenError(v2Error, " with V2 scopes");
       }
     }
   }
