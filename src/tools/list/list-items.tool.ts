@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListItemsTool = CreateXeroTool(
   "list-items",
@@ -54,6 +55,7 @@ const ListItemsTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingSettings
 );
 
 export default ListItemsTool; 

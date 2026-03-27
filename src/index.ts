@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import "dotenv/config";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { XeroMcpServer } from "./server/xero-mcp-server.js";
 import { ToolFactory } from "./tools/tool-factory.js";

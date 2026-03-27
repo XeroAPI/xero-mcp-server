@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { formatTrackingOption } from "../../helpers/format-tracking-option.js";
 import { updateXeroTrackingOption } from "../../handlers/update-xero-tracking-options.handler.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const trackingOptionSchema = z.object({
   trackingOptionId: z.string(),
@@ -40,7 +41,8 @@ const UpdateTrackingOptionsTool = CreateXeroTool(
         },
       ]
     };
-  }
+  },
+  ToolScopes.accountingSettings
 );
 
 export default UpdateTrackingOptionsTool;

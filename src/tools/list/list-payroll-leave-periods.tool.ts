@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroPayrollLeavePeriods } from "../../handlers/list-xero-payroll-leave-periods.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { LeavePeriod } from "xero-node/dist/gen/model/payroll-nz/leavePeriod.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
   "list-payroll-leave-periods",
@@ -50,6 +51,7 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.payrollEmployees
 );
 
 export default ListPayrollLeavePeriodsToolTool;

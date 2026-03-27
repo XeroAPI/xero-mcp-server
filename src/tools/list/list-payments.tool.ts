@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroPayments } from "../../handlers/list-xero-payments.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { Payment } from "xero-node";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 function paymentFormatter(payment: Payment): string {
   return [
@@ -87,6 +88,7 @@ const ListPaymentsTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default ListPaymentsTool;

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListQuotesTool = CreateXeroTool(
   "list-quotes",
@@ -72,6 +73,7 @@ const ListQuotesTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default ListQuotesTool;

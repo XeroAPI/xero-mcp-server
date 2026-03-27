@@ -2,6 +2,7 @@ import { z } from "zod";
 import { updateXeroQuote } from "../../handlers/update-xero-quote.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -93,6 +94,7 @@ const UpdateQuoteTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default UpdateQuoteTool; 

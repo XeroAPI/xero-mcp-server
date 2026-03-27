@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { listXeroTrackingCategories } from "../../handlers/list-xero-tracking-categories.handler.js";
 import { formatTrackingOption } from "../../helpers/format-tracking-option.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListTrackingCategoriesTool = CreateXeroTool(
   "list-tracking-categories",
@@ -43,7 +44,8 @@ const ListTrackingCategoriesTool = CreateXeroTool(
         })) || [])
       ]
     };
-  }
+  },
+  ToolScopes.accountingSettings
 );
 
 export default ListTrackingCategoriesTool;

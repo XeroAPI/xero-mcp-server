@@ -4,6 +4,7 @@ import {
   listXeroPayrollTimesheets,
 } from "../../handlers/list-xero-timesheets.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListPayrollTimesheetsTool = CreateXeroTool(
   "list-timesheets",
@@ -48,6 +49,7 @@ This retrieves comprehensive timesheet details including timesheet IDs, employee
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default ListPayrollTimesheetsTool;

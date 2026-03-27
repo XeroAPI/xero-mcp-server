@@ -2,6 +2,7 @@ import { z } from "zod";
 import { updateXeroCreditNote } from "../../handlers/update-xero-credit-note.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -90,6 +91,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default UpdateCreditNoteTool; 

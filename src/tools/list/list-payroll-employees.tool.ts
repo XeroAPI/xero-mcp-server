@@ -1,6 +1,7 @@
 import { Employee } from "xero-node/dist/gen/model/payroll-nz/employee.js";
 import { listXeroPayrollEmployees } from "../../handlers/list-xero-payroll-employees.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListPayrollEmployeesTool = CreateXeroTool(
   "list-payroll-employees",
@@ -54,6 +55,7 @@ The response presents a complete overview of all staff currently registered in y
       ],
     };
   },
+  ToolScopes.payrollEmployees
 );
 
 export default ListPayrollEmployeesTool;

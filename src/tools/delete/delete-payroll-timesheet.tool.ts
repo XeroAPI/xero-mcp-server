@@ -4,6 +4,7 @@ import {
   deleteXeroPayrollTimesheet,
 } from "../../handlers/delete-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const DeletePayrollTimesheetTool = CreateXeroTool(
   "delete-timesheet",
@@ -35,6 +36,7 @@ const DeletePayrollTimesheetTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default DeletePayrollTimesheetTool;

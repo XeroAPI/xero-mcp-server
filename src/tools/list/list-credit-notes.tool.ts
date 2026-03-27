@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroCreditNotes } from "../../handlers/list-xero-credit-notes.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListCreditNotesTool = CreateXeroTool(
   "list-credit-notes",
@@ -70,6 +71,7 @@ const ListCreditNotesTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default ListCreditNotesTool;

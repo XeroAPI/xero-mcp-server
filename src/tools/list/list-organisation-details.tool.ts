@@ -1,6 +1,7 @@
 import { listXeroOrganisationDetails } from "../../handlers/list-xero-organisation-details.handler.js";
 import { getExternalLink } from "../../helpers/get-external-link.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListOrganisationDetailsTool = CreateXeroTool(
   "list-organisation-details",
@@ -102,6 +103,7 @@ const ListOrganisationDetailsTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingSettings
 );
 
 export default ListOrganisationDetailsTool;

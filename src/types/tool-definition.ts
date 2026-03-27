@@ -11,4 +11,6 @@ export interface ToolDefinition<
   description: string;
   schema: Args;
   handler: ToolCallback<Args>;
+  /** OAuth scopes required for this tool; empty = always register (when not in bearer-token mode). */
+  requiredScopes?: string[];
 }

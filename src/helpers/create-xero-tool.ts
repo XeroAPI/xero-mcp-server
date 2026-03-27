@@ -8,10 +8,12 @@ export const CreateXeroTool =
     description: string,
     schema: Args,
     handler: ToolCallback<Args>,
+    requiredScopes: string[] = [],
   ): (() => ToolDefinition<ZodRawShapeCompat>) =>
   () => ({
     name: name,
     description: description,
     schema: schema,
     handler: handler,
+    requiredScopes,
   });

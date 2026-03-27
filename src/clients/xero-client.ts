@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { getConfiguredScopeString } from "../helpers/scopes.js";
 
 dotenv.config();
 
@@ -89,9 +90,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
-    const defaultScopes =
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.settings payroll.employees payroll.timesheets";
-    const scope = process.env.XERO_SCOPES || defaultScopes;
+    const scope = getConfiguredScopeString();
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");

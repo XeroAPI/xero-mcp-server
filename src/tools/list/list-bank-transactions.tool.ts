@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { listXeroBankTransactions } from "../../handlers/list-xero-bank-transactions.handler.js";
 import { formatLineItem } from "../../helpers/format-line-item.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListBankTransactionsTool = CreateXeroTool(
   "list-bank-transactions",
@@ -62,7 +63,8 @@ const ListBankTransactionsTool = CreateXeroTool(
         })) || [])
       ]
     };
-  }
+  },
+  ToolScopes.accountingTransactions
 );
 
 export default ListBankTransactionsTool;

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createXeroPayment } from "../../handlers/create-xero-payment.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const CreatePaymentTool = CreateXeroTool(
   "create-payment",
@@ -76,6 +77,7 @@ const CreatePaymentTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default CreatePaymentTool;

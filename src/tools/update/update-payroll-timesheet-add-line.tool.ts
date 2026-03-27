@@ -7,6 +7,7 @@ import {
   updateXeroPayrollTimesheetAddLine,
 } from "../../handlers/update-xero-payroll-timesheet-add-line.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const AddTimesheetLineTool = CreateXeroTool(
   "add-timesheet-line",
@@ -45,6 +46,7 @@ const AddTimesheetLineTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default AddTimesheetLineTool;

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroContactGroups } from "../../handlers/list-xero-contact-groups.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListContactGroupsTool = CreateXeroTool(
   "list-contact-groups",
@@ -54,6 +55,7 @@ const ListContactGroupsTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingContacts
 );
 
 export default ListContactGroupsTool;

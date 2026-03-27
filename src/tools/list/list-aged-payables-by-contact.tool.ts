@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { formatAgedReportFilter } from "../../helpers/format-aged-report-filter.js";
 import { listXeroAgedPayablesByContact } from "../../handlers/list-aged-payables-by-contact.handler.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListAgedPayablesByContact = CreateXeroTool(
   "list-aged-payables-by-contact",
@@ -53,7 +54,8 @@ const ListAgedPayablesByContact = CreateXeroTool(
         }
       ],
     };
-  }
+  },
+  ToolScopes.accountingReportsRead
 );
 
 export default ListAgedPayablesByContact;

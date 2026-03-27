@@ -4,6 +4,7 @@ import {
   approveXeroPayrollTimesheet,
 } from "../../handlers/approve-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ApprovePayrollTimesheetTool = CreateXeroTool(
   "approve-timesheet",
@@ -37,6 +38,7 @@ const ApprovePayrollTimesheetTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default ApprovePayrollTimesheetTool;

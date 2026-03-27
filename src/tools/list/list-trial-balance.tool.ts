@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroTrialBalance } from "../../handlers/list-xero-trial-balance.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListTrialBalanceTool = CreateXeroTool(
   "list-trial-balance",
@@ -45,6 +46,7 @@ const ListTrialBalanceTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingReportsRead
 );
 
 export default ListTrialBalanceTool; 
