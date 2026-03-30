@@ -102,6 +102,8 @@ accounting.transactions (Deprecated)
 accounting.transactions.read (Deprecated)
 accounting.invoices
 accounting.invoices.read
+accounting.attachments
+accounting.attachments.read
 accounting.payments
 accounting.payments.read
 accounting.banktransactions
@@ -115,6 +117,8 @@ accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
 accounting.contacts 
 accounting.settings 
+files
+files.read
 payroll.settings 
 payroll.employees 
 payroll.timesheets
@@ -124,8 +128,11 @@ payroll.timesheets
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
+- `list-attachments`: Retrieve attachments for a supported Xero object
 - `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
+- `list-file-folders`: Retrieve folders from Xero Files, including the Inbox folder metadata
+- `list-files`: Retrieve files from Xero Files
 - `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
 - `list-manual-journals`: Retrieve a list of manual journals
@@ -149,8 +156,11 @@ payroll.timesheets
 - `list-contact-groups`: Retrieve a list of contact groups
 - `list-tracking-categories`: Retrieve a list of tracking categories
 - `create-bank-transaction`: Create a new bank transaction
+- `add-attachment`: Upload an attachment to a supported Xero object
+- `associate-file`: Associate a Xero Files document with a Xero object
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
+- `create-file-folder`: Create a folder in Xero Files
 - `create-invoice`: Create a new invoice
 - `create-item`: Create a new item
 - `create-manual-journal`: Create a new manual journal
@@ -159,8 +169,15 @@ payroll.timesheets
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
+- `upload-file`: Upload a file to Xero Files. If no folder is specified the file appears in Archive in the Xero UI; direct Inbox uploads are not supported
 - `update-bank-transaction`: Update an existing bank transaction
+- `approve-invoice`: Approve an invoice or bill by setting it to `AUTHORISED`
+- `email-invoice`: Send an approved invoice to the related contact by email
+- `approve-and-email-invoice`: Approve an invoice and send it by email in one step
 - `update-contact`: Update an existing contact
+- `update-file`: Update a Xero Files document
+- `update-file-folder`: Update a Xero Files folder
+- `update-invoice-fields`: Update specific invoice or bill fields such as due date without sending line items
 - `update-invoice`: Update an existing draft invoice
 - `update-item`: Update an existing item
 - `update-manual-journal`: Update an existing manual journal
@@ -172,8 +189,45 @@ payroll.timesheets
 - `approve-payroll-timesheet`: Approve a Payroll Timesheet
 - `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
 - `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
+- `delete-file`: Delete a Xero Files document
+- `delete-file-folder`: Delete a Xero Files folder
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
+- `remove-file-association`: Remove an association between a Xero Files document and a Xero object
+- `get-attachment`: Retrieve the contents of an accounting attachment
+- `get-file`: Retrieve the contents of a Xero Files document
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
+
+### Files and Attachments Notes
+
+- `list-attachments`, `add-attachment`, and `get-attachment` all work for both sales invoices (`ACCREC`) and bills (`ACCPAY`) by using `objectType: Invoices`.
+- `add-attachment` and `upload-file` both accept base64 content or an absolute local `filePath`. If both `filePath` and `fileContent` are provided, `filePath` takes precedence.
+- If `contentType` is omitted while using `filePath`, the server attempts to infer the MIME type from the file extension.
+- `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
+- `get-attachment` and `get-file` return base64 content and responses can be large.
+- `list-files` can be filtered by `folderId`.
+- `upload-file` works best with an explicit non-Inbox `folderId` for reliable placement. Prefer creating a named folder such as `Invoices` and uploading directly to it. If no folder is specified, files may land in Archive rather than Inbox in the Xero UI.
+- `update-file` can rename a file and move it between folders.
+- `delete-file` permanently deletes the file.
+- `list-file-folders` returns the Inbox plus any custom folders.
+- `update-file-folder` renames a folder only.
+- `delete-file-folder` cannot delete the Inbox folder.
+
+### Contact Notes
+
+- Xero contacts do expose `Supplier` and `Customer` flags, but Xero marks both as read-only.
+- `Supplier` is automatically set by Xero once the contact has AP activity such as bills.
+- `Customer` is automatically set by Xero once the contact has AR activity such as sales invoices.
+- `create-contact` and `update-contact` do not accept writable supplier or customer fields because Xero will reject them.
+- `list-contacts`, `create-contact`, and `update-contact` surface the current contact role in MCP responses when Xero returns it.
+
+### Invoice Workflow Notes
+
+- `list-invoices` supports server-side `statuses` filtering, for example `["DRAFT"]`, so you can page only through draft invoices instead of all invoices.
+- `approve-invoice` sets a DRAFT or SUBMITTED invoice or bill to `AUTHORISED`.
+- `email-invoice` uses Xero's invoice email endpoint and requires the invoice to already be approved and the related contact to have an email address.
+- `approve-and-email-invoice` approves a DRAFT or SUBMITTED invoice first, then emails it in the same MCP action.
+- `update-invoice-fields` supports targeted top-level invoice changes such as `dueDate`, `date`, `reference`, `contactId`, `expectedPaymentDate`, and `plannedPaymentDate` without sending line items.
+- `update-invoice` remains the draft-only tool for full invoice edits where line items are being changed.
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

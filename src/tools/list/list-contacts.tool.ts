@@ -1,10 +1,11 @@
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { getContactRoleLabel } from "../../helpers/get-contact-role-label.js";
 import { z } from "zod";
 
 const ListContactsTool = CreateXeroTool(
   "list-contacts",
-  "List all contacts in Xero. This includes Suppliers and Customers.",
+  "List all contacts in Xero. This includes Suppliers and Customers. Xero's Supplier and Customer roles are read-only flags that Xero derives from AP and AR activity.",
   {
     page: z.number().optional().describe("Optional page number to retrieve for pagination. \
       If not provided, the first page will be returned. If 100 contacts are returned, \
@@ -50,14 +51,7 @@ const ListContactsTool = CreateXeroTool(
             contact.accountsPayableTaxType
               ? `AP Tax Type: ${contact.accountsPayableTaxType}`
               : null,
-            `Type: ${
-              [
-                contact.isCustomer ? "Customer" : null,
-                contact.isSupplier ? "Supplier" : null,
-              ]
-                .filter(Boolean)
-                .join(", ") || "Unknown"
-            }`,
+            `Role: ${getContactRoleLabel(contact.isCustomer, contact.isSupplier)}`,
             contact.defaultCurrency
               ? `Default Currency: ${contact.defaultCurrency}`
               : null,

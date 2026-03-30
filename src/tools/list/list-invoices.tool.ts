@@ -6,6 +6,7 @@ import { formatLineItem } from "../../helpers/format-line-item.js";
 const ListInvoicesTool = CreateXeroTool(
   "list-invoices",
   "List invoices in Xero. This includes Draft, Submitted, and Paid invoices. \
+  Use the `statuses` filter when the user wants only draft, authorised, paid, voided, or deleted invoices. \
   Ask the user if they want to see invoices for a specific contact, \
   invoice number, or to see all invoices before running. \
   Ask the user if they want the next page of invoices after running this tool \
@@ -19,9 +20,22 @@ const ListInvoicesTool = CreateXeroTool(
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
+    statuses: z
+      .array(
+        z.enum([
+          "DRAFT",
+          "SUBMITTED",
+          "AUTHORISED",
+          "PAID",
+          "VOIDED",
+          "DELETED",
+        ]),
+      )
+      .optional()
+      .describe("Optional Xero invoice status filter. Use this for server-side filtering, for example `[\"DRAFT\"]` to list only draft invoices."),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ page, contactIds, invoiceNumbers, statuses }) => {
+    const response = await listXeroInvoices(page, contactIds, invoiceNumbers, statuses);
     if (response.error !== null) {
       return {
         content: [
@@ -40,7 +54,7 @@ const ListInvoicesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${invoices?.length || 0} invoices:`,
+          text: `Found ${invoices?.length || 0} invoices${statuses?.length ? ` with statuses ${statuses.join(", ")}` : ""}:`,
         },
         ...(invoices?.map((invoice) => ({
           type: "text" as const,

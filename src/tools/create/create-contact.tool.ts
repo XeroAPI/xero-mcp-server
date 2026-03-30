@@ -3,10 +3,12 @@ import { z } from "zod";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { getContactRoleLabel } from "../../helpers/get-contact-role-label.js";
 
 const CreateContactTool = CreateXeroTool(
   "create-contact",
   "Create a contact in Xero.\
+  Xero's `Customer` and `Supplier` flags are read-only and cannot be set when creating a contact; Xero manages them automatically based on AR and AP activity. \
   When a contact is created, a deep link to the contact in Xero is returned. \
   This deep link can be used to view the contact in Xero directly. \
   This link should be displayed to the user.",
@@ -41,6 +43,7 @@ const CreateContactTool = CreateXeroTool(
             type: "text" as const,
             text: [
               `Contact created: ${contact.name} (ID: ${contact.contactID})`,
+              `Role: ${getContactRoleLabel(contact.isCustomer, contact.isSupplier)}`,
               deepLink ? `Link to view: ${deepLink}` : null,
             ]
               .filter(Boolean)
