@@ -10,6 +10,10 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Invoice creation and management
 - MCP protocol compliance
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/xeroapi-xero-mcp-server).
+
 ## Prerequisites
 
 - Node.js (v18 or higher)
