@@ -125,7 +125,6 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
-
     // If XERO_SCOPES is set, use that
     if (process.env.XERO_SCOPES) {                                                                                                                                                     
       try {

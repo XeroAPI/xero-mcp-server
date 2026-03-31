@@ -47,7 +47,6 @@ It is also the recommended approach if you are integrating this into 3rd party M
 
 Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
 
-=======
 ##### Required Scopes
 
 Custom connections require different scopes depending on when they were created. **All scopes in the relevant list must be added to your custom connection:**
