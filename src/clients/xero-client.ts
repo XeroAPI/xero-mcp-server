@@ -125,7 +125,16 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
-    // Try V1 scopes first (for existing apps), fallback to V2 scopes (for new apps) only on invalid_scope error
+    // If XERO_SCOPES is set, use that
+    if (process.env.XERO_SCOPES) {                                                                                                                                                     
+      try {
+        return await this.requestToken(process.env.XERO_SCOPES);
+      } catch (envError) {
+        throw this.formatTokenError(envError, " with XERO_SCOPES");
+      }
+    }
+
+    // Else if XERO_SCOPES is not set, try V1 scopes first (for existing apps), fallback to V2 scopes (for new apps) only on invalid_scope error
     try {
       return await this.requestToken(this.XERO_DEFAULT_AUTH_SCOPES_V1);
     } catch (error) {
