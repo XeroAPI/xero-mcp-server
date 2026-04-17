@@ -47,7 +47,38 @@ It is also the recommended approach if you are integrating this into 3rd party M
 
 Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
 
-Currently the following scopes are required for all sessions: [scopes](src/clients/xero-client.ts#L91-L92)
+The following [default scopes](src/helpers/scopes.ts) are requested for all custom connection sessions when `XERO_SCOPES` is not set:
+
+```
+accounting.transactions
+accounting.contacts
+accounting.settings
+accounting.reports.read
+payroll.settings
+payroll.employees
+payroll.timesheets
+```
+
+You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+
+When using **custom connections**, tools are **registered only if** your configured scopes satisfy each tool’s requirements (see table below). That avoids offering payroll (or other) tools when the access token would not have permission. Typos or unknown scope names log a warning but are still sent to the token endpoint.
+
+Tool registration compares against **custom-connection style** names (e.g. `accounting.transactions`). If you set `XERO_SCOPES` to **granular** names from the bearer-token list below (e.g. `accounting.invoices` only), tools expecting `accounting.transactions` will not register even though your token may be valid—either include the matching broad scope or use bearer token mode (which registers all tools).
+
+Set `XERO_MCP_LOG_SCOPE_FILTERING=1` to print how many tools were registered vs omitted (to **stderr**; safe for MCP stdio transports).
+
+When using **bearer token** auth, `XERO_SCOPES` is not applied to token issuance (your token was created elsewhere). **All tools are registered** in that mode—ensure the token’s scopes match the APIs you use.
+
+##### Scope groups and MCP tools
+
+| Required scopes (all must be present) | MCP tools |
+| --- | --- |
+| `accounting.transactions` | Invoices, credit notes, quotes, payments, bank transactions, manual journals (list / create / update) |
+| `accounting.contacts` | Contacts, contact groups (list / create / update) |
+| `accounting.settings` | Accounts, items, tax rates, tracking categories and options, organisation details |
+| `accounting.reports.read` | Profit and loss, balance sheet, trial balance, aged receivables / payables by contact |
+| `payroll.settings` and `payroll.employees` | Payroll employees, employee leave, leave types, leave periods, leave balances |
+| `payroll.settings` and `payroll.timesheets` | Payroll timesheets (list, get, create, delete, approve, revert, add/update lines) |
 
 ##### Integrating the MCP server with Claude Desktop
 
@@ -61,12 +92,15 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here"
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "XERO_SCOPES": "accounting.transactions accounting.contacts accounting.settings accounting.reports.read"
       }
     }
   }
 }
 ```
+
+The `XERO_SCOPES` variable is optional. If omitted, the default scopes listed above will be used.
 
 NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"command": "npx"` section change it to be the full path to the executable, ie: `your_home_directory/.nvm/versions/node/v22.14.0/bin/npx` on Mac / Linux or `"your_home_directory\\.nvm\\versions\\node\\v22.14.0\\bin\\npx"` on Windows
 

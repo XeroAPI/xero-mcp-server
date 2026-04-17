@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createXeroItem } from "../../handlers/create-xero-item.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const purchaseDetailsSchema = z.object({
   unitPrice: z.number(),
@@ -77,6 +78,7 @@ const CreateItemTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingSettings
 );
 
 export default CreateItemTool; 

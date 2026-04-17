@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroTrackingCategory } from "../../handlers/create-xero-tracking-category.handler.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const CreateTrackingCategoryTool = CreateXeroTool(
   "create-tracking-category",
@@ -32,7 +33,8 @@ const CreateTrackingCategoryTool = CreateXeroTool(
         },
       ]
     };
-  }
+  },
+  ToolScopes.accountingSettings
 );
 
 export default CreateTrackingCategoryTool;

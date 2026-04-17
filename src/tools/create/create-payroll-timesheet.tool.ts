@@ -5,6 +5,7 @@ import {
   createXeroPayrollTimesheet,
 } from "../../handlers/create-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const CreatePayrollTimesheetTool = CreateXeroTool(
   "create-timesheet",
@@ -51,6 +52,7 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default CreatePayrollTimesheetTool;

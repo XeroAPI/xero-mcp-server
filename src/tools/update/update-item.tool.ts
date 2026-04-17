@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { updateXeroItem } from "../../handlers/update-xero-item.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const purchaseDetailsSchema = z.object({
   unitPrice: z.number().optional(),
@@ -82,6 +83,7 @@ const UpdateItemTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingSettings
 );
 
 export default UpdateItemTool; 

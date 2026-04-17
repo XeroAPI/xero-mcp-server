@@ -3,6 +3,7 @@ import { updateXeroInvoice } from "../../handlers/update-xero-invoice.handler.js
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { Invoice } from "xero-node";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const trackingSchema = z.object({
   name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
@@ -114,6 +115,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default UpdateInvoiceTool;

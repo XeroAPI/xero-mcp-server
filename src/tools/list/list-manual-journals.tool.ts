@@ -2,6 +2,7 @@ import { ManualJournal } from "xero-node";
 import { listXeroManualJournals } from "../../handlers/list-xero-manual-journals.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { z } from "zod";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListManualJournalsTool = CreateXeroTool(
   "list-manual-journals",
@@ -93,6 +94,7 @@ If they want the next page, call this tool again with the next page number, modi
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default ListManualJournalsTool;

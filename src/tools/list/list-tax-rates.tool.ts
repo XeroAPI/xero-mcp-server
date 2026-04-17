@@ -1,5 +1,6 @@
 import { listXeroTaxRates } from "../../handlers/list-xero-tax-rates.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListTaxRatesTool = CreateXeroTool(
   "list-tax-rates",
@@ -56,6 +57,7 @@ const ListTaxRatesTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingSettings
 );
 
 export default ListTaxRatesTool;

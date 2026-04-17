@@ -4,6 +4,7 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
 import { updateXeroManualJournal } from "../../handlers/update-xero-manual-journal.handler.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const UpdateManualJournalTool = CreateXeroTool(
   "update-manual-journal",
@@ -119,6 +120,7 @@ const UpdateManualJournalTool = CreateXeroTool(
       };
     }
   },
+  ToolScopes.accountingTransactions
 );
 
 export default UpdateManualJournalTool;

@@ -4,6 +4,7 @@ import {
   revertXeroPayrollTimesheet,
 } from "../../handlers/revert-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const RevertPayrollTimesheetTool = CreateXeroTool(
   "revert-timesheet",
@@ -37,6 +38,7 @@ const RevertPayrollTimesheetTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default RevertPayrollTimesheetTool;

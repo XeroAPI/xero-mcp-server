@@ -3,6 +3,7 @@ import { z } from "zod";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const CreateContactTool = CreateXeroTool(
   "create-contact",
@@ -61,6 +62,7 @@ const CreateContactTool = CreateXeroTool(
       };
     }
   },
+  ToolScopes.accountingContacts
 );
 
 export default CreateContactTool;

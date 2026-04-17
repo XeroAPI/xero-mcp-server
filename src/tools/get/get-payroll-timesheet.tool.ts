@@ -4,6 +4,7 @@ import {
   getXeroPayrollTimesheet,
 } from "../../handlers/get-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const GetPayrollTimesheetTool = CreateXeroTool(
   "get-timesheet",
@@ -58,6 +59,7 @@ This provides details such as the timesheet ID, employee ID, start and end dates
       ],
     };
   },
+  ToolScopes.payrollTimesheets
 );
 
 export default GetPayrollTimesheetTool;

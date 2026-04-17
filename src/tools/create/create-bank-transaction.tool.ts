@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroBankTransaction } from "../../handlers/create-xero-bank-transaction.handler.js";
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -63,7 +64,8 @@ const CreateBankTransactionTool = CreateXeroTool(
         },
       ],
     };
-  }
+  },
+  ToolScopes.accountingTransactions
 );
 
 export default CreateBankTransactionTool;

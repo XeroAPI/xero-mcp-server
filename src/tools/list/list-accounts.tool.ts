@@ -1,5 +1,6 @@
 import { listXeroAccounts } from "../../handlers/list-xero-accounts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListAccountsTool = CreateXeroTool(
   "list-accounts",
@@ -43,6 +44,7 @@ const ListAccountsTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingSettings
 );
 
 export default ListAccountsTool;

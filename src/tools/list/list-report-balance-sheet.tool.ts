@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroReportBalanceSheet } from "../../handlers/list-xero-report-balance-sheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { ListReportBalanceSheetParams } from "../../types/list-report-balance-sheet-params.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListReportBalanceSheetTool = CreateXeroTool(
   "list-report-balance-sheet",
@@ -44,7 +45,8 @@ const ListReportBalanceSheetTool = CreateXeroTool(
         },
       ],
     };
-  }
+  },
+  ToolScopes.accountingReportsRead
 );
 
 export default ListReportBalanceSheetTool;

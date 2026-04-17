@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { formatLineItem } from "../../helpers/format-line-item.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListInvoicesTool = CreateXeroTool(
   "list-invoices",
@@ -91,6 +92,7 @@ const ListInvoicesTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingTransactions
 );
 
 export default ListInvoicesTool;

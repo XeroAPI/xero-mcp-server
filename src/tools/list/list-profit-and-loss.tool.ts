@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroProfitAndLoss } from "../../handlers/list-xero-profit-and-loss.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListProfitAndLossTool = CreateXeroTool(
   "list-profit-and-loss",
@@ -57,6 +58,7 @@ const ListProfitAndLossTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingReportsRead
 );
 
 export default ListProfitAndLossTool; 

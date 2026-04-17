@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroPayrollEmployeeLeaveTypes } from "../../handlers/list-xero-payroll-employee-leave-types.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { EmployeeLeaveType } from "xero-node/dist/gen/model/payroll-nz/employeeLeaveType.js";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListPayrollEmployeeLeaveTypesTool = CreateXeroTool(
   "list-payroll-employee-leave-types",
@@ -62,6 +63,7 @@ const ListPayrollEmployeeLeaveTypesTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.payrollEmployees
 );
 
 export default ListPayrollEmployeeLeaveTypesTool;

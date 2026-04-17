@@ -1,6 +1,7 @@
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { z } from "zod";
+import { ToolScopes } from "../../helpers/scopes.js";
 
 const ListContactsTool = CreateXeroTool(
   "list-contacts",
@@ -77,6 +78,7 @@ const ListContactsTool = CreateXeroTool(
       ],
     };
   },
+  ToolScopes.accountingContacts
 );
 
 export default ListContactsTool;
