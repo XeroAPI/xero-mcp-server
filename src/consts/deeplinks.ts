@@ -32,3 +32,7 @@ export const manualJournalDeepLink = (journalId: string) => {
 export const billDeepLink = (orgShortCode: string, billId: string) => {
   return `https://go.xero.com/organisationlogin/default.aspx?shortcode=${orgShortCode}&redirecturl=/AccountsPayable/Edit.aspx?InvoiceID=${billId}`;
 };
+
+export const accountDeepLink = (orgShortCode: string, accountId: string) => {
+  return `https://go.xero.com/app/${orgShortCode}/accounts/settings/${accountId}`;
+};
