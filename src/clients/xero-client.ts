@@ -127,8 +127,37 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
+
+      // Log detailed error information to help with troubleshooting
+      console.error("===== Xero OAuth Authentication Failed =====");
+      console.error("Error Type:", axiosError.name);
+      console.error("Status Code:", axiosError.response?.status);
+      console.error("Status Text:", axiosError.response?.statusText);
+
+      if (axiosError.response?.data) {
+        console.error("Error Details:", JSON.stringify(axiosError.response.data, null, 2));
+      }
+
+      // Provide specific guidance based on error type
+      if (axiosError.response?.status === 401) {
+        console.error("\nAuthentication Error - Invalid Client Credentials");
+        console.error("   - Check your XERO_CLIENT_ID and XERO_CLIENT_SECRET");
+        console.error("   - Verify credentials match your Xero app configuration");
+        console.error("   - Ensure you've created a new connection after updating credentials");
+      } else if (axiosError.response?.status === 403) {
+        console.error("\nForbidden - Insufficient Permissions");
+        console.error("   - Check that your Xero app has the required scopes");
+        console.error("   - Verify all necessary permissions are granted in your Xero app");
+      } else if (axiosError.code === 'ENOTFOUND' || axiosError.code === 'ECONNREFUSED') {
+        console.error("\nNetwork Error - Cannot reach Xero API");
+        console.error("   - Check your internet connection");
+        console.error("   - Verify firewall settings");
+      }
+
+      console.error("=============================================\n");
+
       throw new Error(
-        `Failed to get Xero token: ${axiosError.response?.data || axiosError.message}`,
+        `Failed to get Xero token: ${axiosError.response?.data ? JSON.stringify(axiosError.response.data) : axiosError.message}`,
       );
     }
   }
