@@ -7,7 +7,7 @@ const CreateAssetTool = CreateXeroTool(
   "create-asset",
   "Create an asset in Xero. \
   Assets can be created with just a name and number, but you can also provide additional details like purchase date and price, asset type, and serial number. \
-  Assets are created in the DRAFT status only. Use the update tool to change the status or other details after creation. \
+  Assets are created in the DRAFT status only. Use the update tool to modify the asset after creation. \
   If the asset is successfully created, a confirmation message with the asset details will be returned. \
   If there is an error creating the asset, an error message will be returned.",
   {

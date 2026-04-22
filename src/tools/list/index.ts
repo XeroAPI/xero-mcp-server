@@ -58,5 +58,5 @@ export const ListTools = [
   ListAgedPayablesByContact,
   ListPayrollTimesheetsTool,
   ListContactGroupsTool,
-  ListTrackingCategoriesTool,
+  ListTrackingCategoriesTool
 ];

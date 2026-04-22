@@ -5,13 +5,14 @@ import { Asset } from "xero-node/dist/gen/model/assets/models.js";
 
 const ListAssetsTool = CreateXeroTool(
   "list-assets",
-  "Lists assets in Xero. You can filter by asset status (DRAFT, REGISTERED, or DISPOSED), page through results, sort, and search for specific assets. \
+  "Lists assets in Xero by status: DRAFT, REGISTERED, or DISPOSED (required). \
+  You can also filter by name, number, description, type; page through results, sort, and search for specific assets. \
   Ask the user if they want to filter by asset status, and if they want to search for specific assets or sort the results before running this tool. \
   If there are more than 10 results, ask the user if they want to see the next page of results and call this tool again with the next page number if they do.",
   {
     status: z.enum(["DRAFT", "REGISTERED", "DISPOSED"]).describe("The status of assets to retrieve"),
     page: z.number().optional().describe("Results are paged. This specifies which page of the results to return. The default page is 1."),
-    pageSize: z.number().optional().describe("The number of records returned per page. By default the number of records returned is 10."),
+    pageSize: z.number().optional().describe("The number of records returned per page. By default the number of records returned is 10. Maximum is 200."),
     orderBy: z
       .enum(["AssetType", "AssetName", "AssetNumber", "PurchaseDate", "PurchasePrice", "DisposalDate", "DisposalPrice"])
       .optional()
