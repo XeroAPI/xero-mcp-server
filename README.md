@@ -115,6 +115,7 @@ accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
 accounting.contacts 
 accounting.settings 
+assets
 payroll.settings 
 payroll.employees 
 payroll.timesheets
