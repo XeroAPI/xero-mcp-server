@@ -104,8 +104,10 @@ export async function populateAssetForUpdate(
       ...currentAsset?.bookDepreciationSetting,
       depreciationMethod: depreciationMethod ?? currentAsset?.bookDepreciationSetting?.depreciationMethod,
       averagingMethod: averagingMethod ?? currentAsset?.bookDepreciationSetting?.averagingMethod,
-      depreciationRate: depreciationRate ?? currentAsset?.bookDepreciationSetting?.depreciationRate,
-      effectiveLifeYears: effectiveLifeYears ?? currentAsset?.bookDepreciationSetting?.effectiveLifeYears,
+      // Clear depreciationRate if effectiveLifeYears is being set
+      depreciationRate: effectiveLifeYears !== undefined ? undefined : (depreciationRate ?? currentAsset?.bookDepreciationSetting?.depreciationRate),
+      // Clear effectiveLifeYears if depreciationRate is being set
+      effectiveLifeYears: depreciationRate !== undefined ? undefined : (effectiveLifeYears ?? currentAsset?.bookDepreciationSetting?.effectiveLifeYears),
     } as BookDepreciationSetting;
     
     const bookDepreciationDetail = {
