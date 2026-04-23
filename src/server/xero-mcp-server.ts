@@ -1,17 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getPackageVersion } from "../helpers/get-package-version.js";
+import { ToolFactory } from "../tools/tool-factory.js";
 
-export class XeroMcpServer {
-  private static instance: McpServer | null = null;
+export function createXeroMcpServer(): McpServer {
+  const server = new McpServer({
+    name: "Xero MCP Server",
+    version: getPackageVersion(),
+  });
 
-  private constructor() {}
+  ToolFactory(server);
 
-  public static GetServer(): McpServer {
-    if (XeroMcpServer.instance === null) {
-      XeroMcpServer.instance = new McpServer({
-        name: "Xero MCP Server",
-        version: "1.0.0",
-      });
-    }
-    return XeroMcpServer.instance;
-  }
+  return server;
 }

@@ -124,6 +124,45 @@ payroll.employees
 payroll.timesheets
 ```
 
+### Hosted Remote MCP on Cloud Run
+
+This server can now also run as a hosted remote MCP service over HTTP for clients such as Claude remote connectors.
+
+For hosted deployments, prefer Xero Custom Connections:
+
+- `XERO_CLIENT_ID`
+- `XERO_CLIENT_SECRET`
+
+This is the best fit for one Xero organisation per deployed service. If you need each end user to connect their own Xero organisation, that would require a separate Xero user OAuth and tenant-selection design that is not part of the current server.
+
+#### Hosted transport/auth environment
+
+```env
+MCP_TRANSPORT=http
+MCP_HTTP_AUTH_MODE=oauth
+MCP_PUBLIC_BASE_URL=https://your-service.run.app
+MCP_HTTP_HOST=0.0.0.0
+MCP_HTTP_PORT=8080
+MCP_HTTP_PATH=/mcp
+MCP_OAUTH_SIGNING_SECRET=replace-me
+MCP_OAUTH_SCOPES=xero.mcp
+GOOGLE_OAUTH_CLIENT_ID=replace-me
+GOOGLE_OAUTH_CLIENT_SECRET=replace-me
+GOOGLE_OAUTH_HOSTED_DOMAIN=futuratrailers.com
+GOOGLE_OAUTH_ALLOWED_EMAIL_DOMAIN=futuratrailers.com
+```
+
+#### Hosted runtime commands
+
+After building, you can run either transport:
+
+```bash
+npm run start:stdio
+npm run start:http
+```
+
+See [REMOTE_MCP_ARCHITECTURE.md](docs/REMOTE_MCP_ARCHITECTURE.md) for the Xero-specific hosted architecture notes and deployment guidance.
+
 
 ### Available MCP Commands
 
