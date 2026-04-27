@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Quote, QuoteStatusCodes } from "xero-node";
+import { LineItemTracking, Quote, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface QuoteLineItem {
@@ -10,6 +10,7 @@ interface QuoteLineItem {
   unitAmount: number;
   accountCode: string;
   taxType: string;
+  tracking?: LineItemTracking[];
 }
 
 async function getQuote(quoteId: string): Promise<Quote | undefined> {

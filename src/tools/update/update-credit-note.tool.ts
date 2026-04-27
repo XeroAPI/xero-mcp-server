@@ -3,12 +3,21 @@ import { updateXeroCreditNote } from "../../handlers/update-xero-credit-note.han
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
+const trackingSchema = z.object({
+  name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
+  option: z.string().describe("The name of the tracking option. Can be obtained from the list-tracking-categories tool"),
+  trackingCategoryID: z.string().describe("The ID of the tracking category. Can be obtained from the list-tracking-categories tool"),
+});
+
 const lineItemSchema = z.object({
   description: z.string(),
   quantity: z.number(),
   unitAmount: z.number(),
   accountCode: z.string(),
   taxType: z.string(),
+  tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
+    Can be obtained from the list-tracking-categories tool. \
+    Only use if prompted by the user.").optional(),
 });
 
 const UpdateCreditNoteTool = CreateXeroTool(
@@ -44,6 +53,11 @@ const UpdateCreditNoteTool = CreateXeroTool(
         unitAmount: number;
         accountCode: string;
         taxType: string;
+        tracking?: Array<{
+          name: string;
+          option: string;
+          trackingCategoryID: string;
+        }>;
       }>;
       reference?: string;
       date?: string;
