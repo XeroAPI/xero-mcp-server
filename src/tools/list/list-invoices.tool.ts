@@ -82,7 +82,7 @@ const ListInvoicesTool = CreateXeroTool(
             invoice.hasErrors ? "Has Errors: Yes" : null,
             invoice.isDiscounted ? "Is Discounted: Yes" : null,
             returnLineItems
-              ? `Line Items: ${invoice.lineItems?.map(formatLineItem)}`
+              ? `Line Items:\n${invoice.lineItems?.map(formatLineItem).join("\n\n")}`
               : null,
           ]
             .filter(Boolean)
