@@ -135,7 +135,7 @@ payroll.timesheets
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
 - `list-trial-balance`: Retrieve a trial balance report
-- `list-bank-transactions`: Retrieve a list of bank account transactions
+- `list-bank-transactions`: Retrieve a list of bank account transactions, with optional filters by bank account, contact, transaction id, type, status, date range, last-modified time, and a raw `where` escape hatch for predicates the dedicated filters can't express
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
 - `list-report-balance-sheet`: Retrieve a balance sheet report
 - `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
