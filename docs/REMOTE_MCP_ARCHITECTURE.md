@@ -155,6 +155,11 @@ Cloud Run settings similar to Cin7 should be fine as a starting point:
 - cpu: `1`
 - timeout: `300`
 
+For hosted file uploads, use the staged upload pattern in
+[`STAGED_FILE_UPLOADS.md`](STAGED_FILE_UPLOADS.md). The first implementation can
+use local temp storage for low usage, but `max instances = 1` is recommended
+until shared object storage is introduced.
+
 ## What Was Added In This Repo
 
 The initial hosted-connector support in this repo now includes:

@@ -239,6 +239,7 @@ See [REMOTE_MCP_ARCHITECTURE.md](docs/REMOTE_MCP_ARCHITECTURE.md) for the Xero-s
 ### Files and Attachments Notes
 
 - `list-attachments`, `add-attachment`, and `get-attachment` all work for both sales invoices (`ACCREC`) and bills (`ACCPAY`) by using `objectType: Invoices`.
+- Hosted deployments should use the staged upload pattern documented in [`docs/STAGED_FILE_UPLOADS.md`](docs/STAGED_FILE_UPLOADS.md) so file bytes move through multipart upload rather than MCP tool arguments.
 - `add-attachment` and `upload-file` both accept base64 content or an absolute local `filePath`. If both `filePath` and `fileContent` are provided, `filePath` takes precedence.
 - If `contentType` is omitted while using `filePath`, the server attempts to infer the MIME type from the file extension.
 - `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
