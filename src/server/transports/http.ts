@@ -14,9 +14,11 @@ import {
   assertHttpAuthConfigured,
   createStaticBearerAuthMiddleware,
 } from "../../auth/serverAuth.js";
+import { cleanupExpiredStagedUploads } from "../../helpers/staged-file-upload.js";
 import type { AppConfig } from "../../lib/config.js";
 import type { Logger } from "../../lib/logger.js";
 import { createXeroMcpServer } from "../xero-mcp-server.js";
+import { registerStagedUploadRoutes } from "../staged-upload-routes.js";
 
 function sendMethodNotAllowed(response: Response): void {
   response.status(405).json({
@@ -58,6 +60,31 @@ function registerShutdown(server: HttpServer, logger: Logger): void {
   process.once("SIGTERM", shutdown);
 }
 
+function registerStagedUploadSweeper(
+  config: AppConfig,
+  logger: Logger,
+): NodeJS.Timeout {
+  const intervalMs = Math.min(config.uploads.ttlSeconds * 1000, 60_000);
+  const interval = setInterval(() => {
+    cleanupExpiredStagedUploads(config.uploads)
+      .then((cleanedCount) => {
+        if (cleanedCount > 0) {
+          logger.info("staged_uploads_cleaned", {
+            cleanedCount,
+          });
+        }
+      })
+      .catch((error) => {
+        logger.warn("staged_upload_cleanup_failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+  }, intervalMs);
+
+  interval.unref();
+  return interval;
+}
+
 export async function runHttpServer(
   config: AppConfig,
   logger: Logger,
@@ -67,9 +94,13 @@ export async function runHttpServer(
   const app = createMcpExpressApp({
     host: config.http.host,
     allowedHosts:
-      config.http.allowedHosts.length > 0 ? config.http.allowedHosts : undefined,
+      config.http.allowedHosts.length > 0
+        ? config.http.allowedHosts
+        : undefined,
   });
   app.set("trust proxy", true);
+
+  const protectedPaths = [config.http.path, config.uploads.path];
 
   switch (config.http.authMode) {
     case "none":
@@ -77,15 +108,14 @@ export async function runHttpServer(
         path: config.http.path,
       });
       break;
-    case "bearer":
-      app.use(
-        config.http.path,
-        createStaticBearerAuthMiddleware(
-          config.http.bearerTokens,
-          logger.child({ component: "http_auth" }),
-        ),
+    case "bearer": {
+      const bearerAuthMiddleware = createStaticBearerAuthMiddleware(
+        config.http.bearerTokens,
+        logger.child({ component: "http_auth" }),
       );
+      protectedPaths.forEach((path) => app.use(path, bearerAuthMiddleware));
       break;
+    }
     case "oauth": {
       const oauthProvider = new GoogleBackedMcpOAuthProvider(
         config,
@@ -113,15 +143,13 @@ export async function runHttpServer(
         "/oauth/google/callback",
         oauthProvider.createGoogleCallbackHandler(),
       );
-      app.use(
-        config.http.path,
-        requireBearerAuth({
-          verifier: oauthProvider,
-          requiredScopes: [],
-          resourceMetadataUrl:
-            getOAuthProtectedResourceMetadataUrl(resourceServerUrl),
-        }),
-      );
+      const bearerAuthMiddleware = requireBearerAuth({
+        verifier: oauthProvider,
+        requiredScopes: [],
+        resourceMetadataUrl:
+          getOAuthProtectedResourceMetadataUrl(resourceServerUrl),
+      });
+      protectedPaths.forEach((path) => app.use(path, bearerAuthMiddleware));
       break;
     }
   }
@@ -132,6 +160,7 @@ export async function runHttpServer(
     transport: "http",
     mcpPath: config.http.path,
     authMode: config.http.authMode,
+    uploadPath: config.uploads.path,
   };
 
   app.get("/", (_request, response) => {
@@ -145,6 +174,16 @@ export async function runHttpServer(
   app.get("/healthz", (_request, response) => {
     response.status(200).json(healthPayload);
   });
+
+  registerStagedUploadRoutes(
+    app,
+    config,
+    logger.child({ component: "staged_uploads" }),
+  );
+  registerStagedUploadSweeper(
+    config,
+    logger.child({ component: "staged_uploads" }),
+  );
 
   app.post(config.http.path, async (request: Request, response: Response) => {
     const server = createXeroMcpServer();
@@ -187,10 +226,8 @@ export async function runHttpServer(
   });
 
   const httpServer = await new Promise<HttpServer>((resolve, reject) => {
-    const listener = app.listen(
-      config.http.port,
-      config.http.host,
-      () => resolve(listener),
+    const listener = app.listen(config.http.port, config.http.host, () =>
+      resolve(listener),
     );
     listener.on("error", reject);
   });

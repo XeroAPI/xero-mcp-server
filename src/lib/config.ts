@@ -21,6 +21,14 @@ export interface AppConfig {
     bearerTokens: string[];
     allowUnauthenticated: boolean;
   };
+  uploads: {
+    publicBaseUrl?: string;
+    path: string;
+    tempDir: string;
+    maxBytes: number;
+    ttlSeconds: number;
+    signingSecret?: string;
+  };
   oauth: {
     publicBaseUrl?: string;
     issuerUrl?: string;
@@ -40,6 +48,10 @@ const DEFAULT_SERVER_NAME = "Xero MCP Server";
 const DEFAULT_HTTP_PORT = 3000;
 const DEFAULT_HTTP_HOST = "127.0.0.1";
 const DEFAULT_HTTP_PATH = "/mcp";
+const DEFAULT_UPLOAD_PATH = "/uploads";
+const DEFAULT_UPLOAD_TEMP_DIR = "/tmp/cowork-xero-uploads";
+const DEFAULT_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
+const DEFAULT_UPLOAD_TTL_SECONDS = 15 * 60;
 
 function parsePositiveInteger(
   value: string | undefined,
@@ -103,9 +115,12 @@ function parseAbsoluteUrl(
   return parsed.toString().replace(/\/$/, "");
 }
 
-function ensureHttpPath(path: string | undefined): string {
+function ensureHttpPath(
+  path: string | undefined,
+  fallback = DEFAULT_HTTP_PATH,
+): string {
   if (!path) {
-    return DEFAULT_HTTP_PATH;
+    return fallback;
   }
 
   return path.startsWith("/") ? path : `/${path}`;
@@ -179,11 +194,32 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       bearerTokens,
       allowUnauthenticated,
     },
+    uploads: {
+      publicBaseUrl,
+      path: ensureHttpPath(env.MCP_UPLOAD_PATH, DEFAULT_UPLOAD_PATH),
+      tempDir:
+        env.MCP_STAGED_UPLOAD_TEMP_DIR?.trim() || DEFAULT_UPLOAD_TEMP_DIR,
+      maxBytes: parsePositiveInteger(
+        env.MCP_STAGED_UPLOAD_MAX_BYTES,
+        DEFAULT_UPLOAD_MAX_BYTES,
+        "MCP_STAGED_UPLOAD_MAX_BYTES",
+      ),
+      ttlSeconds: parsePositiveInteger(
+        env.MCP_STAGED_UPLOAD_TTL_SECONDS,
+        DEFAULT_UPLOAD_TTL_SECONDS,
+        "MCP_STAGED_UPLOAD_TTL_SECONDS",
+      ),
+      signingSecret:
+        env.MCP_STAGED_UPLOAD_SIGNING_SECRET?.trim() ||
+        env.MCP_OAUTH_SIGNING_SECRET?.trim() ||
+        undefined,
+    },
     oauth: {
       publicBaseUrl,
       issuerUrl,
       signingSecret: env.MCP_OAUTH_SIGNING_SECRET?.trim() || undefined,
-      supportedScopes: supportedScopes.length > 0 ? supportedScopes : ["xero.mcp"],
+      supportedScopes:
+        supportedScopes.length > 0 ? supportedScopes : ["xero.mcp"],
       authCodeTtlSeconds: parsePositiveInteger(
         env.MCP_OAUTH_AUTH_CODE_TTL_SECONDS,
         300,

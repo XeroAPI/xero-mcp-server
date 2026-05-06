@@ -15,7 +15,7 @@ server-issued staged file handle.
 
 1. Claude decides a file is needed and calls `prepare-file-upload`.
 2. The MCP server creates a short-lived upload session and returns an
-   `uploadUrl` plus a `stagedFileId`.
+   `uploadUrl` plus a signed `stagedFileId`.
 3. Cowork uploads the user-selected local file to `uploadUrl` using multipart
    form data.
 4. Claude calls the final Xero tool, such as `add-attachment` or `upload-file`,
@@ -40,8 +40,8 @@ It returns upload instructions for Cowork:
 
 ```json
 {
-  "stagedFileId": "upl_abc123",
-  "uploadUrl": "https://xero-mcp.example.com/uploads/upl_abc123",
+  "stagedFileId": "upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature",
+  "uploadUrl": "https://xero-mcp.example.com/uploads/upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature",
   "uploadMethod": "POST",
   "formFieldName": "file",
   "expiresAt": "2026-05-07T04:15:00.000Z",
@@ -56,7 +56,7 @@ The final Xero upload tools accept `stagedFileId`, not raw file bytes:
   "objectType": "Invoices",
   "objectId": "00000000-0000-0000-0000-000000000000",
   "fileName": "invoice.pdf",
-  "stagedFileId": "upl_abc123"
+  "stagedFileId": "upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature"
 }
 ```
 
@@ -101,8 +101,13 @@ restarts, expiry, and future scaling.
 ## Security Requirements
 
 - Generate high-entropy, unguessable `stagedFileId` values.
+- Sign `stagedFileId` metadata so any service instance can validate the upload
+  session without shared storage.
+- Configure a stable `MCP_STAGED_UPLOAD_SIGNING_SECRET` across all instances.
+  If it is omitted, the server falls back to a process-local secret and staged
+  upload sessions are only valid on the process that created them.
 - Store files under a dedicated temp root such as
-  `/tmp/cowork-xero-uploads/<stagedFileId>/`.
+  `/tmp/cowork-xero-uploads/<derived-session-dir>/`.
 - Never allow callers to pass arbitrary paths for uploads.
 - Sanitize uploaded file names before writing to disk.
 - Enforce a maximum byte size before and during upload.

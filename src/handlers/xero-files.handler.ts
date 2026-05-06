@@ -5,16 +5,22 @@ import { xeroClient } from "../clients/xero-client.js";
 import { formatBinaryContent } from "../helpers/format-binary-content.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
-import { resolveFileInput } from "../helpers/resolve-file-input.js";
+import { resolveStagedFileInput } from "../helpers/staged-file-upload.js";
+import { loadConfig } from "../lib/config.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 type FileSortField = "Name" | "Size" | "CreatedDateUTC";
 type SortDirection = "ASC" | "DESC";
-type CreateFolderPayload = Parameters<typeof xeroClient.filesApi.createFolder>[1];
+type CreateFolderPayload = Parameters<
+  typeof xeroClient.filesApi.createFolder
+>[1];
 type UpdateFilePayload = Parameters<typeof xeroClient.filesApi.updateFile>[2];
-type UpdateFolderPayload = Parameters<typeof xeroClient.filesApi.updateFolder>[2];
-type CreateFileAssociationPayload =
-  Parameters<typeof xeroClient.filesApi.createFileAssociation>[2];
+type UpdateFolderPayload = Parameters<
+  typeof xeroClient.filesApi.updateFolder
+>[2];
+type CreateFileAssociationPayload = Parameters<
+  typeof xeroClient.filesApi.createFileAssociation
+>[2];
 
 export interface XeroFile {
   id?: string;
@@ -188,83 +194,91 @@ async function assertUploadFolderIsSupported(folderId?: string): Promise<void> {
 
 async function uploadFileToXero(
   fileName: string,
-  fileContent?: string,
-  contentType?: string,
+  stagedFileId: string,
   name?: string,
   folderId?: string,
-  filePath?: string,
 ): Promise<XeroFile> {
   await xeroClient.authenticate();
 
-  const resolvedFile = await resolveFileInput(filePath, fileContent, contentType);
-  const body = resolvedFile.body;
-  const uploadName = resolveUploadName(fileName, name);
-  const accessToken = xeroClient.readTokenSet().access_token;
-
-  if (!accessToken) {
-    throw new Error("Failed to retrieve a Xero access token for file upload.");
-  }
-
-  const formData = new FormData();
-  // Xero's Files API expects the binary part name to be the uploaded file name.
-  formData.append(uploadName, body, {
-    filename: fileName,
-    contentType: resolvedFile.contentType,
-    knownLength: body.byteLength,
-  });
-  formData.append("name", uploadName);
-  formData.append("filename", fileName);
-  formData.append("mimeType", resolvedFile.contentType);
-
-  const contentLength = await new Promise<number>((resolve, reject) => {
-    formData.getLength((error, length) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve(length);
-    });
-  });
-  await assertUploadFolderIsSupported(folderId);
-  const uploadPath = folderId
-    ? `${xeroClient.filesApi.basePath}/Files/${encodeURIComponent(folderId)}`
-    : `${xeroClient.filesApi.basePath}/Files`;
-  const response = await axios.post<XeroFilesUploadApiResponse>(
-    uploadPath,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "xero-tenant-id": xeroClient.tenantId,
-        Accept: "application/json",
-        "Content-Length": contentLength.toString(),
-        ...getClientHeaders().headers,
-        ...formData.getHeaders(),
-      },
-      maxBodyLength: Infinity,
-      maxContentLength: Infinity,
-    },
+  const resolvedFile = await resolveStagedFileInput(
+    loadConfig().uploads,
+    stagedFileId,
   );
 
-  return mapXeroFile({
-    id: response.data.Id,
-    name: response.data.Name,
-    mimeType: response.data.MimeType,
-    size: response.data.Size,
-    createdDateUtc: response.data.CreatedDateUtc,
-    updatedDateUtc: response.data.UpdatedDateUtc,
-    folderId: response.data.FolderId,
-    user: response.data.User
-      ? {
-          id: response.data.User.Id,
-          name: response.data.User.Name,
-          firstName: response.data.User.FirstName,
-          lastName: response.data.User.LastName,
-          fullName: response.data.User.FullName,
+  try {
+    const body = resolvedFile.body;
+    const uploadName = resolveUploadName(fileName, name);
+    const accessToken = xeroClient.readTokenSet().access_token;
+
+    if (!accessToken) {
+      throw new Error(
+        "Failed to retrieve a Xero access token for file upload.",
+      );
+    }
+
+    const formData = new FormData();
+    // Xero's Files API expects the binary part name to be the uploaded file name.
+    formData.append(uploadName, body, {
+      filename: fileName,
+      contentType: resolvedFile.contentType,
+      knownLength: body.byteLength,
+    });
+    formData.append("name", uploadName);
+    formData.append("filename", fileName);
+    formData.append("mimeType", resolvedFile.contentType);
+
+    const contentLength = await new Promise<number>((resolve, reject) => {
+      formData.getLength((error, length) => {
+        if (error) {
+          reject(error);
+          return;
         }
-      : undefined,
-  });
+
+        resolve(length);
+      });
+    });
+    await assertUploadFolderIsSupported(folderId);
+    const uploadPath = folderId
+      ? `${xeroClient.filesApi.basePath}/Files/${encodeURIComponent(folderId)}`
+      : `${xeroClient.filesApi.basePath}/Files`;
+    const response = await axios.post<XeroFilesUploadApiResponse>(
+      uploadPath,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "xero-tenant-id": xeroClient.tenantId,
+          Accept: "application/json",
+          "Content-Length": contentLength.toString(),
+          ...getClientHeaders().headers,
+          ...formData.getHeaders(),
+        },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      },
+    );
+
+    return mapXeroFile({
+      id: response.data.Id,
+      name: response.data.Name,
+      mimeType: response.data.MimeType,
+      size: response.data.Size,
+      createdDateUtc: response.data.CreatedDateUtc,
+      updatedDateUtc: response.data.UpdatedDateUtc,
+      folderId: response.data.FolderId,
+      user: response.data.User
+        ? {
+            id: response.data.User.Id,
+            name: response.data.User.Name,
+            firstName: response.data.User.FirstName,
+            lastName: response.data.User.LastName,
+            fullName: response.data.User.FullName,
+          }
+        : undefined,
+    });
+  } finally {
+    await resolvedFile.cleanup().catch(() => undefined);
+  }
 }
 
 async function createXeroFolderInFiles(name: string): Promise<XeroFileFolder> {
@@ -345,7 +359,11 @@ async function getXeroFolders(sort?: FileSortField): Promise<XeroFileFolder[]> {
   await xeroClient.authenticate();
 
   const [foldersResponse, inboxResponse] = await Promise.all([
-    xeroClient.filesApi.getFolders(xeroClient.tenantId, sort, getClientHeaders()),
+    xeroClient.filesApi.getFolders(
+      xeroClient.tenantId,
+      sort,
+      getClientHeaders(),
+    ),
     xeroClient.filesApi.getInbox(xeroClient.tenantId, getClientHeaders()),
   ]);
 
@@ -356,7 +374,9 @@ async function getXeroFolders(sort?: FileSortField): Promise<XeroFileFolder[]> {
     return folders;
   }
 
-  const existingInboxIndex = folders.findIndex((folder) => folder.id === inbox.id);
+  const existingInboxIndex = folders.findIndex(
+    (folder) => folder.id === inbox.id,
+  );
 
   if (existingInboxIndex >= 0) {
     folders[existingInboxIndex] = {
@@ -441,10 +461,12 @@ async function createXeroFileAssociationInFiles(
   const association: CreateFileAssociationPayload = {
     objectId,
     sendWithObject,
-    objectGroup:
-      objectGroup as CreateFileAssociationPayload["objectGroup"] | undefined,
-    objectType:
-      objectType as CreateFileAssociationPayload["objectType"] | undefined,
+    objectGroup: objectGroup as
+      | CreateFileAssociationPayload["objectGroup"]
+      | undefined,
+    objectType: objectType as
+      | CreateFileAssociationPayload["objectType"]
+      | undefined,
   };
   const response = await xeroClient.filesApi.createFileAssociation(
     xeroClient.tenantId,
@@ -475,7 +497,11 @@ async function getXeroFileDocument(fileId: string): Promise<XeroFileDocument> {
   await xeroClient.authenticate();
 
   const [fileResponse, contentResponse] = await Promise.all([
-    xeroClient.filesApi.getFile(xeroClient.tenantId, fileId, getClientHeaders()),
+    xeroClient.filesApi.getFile(
+      xeroClient.tenantId,
+      fileId,
+      getClientHeaders(),
+    ),
     xeroClient.filesApi.getFileContent(
       xeroClient.tenantId,
       fileId,
@@ -497,21 +523,12 @@ async function getXeroFileDocument(fileId: string): Promise<XeroFileDocument> {
 
 export async function uploadXeroFile(
   fileName: string,
-  fileContent?: string,
-  contentType?: string,
+  stagedFileId: string,
   name?: string,
   folderId?: string,
-  filePath?: string,
 ): Promise<XeroClientResponse<XeroFile>> {
   try {
-    const file = await uploadFileToXero(
-      fileName,
-      fileContent,
-      contentType,
-      name,
-      folderId,
-      filePath,
-    );
+    const file = await uploadFileToXero(fileName, stagedFileId, name, folderId);
 
     return {
       result: file,
@@ -577,7 +594,13 @@ export async function listXeroFiles(
   folderId?: string,
 ): Promise<XeroClientResponse<XeroFilesListResult>> {
   try {
-    const result = await getXeroFiles(pageSize, page, sort, direction, folderId);
+    const result = await getXeroFiles(
+      pageSize,
+      page,
+      sort,
+      direction,
+      folderId,
+    );
 
     return {
       result,

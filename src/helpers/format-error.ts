@@ -1,9 +1,18 @@
 import { AxiosError } from "axios";
 
+import {
+  formatStagedUploadError,
+  StagedUploadError,
+} from "./staged-file-upload.js";
+
 /**
  * Format error messages in a user-friendly way
  */
 export function formatError(error: unknown): string {
+  if (error instanceof StagedUploadError) {
+    return formatStagedUploadError(error);
+  }
+
   if (error instanceof AxiosError) {
     const status = error.response?.status;
     const detail = error.response?.data?.Detail;

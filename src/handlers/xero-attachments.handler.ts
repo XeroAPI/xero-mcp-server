@@ -4,7 +4,8 @@ import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { formatBinaryContent } from "../helpers/format-binary-content.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
-import { resolveFileInput } from "../helpers/resolve-file-input.js";
+import { resolveStagedFileInput } from "../helpers/staged-file-upload.js";
+import { loadConfig } from "../lib/config.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { XeroAttachmentObjectType } from "../types/xero-attachment-object-type.js";
 
@@ -304,7 +305,9 @@ async function resolveAttachment(
     (attachmentId
       ? attachments.find((item) => item.attachmentID === attachmentId)
       : undefined) ??
-    (fileName ? attachments.find((item) => item.fileName === fileName) : undefined);
+    (fileName
+      ? attachments.find((item) => item.fileName === fileName)
+      : undefined);
 
   if (!attachment) {
     throw new Error("Attachment not found in Xero.");
@@ -317,24 +320,30 @@ async function uploadAttachment(
   objectType: XeroAttachmentObjectType,
   objectId: string,
   fileName: string,
-  fileContent?: string,
-  contentType?: string,
-  filePath?: string,
+  stagedFileId: string,
 ): Promise<Attachment> {
   await xeroClient.authenticate();
 
-  const resolvedFile = await resolveFileInput(filePath, fileContent, contentType);
-  const body = resolvedFile.body;
-  const attachmentMethods = attachmentApiMethods[objectType];
-  const response = await attachmentMethods.create(
-    xeroClient.tenantId,
-    objectId,
-    fileName,
-    body,
-    resolvedFile.contentType,
+  const resolvedFile = await resolveStagedFileInput(
+    loadConfig().uploads,
+    stagedFileId,
   );
 
-  return getFirstAttachment(response, fileName);
+  try {
+    const body = resolvedFile.body;
+    const attachmentMethods = attachmentApiMethods[objectType];
+    const response = await attachmentMethods.create(
+      xeroClient.tenantId,
+      objectId,
+      fileName,
+      body,
+      resolvedFile.contentType,
+    );
+
+    return getFirstAttachment(response, fileName);
+  } finally {
+    await resolvedFile.cleanup().catch(() => undefined);
+  }
 }
 
 async function getAttachments(
@@ -408,18 +417,14 @@ export async function addXeroAttachment(
   objectType: XeroAttachmentObjectType,
   objectId: string,
   fileName: string,
-  fileContent?: string,
-  contentType?: string,
-  filePath?: string,
+  stagedFileId: string,
 ): Promise<XeroClientResponse<Attachment>> {
   try {
     const attachment = await uploadAttachment(
       objectType,
       objectId,
       fileName,
-      fileContent,
-      contentType,
-      filePath,
+      stagedFileId,
     );
 
     return {

@@ -115,12 +115,12 @@ accounting.reports.aged.read
 accounting.reports.balancesheet.read
 accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
-accounting.contacts 
-accounting.settings 
+accounting.contacts
+accounting.settings
 files
 files.read
-payroll.settings 
-payroll.employees 
+payroll.settings
+payroll.employees
 payroll.timesheets
 ```
 
@@ -162,7 +162,6 @@ npm run start:http
 ```
 
 See [REMOTE_MCP_ARCHITECTURE.md](docs/REMOTE_MCP_ARCHITECTURE.md) for the Xero-specific hosted architecture notes and deployment guidance.
-
 
 ### Available MCP Commands
 
@@ -206,6 +205,7 @@ See [REMOTE_MCP_ARCHITECTURE.md](docs/REMOTE_MCP_ARCHITECTURE.md) for the Xero-s
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
+- `prepare-file-upload`: Create a short-lived staged upload session for a user-selected file
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
 - `upload-file`: Upload a file to Xero Files. If no folder is specified the file appears in Archive in the Xero UI; direct Inbox uploads are not supported
@@ -240,8 +240,7 @@ See [REMOTE_MCP_ARCHITECTURE.md](docs/REMOTE_MCP_ARCHITECTURE.md) for the Xero-s
 
 - `list-attachments`, `add-attachment`, and `get-attachment` all work for both sales invoices (`ACCREC`) and bills (`ACCPAY`) by using `objectType: Invoices`.
 - Hosted deployments should use the staged upload pattern documented in [`docs/STAGED_FILE_UPLOADS.md`](docs/STAGED_FILE_UPLOADS.md) so file bytes move through multipart upload rather than MCP tool arguments.
-- `add-attachment` and `upload-file` both accept base64 content or an absolute local `filePath`. If both `filePath` and `fileContent` are provided, `filePath` takes precedence.
-- If `contentType` is omitted while using `filePath`, the server attempts to infer the MIME type from the file extension.
+- `add-attachment` and `upload-file` only accept a `stagedFileId` for file bytes. Use `prepare-file-upload` first, then have Cowork upload the selected file to the returned `uploadUrl`.
 - `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
 - `get-attachment` and `get-file` return base64 content and responses can be large.
 - `list-files` can be filtered by `folderId`.
