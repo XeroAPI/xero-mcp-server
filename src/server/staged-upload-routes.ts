@@ -1,5 +1,5 @@
 import Busboy from "busboy";
-import type { Express, Request, Response } from "express";
+import type { Express, NextFunction, Request, Response } from "express";
 
 import {
   createInvalidMultipartUploadError,
@@ -155,6 +155,57 @@ function readMultipartFile(
   });
 }
 
+function getQueryStagedFileId(request: Request): string | null {
+  const value = request.query.stagedUploadId;
+
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value) && typeof value[0] === "string") {
+    return value[0];
+  }
+
+  throw createInvalidMultipartUploadError(
+    "stagedUploadId query parameter must be a string.",
+  );
+}
+
+async function handleStagedUploadRequest(
+  request: Request,
+  response: Response,
+  config: AppConfig,
+  logger: Logger,
+  stagedFileId: string,
+): Promise<void> {
+  try {
+    response.setHeader("Cache-Control", "no-store");
+
+    await reserveStagedUpload(config.uploads, stagedFileId);
+    const body = await readMultipartFile(request, config.uploads.maxBytes);
+    const storedFile = await storeReservedStagedUpload(
+      config.uploads,
+      stagedFileId,
+      body,
+    );
+
+    response.status(201).json(storedFile);
+  } catch (error) {
+    await failReservedStagedUpload(config.uploads, stagedFileId);
+
+    logger.warn("staged_upload_failed", {
+      stagedFileId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    sendStagedUploadError(response, error);
+  }
+}
+
 export function registerStagedUploadRoutes(
   app: Express,
   config: AppConfig,
@@ -162,33 +213,47 @@ export function registerStagedUploadRoutes(
 ): void {
   const uploadRoute = `${config.uploads.path}/:stagedFileId`;
 
-  app.post(uploadRoute, async (request: Request, response: Response) => {
-    const stagedFileIdParam = request.params.stagedFileId;
-    const stagedFileId = Array.isArray(stagedFileIdParam)
-      ? stagedFileIdParam[0]
-      : stagedFileIdParam;
+  if (config.uploads.path !== config.http.path) {
+    app.post(uploadRoute, async (request: Request, response: Response) => {
+      const stagedFileIdParam = request.params.stagedFileId;
+      const stagedFileId = Array.isArray(stagedFileIdParam)
+        ? stagedFileIdParam[0]
+        : stagedFileIdParam;
 
-    try {
-      response.setHeader("Cache-Control", "no-store");
-
-      await reserveStagedUpload(config.uploads, stagedFileId);
-      const body = await readMultipartFile(request, config.uploads.maxBytes);
-      const storedFile = await storeReservedStagedUpload(
-        config.uploads,
+      await handleStagedUploadRequest(
+        request,
+        response,
+        config,
+        logger,
         stagedFileId,
-        body,
       );
+    });
+  }
 
-      response.status(201).json(storedFile);
-    } catch (error) {
-      await failReservedStagedUpload(config.uploads, stagedFileId);
+  app.post(
+    config.http.path,
+    async (request: Request, response: Response, next: NextFunction) => {
+      let stagedFileId: string | null;
 
-      logger.warn("staged_upload_failed", {
+      try {
+        stagedFileId = getQueryStagedFileId(request);
+      } catch (error) {
+        sendStagedUploadError(response, error);
+        return;
+      }
+
+      if (!stagedFileId) {
+        next();
+        return;
+      }
+
+      await handleStagedUploadRequest(
+        request,
+        response,
+        config,
+        logger,
         stagedFileId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      sendStagedUploadError(response, error);
-    }
-  });
+      );
+    },
+  );
 }

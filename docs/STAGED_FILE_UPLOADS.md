@@ -41,7 +41,7 @@ It returns upload instructions for Cowork:
 ```json
 {
   "stagedFileId": "upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature",
-  "uploadUrl": "https://xero-mcp.example.com/uploads/upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature",
+  "uploadUrl": "https://xero-mcp.example.com/mcp?stagedUploadId=upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature",
   "uploadMethod": "POST",
   "formFieldName": "file",
   "expiresAt": "2026-05-07T04:15:00.000Z",
@@ -59,6 +59,12 @@ The final Xero upload tools accept `stagedFileId`, not raw file bytes:
   "stagedFileId": "upl_eyJ2IjoxLCJub25jZSI6Ii4uLiJ9.signature"
 }
 ```
+
+By default, `uploadUrl` uses the same MCP connector endpoint with a
+`stagedUploadId` query parameter. This keeps the multipart upload inside host
+application sandboxes that only allow calls to the configured connector path.
+The server also accepts the cleaner path form
+`POST /mcp/uploads/<stagedFileId>` for hosts that allow connector subpaths.
 
 ## Enforcement
 

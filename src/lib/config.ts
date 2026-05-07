@@ -4,6 +4,7 @@ import type { LogLevelName } from "./logger.js";
 
 export type TransportMode = "stdio" | "http";
 export type HttpAuthMode = "bearer" | "oauth" | "none";
+export type StagedUploadUrlStyle = "path" | "mcp-query";
 
 export interface AppConfig {
   transportMode: TransportMode;
@@ -23,7 +24,9 @@ export interface AppConfig {
   };
   uploads: {
     publicBaseUrl?: string;
+    mcpPath: string;
     path: string;
+    urlStyle: StagedUploadUrlStyle;
     tempDir: string;
     maxBytes: number;
     ttlSeconds: number;
@@ -48,7 +51,6 @@ const DEFAULT_SERVER_NAME = "Xero MCP Server";
 const DEFAULT_HTTP_PORT = 3000;
 const DEFAULT_HTTP_HOST = "127.0.0.1";
 const DEFAULT_HTTP_PATH = "/mcp";
-const DEFAULT_UPLOAD_PATH = "/uploads";
 const DEFAULT_UPLOAD_TEMP_DIR = "/tmp/cowork-xero-uploads";
 const DEFAULT_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 const DEFAULT_UPLOAD_TTL_SECONDS = 15 * 60;
@@ -153,6 +155,24 @@ function resolveHttpAuthMode(
   return "bearer";
 }
 
+function parseStagedUploadUrlStyle(
+  value: string | undefined,
+): StagedUploadUrlStyle {
+  const normalized = value?.trim().toLowerCase();
+
+  if (!normalized) {
+    return "mcp-query";
+  }
+
+  if (normalized === "path" || normalized === "mcp-query") {
+    return normalized;
+  }
+
+  throw new ConfigurationError(
+    "MCP_STAGED_UPLOAD_URL_STYLE must be one of: path, mcp-query.",
+  );
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const transportValue = env.MCP_TRANSPORT?.trim().toLowerCase();
   const transportMode: TransportMode =
@@ -173,6 +193,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     parseAbsoluteUrl(env.MCP_OAUTH_ISSUER_URL, "MCP_OAUTH_ISSUER_URL") ??
     publicBaseUrl;
   const supportedScopes = parseCommaSeparatedList(env.MCP_OAUTH_SCOPES);
+  const httpPath = ensureHttpPath(env.MCP_HTTP_PATH);
+  const uploadPathFallback = `${httpPath.replace(/\/+$/, "")}/uploads`;
 
   return {
     transportMode,
@@ -188,7 +210,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
         DEFAULT_HTTP_PORT,
         "MCP_HTTP_PORT",
       ),
-      path: ensureHttpPath(env.MCP_HTTP_PATH),
+      path: httpPath,
       allowedHosts: parseCommaSeparatedList(env.MCP_HTTP_ALLOWED_HOSTS),
       authMode: httpAuthMode,
       bearerTokens,
@@ -196,7 +218,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     },
     uploads: {
       publicBaseUrl,
-      path: ensureHttpPath(env.MCP_UPLOAD_PATH, DEFAULT_UPLOAD_PATH),
+      mcpPath: httpPath,
+      path: ensureHttpPath(env.MCP_UPLOAD_PATH, uploadPathFallback),
+      urlStyle: parseStagedUploadUrlStyle(env.MCP_STAGED_UPLOAD_URL_STYLE),
       tempDir:
         env.MCP_STAGED_UPLOAD_TEMP_DIR?.trim() || DEFAULT_UPLOAD_TEMP_DIR,
       maxBytes: parsePositiveInteger(

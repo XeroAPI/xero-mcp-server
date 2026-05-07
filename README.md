@@ -240,7 +240,7 @@ See [REMOTE_MCP_ARCHITECTURE.md](docs/REMOTE_MCP_ARCHITECTURE.md) for the Xero-s
 
 - `list-attachments`, `add-attachment`, and `get-attachment` all work for both sales invoices (`ACCREC`) and bills (`ACCPAY`) by using `objectType: Invoices`.
 - Hosted deployments should use the staged upload pattern documented in [`docs/STAGED_FILE_UPLOADS.md`](docs/STAGED_FILE_UPLOADS.md) so file bytes move through multipart upload rather than MCP tool arguments.
-- `add-attachment` and `upload-file` only accept a `stagedFileId` for file bytes. Use `prepare-file-upload` first, then have Cowork upload the selected file to the returned `uploadUrl`.
+- `add-attachment` and `upload-file` only accept a `stagedFileId` for file bytes. Use `prepare-file-upload` first, then have Cowork upload the selected file to the returned `uploadUrl`. Hosted `uploadUrl` values use the same MCP connector endpoint by default, for example `/mcp?stagedUploadId=...`.
 - `add-attachment` attaches a file to a specific Xero object, while `upload-file` stores a standalone document in Xero Files.
 - `get-attachment` and `get-file` return base64 content and responses can be large.
 - `list-files` can be filtered by `folderId`.

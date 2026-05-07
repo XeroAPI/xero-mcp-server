@@ -52,7 +52,9 @@ export type StagedUploadPurpose = "xero-attachment" | "xero-file";
 
 export interface StagedUploadSettings {
   publicBaseUrl?: string;
+  mcpPath: string;
   path: string;
+  urlStyle: "path" | "mcp-query";
   tempDir: string;
   maxBytes: number;
   ttlSeconds: number;
@@ -388,6 +390,12 @@ function getUploadUrl(
       false,
       500,
     );
+  }
+
+  if (settings.urlStyle === "mcp-query") {
+    const uploadUrl = new URL(settings.mcpPath, `${settings.publicBaseUrl}/`);
+    uploadUrl.searchParams.set("stagedUploadId", stagedFileId);
+    return uploadUrl.toString();
   }
 
   const uploadPath = `${settings.path.replace(/\/+$/, "")}/${encodeURIComponent(
