@@ -1,7 +1,11 @@
 # Staged File Uploads
 
-This document defines the approved file upload pattern for hosted MCP connectors
-that need to upload user-selected local files to an upstream API such as Xero.
+This document defines the approved Xero file upload pattern for hosted MCP
+deployments. The same pattern is also useful for other hosted connectors that
+need to upload user-selected local files to an upstream API.
+
+The reusable version of this guidance lives in the sibling connector monorepo:
+`../mcp-connectors/docs/STAGED_FILE_UPLOAD_PATTERN.md`.
 
 ## Goal
 
@@ -11,13 +15,21 @@ tool calls unnecessarily large. File bytes should move through a normal HTTP
 multipart upload path, while MCP tool calls carry only small metadata and a
 server-issued staged file handle.
 
+The intended split is:
+
+- Claude uses MCP tools to request and consume a staged upload.
+- Cowork uploads the selected local file bytes to the returned URL.
+- The Xero MCP server reads the staged file and uploads it to Xero.
+
 ## Approved Flow
 
 1. Claude decides a file is needed and calls `prepare-file-upload`.
 2. The MCP server creates a short-lived upload session and returns an
    `uploadUrl` plus a signed `stagedFileId`.
-3. Cowork uploads the user-selected local file to `uploadUrl` using multipart
-   form data.
+3. Cowork uploads the user-selected local file to the exact `uploadUrl` using
+   multipart form data. This upload is host application work; it should not be a
+   Claude shell `curl` call and should not pass file bytes through MCP tool
+   arguments.
 4. Claude calls the final Xero tool, such as `add-attachment` or `upload-file`,
    with `stagedFileId` and the Xero-specific arguments.
 5. The MCP server validates the staged file, reads it from its temp directory,
@@ -60,15 +72,39 @@ The final Xero upload tools accept `stagedFileId`, not raw file bytes:
 }
 ```
 
+`uploadUrl` is the answer to "where should the file be posted?". Claude should
+not invent this URL. It comes from `prepare-file-upload` and should be handed to
+Cowork's file upload path exactly as returned.
+
 By default, `uploadUrl` uses the same MCP connector endpoint with a
 `stagedUploadId` query parameter. This keeps the multipart upload inside host
 application sandboxes that only allow calls to the configured connector path.
 The server also accepts the cleaner path form
 `POST /mcp/uploads/<stagedFileId>` for hosts that allow connector subpaths.
-These staged upload endpoints intentionally do not require OAuth bearer auth;
-the signed, high-entropy, short-lived `stagedFileId` acts as a capability token.
-Normal MCP tool calls, including the final Xero upload call, still require MCP
-authentication.
+
+The staged upload endpoint intentionally does not require OAuth bearer auth when
+a valid signed staged upload ID is present. The signed, high-entropy,
+short-lived `stagedFileId` acts as a capability token for exactly one upload
+slot. Normal MCP tool calls, including the final Xero upload call, still require
+MCP authentication.
+
+## Claude And Cowork Instructions
+
+MCP server instructions and upload tool descriptions should say:
+
+- Use `prepare-file-upload` before `add-attachment` or `upload-file`.
+- Cowork must upload the selected file bytes to the returned `uploadUrl` using
+  `multipart/form-data` with the returned `formFieldName`.
+- Do not send base64 file content, local `filePath` values, or arbitrary upload
+  URLs.
+- If the staged upload itself returns `401 Missing Authorization`, verify the
+  caller used the returned `uploadUrl`. A valid staged upload URL should include
+  `stagedUploadId` or `/mcp/uploads/<stagedFileId>` and should not need a bearer
+  token.
+- If the final Xero upload tool returns
+  `STAGED_UPLOAD_NOT_FOUND_ON_THIS_INSTANCE` with `retryable=true`, retry the
+  same Xero upload tool call up to 3 times. If retries fail, prepare a new
+  upload session and have Cowork re-upload the selected file.
 
 ## Enforcement
 
@@ -89,6 +125,11 @@ failure modes:
 - If Cloud Run has more than one instance, the multipart upload can land on one
   instance while the later MCP tool call lands on another.
 
+`prepare-file-upload` tells Cowork where to upload, but local temp storage does
+not provide hard instance pinning on its own. Cloud Run routing can still send
+the final MCP tool call to a different instance unless the deployment layer
+provides stickiness or the service is constrained to one instance.
+
 For this MVP, when a `stagedFileId` exists but the local file is missing, the
 server should return a retryable error:
 
@@ -99,10 +140,6 @@ server should return a retryable error:
   "message": "The staged file was not found on this MCP server instance. It may have been uploaded to another Cloud Run instance or removed after expiry. Retry the same Xero upload tool call up to 3 times. If it still fails, prepare a new upload session and re-upload the file."
 }
 ```
-
-Claude-facing instructions should say to retry the same Xero upload tool call up
-to 3 times for this error. If all retries fail, Claude should prepare a new
-upload session and Cowork should re-upload the selected file.
 
 For the lowest-risk local-storage deployment, configure the service with
 `max instances = 1`. The retryable error still needs to exist for instance
@@ -118,6 +155,9 @@ restarts, expiry, and future scaling.
   upload sessions are only valid on the process that created them.
 - Treat `uploadUrl` as sensitive until it expires; anyone with the URL can
   upload one file into that staged slot.
+- Keep the unauthenticated surface limited to signed staged upload POSTs. Do
+  not expose unauthenticated listing, download, overwrite, delete, or final
+  upstream upload operations.
 - Store files under a dedicated temp root such as
   `/tmp/cowork-xero-uploads/<derived-session-dir>/`.
 - Never allow callers to pass arbitrary paths for uploads.
