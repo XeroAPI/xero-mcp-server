@@ -175,6 +175,10 @@ function getQueryStagedFileId(request: Request): string | null {
   );
 }
 
+function getLogSafeStagedFileId(stagedFileId: string): string {
+  return `${stagedFileId.slice(0, 16)}...`;
+}
+
 async function handleStagedUploadRequest(
   request: Request,
   response: Response,
@@ -198,7 +202,7 @@ async function handleStagedUploadRequest(
     await failReservedStagedUpload(config.uploads, stagedFileId);
 
     logger.warn("staged_upload_failed", {
-      stagedFileId,
+      stagedFileId: getLogSafeStagedFileId(stagedFileId),
       error: error instanceof Error ? error.message : String(error),
     });
 

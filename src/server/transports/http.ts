@@ -100,6 +100,12 @@ export async function runHttpServer(
   });
   app.set("trust proxy", true);
 
+  registerStagedUploadRoutes(
+    app,
+    config,
+    logger.child({ component: "staged_uploads" }),
+  );
+
   const protectedPaths = [config.http.path, config.uploads.path];
 
   switch (config.http.authMode) {
@@ -175,11 +181,6 @@ export async function runHttpServer(
     response.status(200).json(healthPayload);
   });
 
-  registerStagedUploadRoutes(
-    app,
-    config,
-    logger.child({ component: "staged_uploads" }),
-  );
   registerStagedUploadSweeper(
     config,
     logger.child({ component: "staged_uploads" }),

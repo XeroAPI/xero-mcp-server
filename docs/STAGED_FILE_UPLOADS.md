@@ -65,6 +65,10 @@ By default, `uploadUrl` uses the same MCP connector endpoint with a
 application sandboxes that only allow calls to the configured connector path.
 The server also accepts the cleaner path form
 `POST /mcp/uploads/<stagedFileId>` for hosts that allow connector subpaths.
+These staged upload endpoints intentionally do not require OAuth bearer auth;
+the signed, high-entropy, short-lived `stagedFileId` acts as a capability token.
+Normal MCP tool calls, including the final Xero upload call, still require MCP
+authentication.
 
 ## Enforcement
 
@@ -112,6 +116,8 @@ restarts, expiry, and future scaling.
 - Configure a stable `MCP_STAGED_UPLOAD_SIGNING_SECRET` across all instances.
   If it is omitted, the server falls back to a process-local secret and staged
   upload sessions are only valid on the process that created them.
+- Treat `uploadUrl` as sensitive until it expires; anyone with the URL can
+  upload one file into that staged slot.
 - Store files under a dedicated temp root such as
   `/tmp/cowork-xero-uploads/<derived-session-dir>/`.
 - Never allow callers to pass arbitrary paths for uploads.
