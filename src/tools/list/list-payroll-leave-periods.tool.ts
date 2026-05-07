@@ -2,10 +2,11 @@ import { z } from "zod";
 import { listXeroPayrollLeavePeriods } from "../../handlers/list-xero-payroll-leave-periods.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { LeavePeriod } from "xero-node/dist/gen/model/payroll-nz/leavePeriod.js";
+import { formatLeavePeriod } from "../../helpers/format-leave-period.js";
 
 const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
   "list-payroll-leave-periods",
-  "List all leave periods for a specific employee in Xero. This shows detailed time off periods including start and end dates, period status, payment dates, and leave types. Provide an employee ID to see their leave periods.",
+  "List all leave periods for a specific employee in Xero. This shows detailed time off periods including start and end dates, period status, leave amounts, and units taken. Provide an employee ID to see their leave periods.",
   {
     employeeId: z.string().describe("The Xero employee ID to fetch leave periods for"),
     startDate: z.string().optional().describe("Optional start date in YYYY-MM-DD format"),
@@ -34,18 +35,7 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
         },
         ...(periods?.map((period: LeavePeriod) => ({
           type: "text" as const,
-          text: [
-            `Period Status: ${period.periodStatus || "Unknown"}`,
-            period.periodStartDate ? `Start Date: ${period.periodStartDate}` : null,
-            period.periodEndDate ? `End Date: ${period.periodEndDate}` : null,
-            period.numberOfUnits ? `Number of Units: ${period.numberOfUnits}` : null,
-            period.numberOfUnitsTaken ? `Payment Date: ${period.numberOfUnitsTaken}` : null,
-            period.typeOfUnits ? `Payment Date: ${period.typeOfUnits}` : null,
-            period.typeOfUnitsTaken ? `Payment Date: ${period.typeOfUnitsTaken}` : null,
-            period.periodStatus ? `Period Status: ${period.periodStatus}` : null,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+          text: formatLeavePeriod(period),
         })) || []),
       ],
     };

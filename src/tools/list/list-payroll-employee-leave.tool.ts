@@ -2,10 +2,11 @@ import { z } from "zod";
 import { listXeroPayrollEmployeeLeave } from "../../handlers/list-xero-payroll-employee-leave.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { EmployeeLeave } from "xero-node/dist/gen/model/payroll-nz/employeeLeave.js";
+import { formatLeavePeriods } from "../../helpers/format-leave-period.js";
 
 const ListPayrollEmployeeLeaveTool = CreateXeroTool(
   "list-payroll-employee-leave",
-  "List all leave records for a specific employee in Xero. This shows all leave transactions including approved, pending, and processed time off. Provide an employee ID to see their leave history.",
+  "List all leave records for a specific employee in Xero. This shows all leave transactions including per-period leave amounts, units taken, approved, pending, and processed time off. Provide an employee ID to see their leave history.",
   {
     employeeId: z.string().describe("The Xero employee ID to fetch leave records for"),
   },
@@ -38,7 +39,7 @@ const ListPayrollEmployeeLeaveTool = CreateXeroTool(
             `Description: ${leaveItem.description || "No description"}`,
             leaveItem.startDate ? `Start Date: ${leaveItem.startDate}` : null,
             leaveItem.endDate ? `End Date: ${leaveItem.endDate}` : null,
-            leaveItem.periods ? `Periods: ${leaveItem.periods.length || 0}` : null,
+            formatLeavePeriods(leaveItem.periods),
             leaveItem.updatedDateUTC ? `Last Updated: ${leaveItem.updatedDateUTC}` : null,
           ]
             .filter(Boolean)
