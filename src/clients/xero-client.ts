@@ -1,77 +1,33 @@
 import axios, { AxiosError } from "axios";
 import dotenv from "dotenv";
-import {
-  IXeroClientConfig,
-  Organisation,
-  TokenSet,
-  XeroClient,
-} from "xero-node";
+import { TokenSet } from "xero-node";
 
-import { ensureError } from "../helpers/ensure-error.js";
+import { AuthorizationCodeXeroClient } from "./auth/authorization-code-xero-client.js";
+import { MCPXeroClient } from "./auth/mcp-xero-client.js";
+
+export { MCPXeroClient } from "./auth/mcp-xero-client.js";
 
 dotenv.config();
 
 const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
+const app_client_id = process.env.XERO_APP_CLIENT_ID;
+const app_client_secret = process.env.XERO_APP_CLIENT_SECRET;
+const refresh_token_secret_name = process.env.XERO_REFRESH_TOKEN_SECRET_NAME;
 const grant_type = "client_credentials";
 
-if (!bearer_token && (!client_id || !client_secret)) {
+const has_authorization_code_config =
+  Boolean(app_client_id) &&
+  Boolean(app_client_secret) &&
+  Boolean(refresh_token_secret_name);
+
+if (
+  !bearer_token &&
+  !has_authorization_code_config &&
+  (!client_id || !client_secret)
+) {
   throw Error("Environment Variables not set - please check your .env file");
-}
-
-abstract class MCPXeroClient extends XeroClient {
-  public tenantId: string;
-  private shortCode: string;
-
-  protected constructor(config?: IXeroClientConfig) {
-    super(config);
-    this.tenantId = "";
-    this.shortCode = "";
-  }
-
-  public abstract authenticate(): Promise<void>;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
-    await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
-    }
-    return this.tenants;
-  }
-
-  private async getOrganisation(): Promise<Organisation> {
-    await this.authenticate();
-
-    const organisationResponse = await this.accountingApi.getOrganisations(
-      this.tenantId || "",
-    );
-
-    const organisation = organisationResponse.body.organisations?.[0];
-
-    if (!organisation) {
-      throw new Error("Failed to retrieve organisation");
-    }
-
-    return organisation;
-  }
-
-  public async getShortCode(): Promise<string | undefined> {
-    if (!this.shortCode) {
-      try {
-        const organisation = await this.getOrganisation();
-        this.shortCode = organisation.shortCode ?? "";
-      } catch (error: unknown) {
-        const err = ensureError(error);
-
-        throw new Error(
-          `Failed to get Organisation short code: ${err.message}`,
-        );
-      }
-    }
-    return this.shortCode;
-  }
 }
 
 class CustomConnectionsXeroClient extends MCPXeroClient {
@@ -91,7 +47,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   public async getClientCredentialsToken(): Promise<TokenSet> {
     const scope =
       process.env.XERO_SCOPES ||
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read payroll.settings payroll.employees payroll.timesheets";
+      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read accounting.attachments payroll.settings payroll.employees payroll.timesheets";
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");
@@ -167,12 +123,22 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 }
 
-export const xeroClient = bearer_token
-  ? new BearerTokenXeroClient({
-      bearerToken: bearer_token,
-    })
-  : new CustomConnectionsXeroClient({
-      clientId: client_id!,
-      clientSecret: client_secret!,
-      grantType: grant_type,
+function buildXeroClient(): MCPXeroClient {
+  if (bearer_token) {
+    return new BearerTokenXeroClient({ bearerToken: bearer_token });
+  }
+  if (has_authorization_code_config) {
+    return new AuthorizationCodeXeroClient({
+      clientId: app_client_id!,
+      clientSecret: app_client_secret!,
+      secretName: refresh_token_secret_name!,
     });
+  }
+  return new CustomConnectionsXeroClient({
+    clientId: client_id!,
+    clientSecret: client_secret!,
+    grantType: grant_type,
+  });
+}
+
+export const xeroClient: MCPXeroClient = buildXeroClient();

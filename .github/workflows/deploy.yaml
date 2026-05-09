@@ -1,0 +1,112 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (defaults to current commit SHA)'
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-xero-mcp
+  cancel-in-progress: false
+
+env:
+  GCP_PROJECT: swiftotter-xero-mcp
+  GCP_REGION: us-central1
+  ARTIFACT_REPO: xero-mcp
+  IMAGE_NAME: server
+
+jobs:
+  build-and-push:
+    name: Build & push image
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 20
+    outputs:
+      image: ${{ steps.image-ref.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Resolve image tag
+        id: image-ref
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [ -z "$TAG" ]; then TAG="${GITHUB_SHA::12}"; fi
+          REGISTRY="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
+          {
+            echo "image=${REGISTRY}:${TAG}"
+            echo "image_latest=${REGISTRY}:latest"
+            echo "tag=${TAG}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Submit Cloud Build
+        run: |
+          gcloud builds submit \
+            --project="${{ env.GCP_PROJECT }}" \
+            --tag="${{ steps.image-ref.outputs.image }}" \
+            --quiet
+
+      - name: Tag image as :latest
+        run: |
+          gcloud artifacts docker tags add \
+            "${{ steps.image-ref.outputs.image }}" \
+            "${{ steps.image-ref.outputs.image_latest }}" \
+            --project="${{ env.GCP_PROJECT }}" \
+            --quiet
+
+      - name: Build summary
+        run: |
+          {
+            echo "## Image built"
+            echo ""
+            echo "- **Tag:** \`${{ steps.image-ref.outputs.tag }}\`"
+            echo "- **Image:** \`${{ steps.image-ref.outputs.image }}\`"
+            echo "- **Also tagged:** \`${{ steps.image-ref.outputs.image_latest }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  rollout:
+    name: Roll out to all xero-mcp-* services
+    needs: build-and-push
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Roll image to all per-user services
+        env:
+          GCP_PROJECT: ${{ env.GCP_PROJECT }}
+          GCP_REGION: ${{ env.GCP_REGION }}
+        run: |
+          chmod +x scripts/redeploy-all.sh
+          scripts/redeploy-all.sh "${{ needs.build-and-push.outputs.image }}"
+
+      - name: Rollout summary
+        if: always()
+        run: |
+          {
+            echo "## Rollout"
+            echo ""
+            echo "- **Image:** \`${{ needs.build-and-push.outputs.image }}\`"
+            echo "- **Status:** ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"

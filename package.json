@@ -22,6 +22,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@google-cloud/secret-manager": "^6.1.2",
     "@modelcontextprotocol/sdk": "^1.23.4",
     "dotenv": "^16.4.7",
     "openid-client": "^6.8.1",
@@ -36,6 +37,7 @@
     "globals": "^16.5.0",
     "prettier": "3.7.4",
     "shx": "^0.3.4",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1"
   }

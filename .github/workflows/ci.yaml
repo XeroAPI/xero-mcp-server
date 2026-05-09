@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-xero-mcp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Clean up orphaned Docker resources and npm cache
+        run: |
+          docker system prune -af --volumes 2>/dev/null || true
+          npm cache clean --force 2>/dev/null || true
+
+  lint-and-build:
+    name: Lint & build
+    needs: cleanup
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript build
+        run: npm run build
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+      - name: Type-check the bootstrap CLI
+        run: |
+          npx tsc --noEmit \
+            --module nodenext --moduleResolution nodenext \
+            --target es2022 --esModuleInterop --skipLibCheck \
+            bin/xero-oauth-bootstrap.ts
+
+  docker-build:
+    name: Docker build
+    needs: cleanup
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build container image (no push)
+        run: docker build --pull -t xero-mcp-server:ci-${{ github.sha }} .
+
+      - name: Smoke-test the image
+        run: |
+          # Boot the container with a fake bearer token and confirm:
+          #   1. it stays running for >5s (caught by `docker ps`)
+          #   2. supergateway logs that it's listening on port 8000
+          # We don't drive the SSE endpoint here — supergateway uses one
+          # shared stdio child per service and gets confused if multiple
+          # connections arrive in quick succession (designed for max-instances=1).
+          # Real protocol exercise happens when a teammate connects from
+          # Claude Desktop.
+          docker run -d --name xero-mcp-smoke \
+            -e XERO_CLIENT_BEARER_TOKEN=ci-smoke \
+            xero-mcp-server:ci-${{ github.sha }}
+          sleep 5
+          STATE=$(docker inspect -f '{{.State.Status}}' xero-mcp-smoke)
+          if [ "$STATE" != "running" ]; then
+            echo "::error::container is in state '$STATE' after 5s"
+            docker logs xero-mcp-smoke
+            docker rm -f xero-mcp-smoke
+            exit 1
+          fi
+          if ! docker logs xero-mcp-smoke 2>&1 | grep -q 'Listening on port 8000'; then
+            echo "::error::supergateway never logged 'Listening on port 8000'"
+            docker logs xero-mcp-smoke
+            docker rm -f xero-mcp-smoke
+            exit 1
+          fi
+          echo "Container is running and supergateway is listening."
+          docker rm -f xero-mcp-smoke
