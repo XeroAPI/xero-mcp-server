@@ -3,6 +3,10 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import {
+  applyCreditNoteCurrency,
+  CreditNoteUpdateExtras,
+} from "./create-xero-credit-note.handler.js";
 
 interface CreditNoteLineItem {
   description: string;
@@ -33,6 +37,7 @@ async function updateCreditNote(
   reference?: string,
   contactId?: string,
   date?: string,
+  extras?: CreditNoteUpdateExtras,
 ): Promise<CreditNote | null> {
   const creditNote: CreditNote = {
     lineItems: lineItems,
@@ -40,6 +45,10 @@ async function updateCreditNote(
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
   };
+
+  if (extras?.dueDate !== undefined) creditNote.dueDate = extras.dueDate;
+  if (extras?.brandingThemeID !== undefined) creditNote.brandingThemeID = extras.brandingThemeID;
+  applyCreditNoteCurrency(creditNote, extras?.currencyCode, extras?.currencyRate);
 
   const response = await xeroClient.accountingApi.updateCreditNote(
     xeroClient.tenantId,
@@ -64,6 +73,7 @@ export async function updateXeroCreditNote(
   reference?: string,
   contactId?: string,
   date?: string,
+  extras?: CreditNoteUpdateExtras,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const existingCreditNote = await getCreditNote(creditNoteId);
@@ -85,6 +95,7 @@ export async function updateXeroCreditNote(
       reference,
       contactId,
       date,
+      extras,
     );
 
     if (!updatedCreditNote) {

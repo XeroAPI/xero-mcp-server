@@ -31,14 +31,50 @@ const CreatePaymentTool = CreateXeroTool(
       .string()
       .optional()
       .describe("Optional payment reference/description"),
+    currencyRate: z
+      .number()
+      .optional()
+      .describe("Exchange rate to org base currency. Only for foreign-currency payments."),
+    isReconciled: z
+      .boolean()
+      .optional()
+      .describe("Mark the payment as reconciled in the bank feed."),
+    particulars: z
+      .string()
+      .optional()
+      .describe("NZ/AU bank-transfer field. Leave blank for US payments."),
+    details: z
+      .string()
+      .optional()
+      .describe("NZ/AU bank-transfer field. Leave blank for US payments."),
+    code: z
+      .string()
+      .optional()
+      .describe("NZ/AU bank-transfer field. Leave blank for US payments."),
   },
-  async ({ invoiceId, accountId, amount, date, reference }) => {
+  async ({
+    invoiceId,
+    accountId,
+    amount,
+    date,
+    reference,
+    currencyRate,
+    isReconciled,
+    particulars,
+    details,
+    code,
+  }) => {
     const result = await createXeroPayment({
       invoiceId,
       accountId,
       amount,
       date,
       reference,
+      currencyRate,
+      isReconciled,
+      particulars,
+      details,
+      code,
     });
     if (result.isError) {
       return {

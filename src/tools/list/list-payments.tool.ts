@@ -41,24 +41,33 @@ function paymentFormatter(payment: Payment): string {
 
 const ListPaymentsTool = CreateXeroTool(
   "list-payments",
-  `List payments in Xero. 
+  `List payments in Xero.
   This tool shows all payments made against invoices, including payment date, amount, and payment method.
   You can filter payments by invoice number, invoice ID, payment ID, or invoice reference.
   Ask the user if they want to see payments for a specific invoice, contact, payment or reference before running.
-  If many payments are returned, ask the user if they want to see the next page.`,
+  pageSize defaults to 10 and is capped at 100; raise it when scanning many payments in one call.
+  If a full page is returned, more may exist — call again with page+1.`,
   {
     page: z.number().default(1),
     invoiceNumber: z.string().optional(),
     invoiceId: z.string().optional(),
     paymentId: z.string().optional(),
     reference: z.string().optional(),
+    pageSize: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .describe("Optional page size (1–100). Defaults to 10."),
   },
-  async ({ page, invoiceNumber, invoiceId, paymentId, reference }) => {
+  async ({ page, invoiceNumber, invoiceId, paymentId, reference, pageSize }) => {
     const response = await listXeroPayments(page, {
       invoiceNumber,
       invoiceId,
       paymentId,
       reference,
+      pageSize,
     });
 
     if (response.error !== null) {

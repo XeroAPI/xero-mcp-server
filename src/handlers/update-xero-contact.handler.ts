@@ -1,8 +1,12 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Contact, Phone, Address, Contacts } from "xero-node";
+import { Contact, ContactPerson, Phone, Address, Contacts } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import {
+  applyContactExtras,
+  ContactExtras,
+} from "./create-xero-contact.handler.js";
 
 async function getContact(contactId: string): Promise<Contact | undefined> {
   const response = await xeroClient.accountingApi.getContact(
@@ -21,11 +25,17 @@ async function updateContact(
   email: string | undefined,
   phone: string | undefined,
   address: Address | undefined,
+  postalAddress: Address | undefined,
+  contactPersons: ContactPerson[] | undefined,
+  extras: ContactExtras | undefined,
   contactId: string,
 ): Promise<Contact | undefined> {
   await xeroClient.authenticate();
 
-  const existingContact = phone || address ? await getContact(contactId) : undefined;
+  const existingContact =
+    phone || address || postalAddress || contactPersons
+      ? await getContact(contactId)
+      : undefined;
 
   const mergedPhones = phone
     ? [
@@ -39,21 +49,60 @@ async function updateContact(
       ]
     : undefined;
 
-  const mergedAddresses = address
-    ? [
-        ...(existingContact?.addresses ?? []).filter(
-          (a) => a.addressType !== Address.AddressTypeEnum.STREET,
-        ),
-        {
-          addressType: Address.AddressTypeEnum.STREET,
-          addressLine1: address.addressLine1,
-          addressLine2: address.addressLine2,
-          city: address.city,
-          country: address.country,
-          postalCode: address.postalCode,
-          region: address.region,
-        },
-      ]
+  const mergedAddresses =
+    address || postalAddress
+      ? (() => {
+          const replacedTypes = new Set<Address.AddressTypeEnum>();
+          if (address) replacedTypes.add(Address.AddressTypeEnum.STREET);
+          if (postalAddress) replacedTypes.add(Address.AddressTypeEnum.POBOX);
+
+          const kept = (existingContact?.addresses ?? []).filter(
+            (a) => !a.addressType || !replacedTypes.has(a.addressType),
+          );
+
+          const incoming: Address[] = [];
+          if (address) {
+            incoming.push({
+              addressType: Address.AddressTypeEnum.STREET,
+              addressLine1: address.addressLine1,
+              addressLine2: address.addressLine2,
+              city: address.city,
+              country: address.country,
+              postalCode: address.postalCode,
+              region: address.region,
+              attentionTo: address.attentionTo,
+            });
+          }
+          if (postalAddress) {
+            incoming.push({
+              addressType: Address.AddressTypeEnum.POBOX,
+              addressLine1: postalAddress.addressLine1,
+              addressLine2: postalAddress.addressLine2,
+              city: postalAddress.city,
+              country: postalAddress.country,
+              postalCode: postalAddress.postalCode,
+              region: postalAddress.region,
+              attentionTo: postalAddress.attentionTo,
+            });
+          }
+
+          return [...kept, ...incoming];
+        })()
+      : undefined;
+
+  const mergedContactPersons = contactPersons
+    ? (() => {
+        const incomingEmails = new Set(
+          contactPersons
+            .map((p) => p.emailAddress?.toLowerCase())
+            .filter((e): e is string => Boolean(e)),
+        );
+        const kept = (existingContact?.contactPersons ?? []).filter(
+          (p) =>
+            !p.emailAddress || !incomingEmails.has(p.emailAddress.toLowerCase()),
+        );
+        return [...kept, ...contactPersons];
+      })()
     : undefined;
 
   const contact: Contact = {
@@ -63,7 +112,10 @@ async function updateContact(
     emailAddress: email,
     phones: mergedPhones,
     addresses: mergedAddresses,
+    contactPersons: mergedContactPersons,
   };
+
+  if (extras) applyContactExtras(contact, extras);
 
   const contacts: Contacts = {
     contacts: [contact],
@@ -92,6 +144,9 @@ export async function updateXeroContact(
   email?: string,
   phone?: string,
   address?: Address,
+  postalAddress?: Address,
+  contactPersons?: ContactPerson[],
+  extras?: ContactExtras,
 ): Promise<XeroClientResponse<Contact>> {
   try {
     const updatedContact = await updateContact(
@@ -101,6 +156,9 @@ export async function updateXeroContact(
       email,
       phone,
       address,
+      postalAddress,
+      contactPersons,
+      extras,
       contactId,
     );
 

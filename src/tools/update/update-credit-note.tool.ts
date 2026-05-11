@@ -37,6 +37,23 @@ const UpdateCreditNoteTool = CreateXeroTool(
     reference: z.string().optional(),
     date: z.string().optional(),
     contactId: z.string().optional(),
+    dueDate: z
+      .string()
+      .optional()
+      .describe("Due date for the credit note (YYYY-MM-DD)."),
+    currencyCode: z
+      .string()
+      .length(3)
+      .optional()
+      .describe("ISO 4217 currency code (e.g. USD)."),
+    currencyRate: z
+      .number()
+      .optional()
+      .describe("Exchange rate to org base currency."),
+    brandingThemeID: z
+      .string()
+      .optional()
+      .describe("Branding theme ID — controls which template Xero renders."),
   },
   async (
     {
@@ -45,6 +62,10 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference,
       date,
       contactId,
+      dueDate,
+      currencyCode,
+      currencyRate,
+      brandingThemeID,
     }: {
       creditNoteId: string;
       lineItems?: Array<{
@@ -62,6 +83,10 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference?: string;
       date?: string;
       contactId?: string;
+      dueDate?: string;
+      currencyCode?: string;
+      currencyRate?: number;
+      brandingThemeID?: string;
     },
   ) => {
     const result = await updateXeroCreditNote(
@@ -70,6 +95,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference,
       contactId,
       date,
+      { dueDate, currencyCode, currencyRate, brandingThemeID },
     );
     if (result.isError) {
       return {

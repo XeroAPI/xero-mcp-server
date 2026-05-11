@@ -10,6 +10,8 @@ import UpdatePayrollTimesheetLineTool
   from "./update-payroll-timesheet-update-line.tool.js";
 import UpdateManualJournalTool from "./update-manual-journal-tool.js";
 import UpdateQuoteTool from "./update-quote.tool.js";
+import UpdateRepeatingInvoiceTool from "./update-repeating-invoice.tool.js";
+import UpdateTaxRateTool from "./update-tax-rate.tool.js";
 import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
 
@@ -19,12 +21,14 @@ export const UpdateTools = [
   UpdateInvoiceTool,
   UpdateManualJournalTool,
   UpdateQuoteTool,
+  UpdateRepeatingInvoiceTool,
   UpdateItemTool,
   UpdateBankTransactionTool,
   ApprovePayrollTimesheetTool,
   AddTimesheetLineTool,
   UpdatePayrollTimesheetLineTool,
   RevertPayrollTimesheetTool,
+  UpdateTaxRateTool,
   UpdateTrackingCategoryTool,
   UpdateTrackingOptionsTool
 ];

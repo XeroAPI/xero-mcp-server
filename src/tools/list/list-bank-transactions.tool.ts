@@ -5,19 +5,34 @@ import { formatLineItem } from "../../helpers/format-line-item.js";
 
 const ListBankTransactionsTool = CreateXeroTool(
   "list-bank-transactions",
-  `List all bank transactions in Xero.
-  Ask the user if they want to see bank transactions for a specific bank account,
-  or to see all bank transactions before running.
-  Ask the user if they want the next page of quotes after running this tool if
-  10 bank transactions are returned.
-  If they do, call this tool again with the next page number and the bank account
-  if one was provided in the provided in the previous call.`,
+  `List bank transactions in Xero, with optional filters for bank account, date range, and reconciliation status.
+  Use bankAccountId to scope to one account (find the account ID via list-accounts; bank-feed accounts have Type "BANK").
+  Use fromDate and toDate (YYYY-MM-DD) to bound the period — these map to the transaction Date.
+  Use isReconciled=false to surface items that have not been reconciled yet, or true to see only reconciled.
+  pageSize defaults to 10 and is capped at 100; raise it for ops/finance questions over a date range.
+  Results are ordered by Date DESC. If a full page is returned, more may exist — call again with page+1.`,
   {
-    page: z.number(),
-    bankAccountId: z.string().optional()
+    page: z.number().default(1),
+    bankAccountId: z.string().optional(),
+    fromDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+      .optional(),
+    toDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+      .optional(),
+    isReconciled: z.boolean().optional(),
+    pageSize: z.number().int().min(1).max(100).optional(),
   },
-  async ({ bankAccountId, page }) => {
-    const response = await listXeroBankTransactions(page, bankAccountId);
+  async ({ page, bankAccountId, fromDate, toDate, isReconciled, pageSize }) => {
+    const response = await listXeroBankTransactions(page, {
+      bankAccountId,
+      fromDate,
+      toDate,
+      isReconciled,
+      pageSize,
+    });
     if (response.isError) {
       return {
         content: [

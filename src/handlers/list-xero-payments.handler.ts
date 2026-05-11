@@ -4,6 +4,8 @@ import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
+const MAX_PAGE_SIZE = 100;
+
 async function getPayments(
   page: number = 1,
   {
@@ -11,11 +13,13 @@ async function getPayments(
     invoiceId,
     paymentId,
     reference,
+    pageSize,
   }: {
     invoiceNumber?: string;
     invoiceId?: string;
     paymentId?: string;
     reference?: string;
+    pageSize?: number;
   },
 ): Promise<Payment[]> {
   await xeroClient.authenticate();
@@ -40,13 +44,15 @@ async function getPayments(
   const where =
     whereConditions.length > 0 ? whereConditions.join(" AND ") : undefined;
 
+  const resolvedPageSize = Math.min(pageSize ?? 10, MAX_PAGE_SIZE);
+
   const response = await xeroClient.accountingApi.getPayments(
     xeroClient.tenantId,
     undefined, // ifModifiedSince
     where,
     "UpdatedDateUTC DESC", // order
     page, // page
-    10, // pageSize
+    resolvedPageSize, // pageSize
     getClientHeaders(), // options
   );
 
@@ -63,11 +69,13 @@ export async function listXeroPayments(
     invoiceId,
     paymentId,
     reference,
+    pageSize,
   }: {
     invoiceNumber?: string;
     invoiceId?: string;
     paymentId?: string;
     reference?: string;
+    pageSize?: number;
   },
 ): Promise<XeroClientResponse<Payment[]>> {
   try {
@@ -76,6 +84,7 @@ export async function listXeroPayments(
       invoiceId,
       paymentId,
       reference,
+      pageSize,
     });
 
     return {

@@ -5,6 +5,12 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
 
+const trackingSchema = z.object({
+  name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
+  option: z.string().describe("The name of the tracking option. Can be obtained from the list-tracking-categories tool"),
+  trackingCategoryID: z.string().describe("The ID of the tracking category. Can be obtained from the list-tracking-categories tool"),
+});
+
 const CreateManualJournalTool = CreateXeroTool(
   "create-manual-journal",
   "Create a manual journal in Xero.\
@@ -33,7 +39,12 @@ const CreateManualJournalTool = CreateXeroTool(
             .string()
             .optional()
             .describe("Optional tax type for the manual journal line"),
-          // TODO: TODO: tracking can be added here
+          tracking: z
+            .array(trackingSchema)
+            .describe("Up to 2 tracking categories and options can be added to the manual journal line. \
+              Can be obtained from the list-tracking-categories tool. \
+              Only use if prompted by the user.")
+            .optional(),
         }),
       )
       .describe(

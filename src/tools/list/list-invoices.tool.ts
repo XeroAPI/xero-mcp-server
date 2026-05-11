@@ -8,10 +8,8 @@ const ListInvoicesTool = CreateXeroTool(
   "List invoices in Xero. This includes Draft, Submitted, and Paid invoices. \
   Ask the user if they want to see invoices for a specific contact, \
   invoice number, or to see all invoices before running. \
-  Ask the user if they want the next page of invoices after running this tool \
-  if 10 invoices are returned. \
-  If they want the next page, call this tool again with the next page number \
-  and the contact or invoice number if one was provided in the previous call.",
+  pageSize defaults to 10 and is capped at 100; raise it when scanning many invoices in one call. \
+  If a full page is returned, more may exist — call again with page+1.",
   {
     page: z.number(),
     contactIds: z.array(z.string()).optional(),
@@ -19,9 +17,16 @@ const ListInvoicesTool = CreateXeroTool(
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
+    pageSize: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .describe("Optional page size (1–100). Defaults to 10."),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ page, contactIds, invoiceNumbers, pageSize }) => {
+    const response = await listXeroInvoices(page, contactIds, invoiceNumbers, pageSize);
     if (response.error !== null) {
       return {
         content: [

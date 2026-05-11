@@ -4,11 +4,16 @@ import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
+const MAX_PAGE_SIZE = 100;
+
 async function getCreditNotes(
   contactId: string | undefined,
   page: number,
+  pageSize: number | undefined,
 ): Promise<CreditNote[]> {
   await xeroClient.authenticate();
+
+  const resolvedPageSize = Math.min(pageSize ?? 10, MAX_PAGE_SIZE);
 
   const response = await xeroClient.accountingApi.getCreditNotes(
     xeroClient.tenantId,
@@ -17,7 +22,7 @@ async function getCreditNotes(
     "UpdatedDateUTC DESC", // order
     page, // page
     undefined, // unitdp
-    10, // pageSize
+    resolvedPageSize, // pageSize
     getClientHeaders(),
   );
 
@@ -30,9 +35,10 @@ async function getCreditNotes(
 export async function listXeroCreditNotes(
   page: number = 1,
   contactId?: string,
+  pageSize?: number,
 ): Promise<XeroClientResponse<CreditNote[]>> {
   try {
-    const creditNotes = await getCreditNotes(contactId, page);
+    const creditNotes = await getCreditNotes(contactId, page, pageSize);
 
     return {
       result: creditNotes,

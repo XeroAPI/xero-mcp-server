@@ -4,12 +4,17 @@ import { formatError } from "../helpers/format-error.js";
 import { Invoice } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
+const MAX_PAGE_SIZE = 100;
+
 async function getInvoices(
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
   page: number,
+  pageSize: number | undefined,
 ): Promise<Invoice[]> {
   await xeroClient.authenticate();
+
+  const resolvedPageSize = Math.min(pageSize ?? 10, MAX_PAGE_SIZE);
 
   const invoices = await xeroClient.accountingApi.getInvoices(
     xeroClient.tenantId,
@@ -25,7 +30,7 @@ async function getInvoices(
     false, // createdByMyApp
     undefined, // unitdp
     false, // summaryOnly
-    10, // pageSize
+    resolvedPageSize, // pageSize
     undefined, // searchTerm
     getClientHeaders(),
   );
@@ -39,9 +44,10 @@ export async function listXeroInvoices(
   page: number = 1,
   contactIds?: string[],
   invoiceNumbers?: string[],
+  pageSize?: number,
 ): Promise<XeroClientResponse<Invoice[]>> {
   try {
-    const invoices = await getInvoices(invoiceNumbers, contactIds, page);
+    const invoices = await getInvoices(invoiceNumbers, contactIds, page, pageSize);
 
     return {
       result: invoices,

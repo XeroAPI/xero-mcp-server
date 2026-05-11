@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Invoice, LineItemTracking } from "xero-node";
+import { CurrencyCode, Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
@@ -14,14 +14,42 @@ interface InvoiceLineItem {
   tracking?: LineItemTracking[];
 }
 
+export type InvoiceExtras = {
+  brandingThemeID?: string;
+  expectedPaymentDate?: string;
+  plannedPaymentDate?: string;
+  currencyCode?: string;
+  currencyRate?: number;
+};
+
+export function applyInvoiceExtras(invoice: Invoice, extras: InvoiceExtras): void {
+  if (extras.brandingThemeID !== undefined) invoice.brandingThemeID = extras.brandingThemeID;
+  if (extras.expectedPaymentDate !== undefined) invoice.expectedPaymentDate = extras.expectedPaymentDate;
+  if (extras.plannedPaymentDate !== undefined) invoice.plannedPaymentDate = extras.plannedPaymentDate;
+  if (extras.currencyCode !== undefined) {
+    const code = extras.currencyCode.toUpperCase() as keyof typeof CurrencyCode;
+    if (CurrencyCode[code] !== undefined) invoice.currencyCode = CurrencyCode[code];
+  }
+  if (extras.currencyRate !== undefined) invoice.currencyRate = extras.currencyRate;
+}
+
 async function createInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
   type: Invoice.TypeEnum,
   reference: string | undefined,
   date: string | undefined,
+  dueDate: string | undefined,
+  extras: InvoiceExtras | undefined,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
+
+  const invoiceDate = date || new Date().toISOString().split("T")[0];
+  const resolvedDueDate =
+    dueDate ||
+    new Date(new Date(invoiceDate).getTime() + 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
 
   const invoice: Invoice = {
     type: type,
@@ -29,15 +57,15 @@ async function createInvoice(
       contactID: contactId,
     },
     lineItems: lineItems,
-    date: date || new Date().toISOString().split("T")[0], // Use provided date or today's date
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 30 days from now
+    date: invoiceDate,
+    dueDate: resolvedDueDate,
     ...(type === Invoice.TypeEnum.ACCPAY
       ? { invoiceNumber: reference }
       : { reference: reference }),
     status: Invoice.StatusEnum.DRAFT,
   };
+
+  if (extras) applyInvoiceExtras(invoice, extras);
 
   const response = await xeroClient.accountingApi.createInvoices(
     xeroClient.tenantId,
@@ -62,6 +90,8 @@ export async function createXeroInvoice(
   type: Invoice.TypeEnum = Invoice.TypeEnum.ACCREC,
   reference?: string,
   date?: string,
+  dueDate?: string,
+  extras?: InvoiceExtras,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const createdInvoice = await createInvoice(
@@ -70,6 +100,8 @@ export async function createXeroInvoice(
       type,
       reference,
       date,
+      dueDate,
+      extras,
     );
 
     if (!createdInvoice) {

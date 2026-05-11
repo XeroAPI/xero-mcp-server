@@ -27,7 +27,7 @@ async function createManualJournal(
       accountCode: journalLine.accountCode,
       description: journalLine.description,
       taxType: journalLine.taxType,
-      // TODO: tracking can be added here
+      tracking: journalLine.tracking,
     })),
     date: date,
     lineAmountTypes: lineAmountTypes,
