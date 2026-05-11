@@ -44,31 +44,41 @@ const UpdateInvoiceTool = CreateXeroTool(
     date: z.string().optional().describe("The date of the invoice."),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
       Can be obtained from the list-contacts tool."),
+    brandingThemeID: z
+      .string()
+      .optional()
+      .describe("Branding theme ID — controls which invoice template Xero renders."),
+    expectedPaymentDate: z
+      .string()
+      .optional()
+      .describe("ACCREC only. Date you expect this AR invoice to be paid (YYYY-MM-DD)."),
+    plannedPaymentDate: z
+      .string()
+      .optional()
+      .describe("ACCPAY only. Date you plan to pay this bill (YYYY-MM-DD)."),
+    currencyCode: z
+      .string()
+      .length(3)
+      .optional()
+      .describe("ISO 4217 currency code (e.g. USD, EUR)."),
+    currencyRate: z
+      .number()
+      .optional()
+      .describe("Exchange rate to org base currency. Only needed for foreign-currency invoices."),
   },
-  async (
-    {
-      invoiceId,
-      lineItems,
-      reference,
-      dueDate,
-      date,
-      contactId,
-    }: {
-      invoiceId: string;
-      lineItems?: Array<{
-        description: string;
-        quantity: number;
-        unitAmount: number;
-        accountCode: string;
-        taxType: string;
-      }>;
-      reference?: string;
-      dueDate?: string;
-      date?: string;
-      contactId?: string;
-    },
-    //_extra: { signal: AbortSignal },
-  ) => {
+  async ({
+    invoiceId,
+    lineItems,
+    reference,
+    dueDate,
+    date,
+    contactId,
+    brandingThemeID,
+    expectedPaymentDate,
+    plannedPaymentDate,
+    currencyCode,
+    currencyRate,
+  }) => {
     const result = await updateXeroInvoice(
       invoiceId,
       lineItems,
@@ -76,6 +86,13 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      {
+        brandingThemeID,
+        expectedPaymentDate,
+        plannedPaymentDate,
+        currencyCode,
+        currencyRate,
+      },
     );
     if (result.isError) {
       return {

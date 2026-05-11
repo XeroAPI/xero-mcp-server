@@ -41,10 +41,58 @@ const CreateInvoiceTool = CreateXeroTool(
       If the type is not specified, the default is ACCREC."),
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
+    dueDate: z.string().describe("The date the invoice is due (YYYY-MM-DD format). Defaults to 30 days after the invoice date.").optional(),
+    brandingThemeID: z
+      .string()
+      .optional()
+      .describe("Branding theme ID — controls which invoice template Xero renders."),
+    expectedPaymentDate: z
+      .string()
+      .optional()
+      .describe("ACCREC only. Date you expect this AR invoice to be paid (YYYY-MM-DD)."),
+    plannedPaymentDate: z
+      .string()
+      .optional()
+      .describe("ACCPAY only. Date you plan to pay this bill (YYYY-MM-DD)."),
+    currencyCode: z
+      .string()
+      .length(3)
+      .optional()
+      .describe("ISO 4217 currency code (e.g. USD, EUR). Defaults to contact or org currency."),
+    currencyRate: z
+      .number()
+      .optional()
+      .describe("Exchange rate to org base currency. Only needed for foreign-currency invoices."),
   },
-  async ({ contactId, lineItems, type, reference, date }) => {
+  async ({
+    contactId,
+    lineItems,
+    type,
+    reference,
+    date,
+    dueDate,
+    brandingThemeID,
+    expectedPaymentDate,
+    plannedPaymentDate,
+    currencyCode,
+    currencyRate,
+  }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
+    const result = await createXeroInvoice(
+      contactId,
+      lineItems,
+      xeroInvoiceType,
+      reference,
+      date,
+      dueDate,
+      {
+        brandingThemeID,
+        expectedPaymentDate,
+        plannedPaymentDate,
+        currencyCode,
+        currencyRate,
+      },
+    );
     if (result.isError) {
       return {
         content: [
@@ -75,6 +123,7 @@ const CreateInvoiceTool = CreateXeroTool(
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
             `Date: ${invoice?.date}`,
+            `Due Date: ${invoice?.dueDate}`,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

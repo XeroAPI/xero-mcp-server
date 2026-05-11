@@ -28,7 +28,7 @@ async function updateManualJournal(
       accountCode: journalLine.accountCode,
       description: journalLine.description, // Optional: description for the manual journal line
       taxType: journalLine.taxType, // Optional: tax type for the manual journal line
-      // TODO: tracking can be added here
+      tracking: journalLine.tracking,
     })),
     date: date, // Optional: YYYY-MM-DD format
     lineAmountTypes: lineAmountTypes, // Optional: ManualJournal.LineAmountTypesEnum.EXCLUSIVE

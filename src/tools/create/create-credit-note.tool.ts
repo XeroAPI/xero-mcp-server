@@ -22,7 +22,7 @@ const lineItemSchema = z.object({
 
 const CreateCreditNoteTool = CreateXeroTool(
   "create-credit-note",
-  "Create a credit note in Xero.\
+  "Create a credit note in Xero. Supports both customer credits (ACCRECCREDIT, default) and vendor credits (ACCPAYCREDIT).\
  When a credit note is created, a deep link to the credit note in Xero is returned. \
  This deep link can be used to view the credit note in Xero directly. \
  This link should be displayed to the user.",
@@ -30,9 +30,38 @@ const CreateCreditNoteTool = CreateXeroTool(
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),
     reference: z.string().optional(),
+    type: z
+      .enum(["ACCRECCREDIT", "ACCPAYCREDIT"])
+      .optional()
+      .describe(
+        "ACCRECCREDIT (default) = customer credit / sales refund. ACCPAYCREDIT = vendor credit / supplier refund.",
+      ),
+    date: z
+      .string()
+      .optional()
+      .describe("Credit note date (YYYY-MM-DD). Defaults to today."),
+    currencyCode: z
+      .string()
+      .length(3)
+      .optional()
+      .describe("ISO 4217 currency code (e.g. USD)."),
+    currencyRate: z
+      .number()
+      .optional()
+      .describe("Exchange rate to org base currency. Only for foreign-currency credits."),
+    brandingThemeID: z
+      .string()
+      .optional()
+      .describe("Branding theme ID — controls which template Xero renders."),
   },
-  async ({ contactId, lineItems, reference }) => {
-    const result = await createXeroCreditNote(contactId, lineItems, reference);
+  async ({ contactId, lineItems, reference, type, date, currencyCode, currencyRate, brandingThemeID }) => {
+    const result = await createXeroCreditNote(contactId, lineItems, reference, {
+      type,
+      date,
+      currencyCode,
+      currencyRate,
+      brandingThemeID,
+    });
     if (result.isError) {
       return {
         content: [

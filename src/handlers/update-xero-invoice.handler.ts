@@ -3,6 +3,10 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import {
+  applyInvoiceExtras,
+  InvoiceExtras,
+} from "./create-xero-invoice.handler.js";
 
 interface InvoiceLineItem {
   description: string;
@@ -35,6 +39,7 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  extras?: InvoiceExtras,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -43,6 +48,8 @@ async function updateInvoice(
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
   };
+
+  if (extras) applyInvoiceExtras(invoice, extras);
 
   const response = await xeroClient.accountingApi.updateInvoice(
     xeroClient.tenantId,
@@ -68,6 +75,7 @@ export async function updateXeroInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  extras?: InvoiceExtras,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
@@ -90,6 +98,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      extras,
     );
 
     if (!updatedInvoice) {

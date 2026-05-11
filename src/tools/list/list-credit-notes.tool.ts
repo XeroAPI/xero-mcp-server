@@ -4,19 +4,24 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListCreditNotesTool = CreateXeroTool(
   "list-credit-notes",
-  `List credit notes in Xero. 
+  `List credit notes in Xero.
   Ask the user if they want to see credit notes for a specific contact,
-  or to see all credit notes before running. 
-  Ask the user if they want the next page of credit notes after running this tool 
-  if 10 credit notes are returned. 
-  If they want the next page, call this tool again with the next page number 
-  and the contact if one was provided in the previous call.`,
+  or to see all credit notes before running.
+  pageSize defaults to 10 and is capped at 100; raise it when scanning many credit notes in one call.
+  If a full page is returned, more may exist — call again with page+1.`,
   {
     page: z.number(),
     contactId: z.string().optional(),
+    pageSize: z
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .optional()
+      .describe("Optional page size (1–100). Defaults to 10."),
   },
-  async ({ page, contactId }) => {
-    const response = await listXeroCreditNotes(page, contactId);
+  async ({ page, contactId, pageSize }) => {
+    const response = await listXeroCreditNotes(page, contactId, pageSize);
     if (response.error !== null) {
       return {
         content: [
