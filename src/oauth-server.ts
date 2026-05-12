@@ -16,6 +16,10 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
 import {
+  InvalidTokenError,
+  ServerError,
+} from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import {
   AuthorizationParams,
   OAuthServerProvider,
 } from "@modelcontextprotocol/sdk/server/auth/provider.js";
@@ -109,7 +113,23 @@ class InMemoryClientsStore implements OAuthRegisteredClientsStore {
   private readonly store = new Map<string, OAuthClientInformationFull>();
 
   getClient(clientId: string): OAuthClientInformationFull | undefined {
-    return this.store.get(clientId);
+    const known = this.store.get(clientId);
+    if (known) return known;
+    // Stateless fallback: Cloud Run scales to zero and wipes this map. When
+    // Claude comes back with a client_id from a previous container, we
+    // synthesize a client object with the standard Claude callback URLs.
+    // Security gate is the redirect_uri allowlist + PKCE + our JWT signature
+    // (in exchangeAuthorizationCode / exchangeRefreshToken / verifyAccessToken),
+    // not the client_id value itself.
+    if (!/^[A-Za-z0-9_-]{1,128}$/.test(clientId)) return undefined;
+    return {
+      client_id: clientId,
+      client_id_issued_at: Math.floor(Date.now() / 1000),
+      redirect_uris: [...ALLOWED_CLAUDE_REDIRECTS],
+      token_endpoint_auth_method: "none",
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+    };
   }
 
   registerClient(
@@ -273,12 +293,22 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
         issuer: ISSUER,
         audience: AUDIENCE,
       }) as jwt.JwtPayload;
-    } catch {
-      throw new Error("invalid_token");
+    } catch (e) {
+      const msg = (e as Error).message ?? "verify failed";
+      console.error("[oauth] verifyAccessToken: jwt.verify rejected:", msg);
+      throw new InvalidTokenError(`Invalid bearer token: ${msg}`);
     }
-    if (payload.typ !== "access") throw new Error("invalid_token");
+    if (payload.typ !== "access") {
+      console.error("[oauth] verifyAccessToken: wrong typ:", payload.typ);
+      throw new InvalidTokenError("Wrong token type (expected access)");
+    }
     if (typeof payload.sub !== "string" || !isValidSub(payload.sub)) {
-      throw new Error("invalid_token");
+      console.error("[oauth] verifyAccessToken: bad sub:", payload.sub);
+      throw new InvalidTokenError("Token sub is missing or malformed");
+    }
+    if (typeof payload.exp !== "number") {
+      console.error("[oauth] verifyAccessToken: missing exp claim");
+      throw new InvalidTokenError("Token has no exp claim");
     }
     return {
       token,
@@ -479,10 +509,12 @@ export function createXeroCallbackRouter(
 export function buildMcpAuthRouter(
   provider: XeroChainedOAuthProvider,
   issuerUrl: URL,
+  resourceServerUrl: URL,
 ): RequestHandler {
   return mcpAuthRouter({
     provider,
     issuerUrl,
+    resourceServerUrl,
     scopesSupported: ["xero"],
   });
 }

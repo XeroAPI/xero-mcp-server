@@ -31,6 +31,14 @@ const ALLOWED_ORIGINS = new Set([
   "https://claude.com",
 ]);
 
+// Inline favicon shown in Claude Desktop's connector list and browser tabs.
+// Xero brand blue with a white X glyph; SVG accepted by Claude Desktop and
+// every modern browser when served as image/svg+xml at /favicon.ico.
+const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="32" fill="#13B5EA"/>
+  <path d="M22 22 L42 42 M42 22 L22 42" stroke="white" stroke-width="6" stroke-linecap="round"/>
+</svg>`;
+
 function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v) {
@@ -61,9 +69,11 @@ function corsMiddleware(
 async function main(): Promise<void> {
   const publicUrl = requireEnv("PUBLIC_URL").replace(/\/$/, "");
   const projectId = requireEnv("GCP_PROJECT");
-  const xeroClientId = requireEnv("XERO_APP_CLIENT_ID");
-  const xeroClientSecret = requireEnv("XERO_APP_CLIENT_SECRET");
-  const jwtSecret = requireEnv("MCP_JWT_SECRET");
+  // Trim trailing whitespace/newlines that Secret Manager preserves verbatim
+  // (e.g. `openssl rand -hex 32 | gcloud secrets create ...` leaves a \n).
+  const xeroClientId = requireEnv("XERO_APP_CLIENT_ID").trim();
+  const xeroClientSecret = requireEnv("XERO_APP_CLIENT_SECRET").trim();
+  const jwtSecret = requireEnv("MCP_JWT_SECRET").trim();
   const port = Number(process.env.PORT ?? 8080);
   const serverEntrypoint =
     process.env.MCP_SERVER_ENTRYPOINT ?? "/app/dist/index.js";
@@ -81,6 +91,9 @@ async function main(): Promise<void> {
 
   const app = express();
   app.disable("x-powered-by");
+  // Cloud Run sits behind Google's load balancer; trust its X-Forwarded-* so
+  // express-rate-limit and req.ip work, and to silence the validator errors.
+  app.set("trust proxy", 1);
   app.use(corsMiddleware);
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));
@@ -89,8 +102,24 @@ async function main(): Promise<void> {
     res.status(200).json({ status: "ok" });
   });
 
+  app.get("/status", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
+  app.get("/favicon.ico", (_req, res) => {
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.send(FAVICON_SVG);
+  });
+
   app.use(createXeroCallbackRouter(provider));
-  app.use(buildMcpAuthRouter(provider, new URL(publicUrl)));
+  app.use(
+    buildMcpAuthRouter(
+      provider,
+      new URL(publicUrl),
+      new URL(`${publicUrl}/mcp`),
+    ),
+  );
   app.use(
     buildMcpRouter({
       provider,

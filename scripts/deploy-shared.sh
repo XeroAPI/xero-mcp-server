@@ -67,7 +67,15 @@ gcloud projects add-iam-policy-binding "${PROJECT}" \
   --role="roles/secretmanager.admin" \
   --condition=None >/dev/null
 
-# 4. Deploy
+# 4. Compute the deterministic Cloud Run URL up-front so the container has a
+#    valid PUBLIC_URL on first boot. Cloud Run gives every service a stable
+#    URL of the form https://<service>-<project-number>.<region>.run.app
+#    (in addition to the randomly-suffixed default URL).
+PROJECT_NUMBER=$(gcloud projects describe "${PROJECT}" --format='value(projectNumber)')
+PUBLIC_URL="https://${SVC}-${PROJECT_NUMBER}.${REGION}.run.app"
+echo "computed PUBLIC_URL=${PUBLIC_URL}"
+
+# 5. Deploy
 gcloud run deploy "${SVC}" \
   --project="${PROJECT}" \
   --region="${REGION}" \
@@ -82,18 +90,9 @@ gcloud run deploy "${SVC}" \
   --memory=1Gi \
   --timeout=3600 \
   --set-secrets="XERO_APP_CLIENT_ID=xero-app-id:latest,XERO_APP_CLIENT_SECRET=xero-app-secret:latest,MCP_JWT_SECRET=mcp-jwt-secret:latest" \
-  --set-env-vars="GCP_PROJECT=${PROJECT}" \
-  --update-env-vars="PUBLIC_URL=__placeholder__"
+  --set-env-vars="GCP_PROJECT=${PROJECT},PUBLIC_URL=${PUBLIC_URL}"
 
-# 5. Now that we have the deployed URL, set PUBLIC_URL correctly + redeploy
-URL=$(gcloud run services describe "${SVC}" \
-  --project="${PROJECT}" --region="${REGION}" \
-  --format='value(status.url)')
-
-gcloud run services update "${SVC}" \
-  --project="${PROJECT}" \
-  --region="${REGION}" \
-  --update-env-vars="PUBLIC_URL=${URL}" >/dev/null
+URL="${PUBLIC_URL}"
 
 cat <<EOF
 
