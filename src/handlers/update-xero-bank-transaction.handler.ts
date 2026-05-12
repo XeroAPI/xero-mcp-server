@@ -1,6 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction, LineItemTracking } from "xero-node";
 
@@ -87,6 +88,9 @@ export async function updateXeroBankTransaction(
     if (!updatedBankTransaction) {
       throw new Error(`Failed to update bank transaction`);
     }
+
+    await postAuditNote("BankTransaction", updatedBankTransaction.bankTransactionID, "Updated");
+
 
     return {
       result: updatedBankTransaction,

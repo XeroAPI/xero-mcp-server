@@ -7,6 +7,7 @@ import {
   Schedule,
 } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 import {
   buildRepeatingInvoiceCurrency,
   RepeatingInvoiceLineItem,
@@ -105,6 +106,9 @@ export async function updateXeroRepeatingInvoice(
     if (!updated) {
       throw new Error("Repeating invoice update failed.");
     }
+
+    await postAuditNote("RepeatingInvoice", updated.repeatingInvoiceID, "Updated");
+
 
     return {
       result: updated,

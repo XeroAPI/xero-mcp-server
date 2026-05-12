@@ -15,10 +15,7 @@ import jwt from "jsonwebtoken";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
-import {
-  InvalidTokenError,
-  ServerError,
-} from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import { InvalidTokenError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import {
   AuthorizationParams,
   OAuthServerProvider,
@@ -75,6 +72,7 @@ type ClaudePending = {
 type IssuedCode = {
   clientId: string;
   sub: string;
+  name: string;
   codeChallenge: string;
   redirectUri: string;
   scopes?: string[];
@@ -100,6 +98,17 @@ function isValidSub(sub: string): boolean {
 
 function isValidClaudeRedirect(uri: string): boolean {
   return ALLOWED_CLAUDE_REDIRECTS.has(uri);
+}
+
+function resolveDisplayName(ui: {
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+  preferred_username?: string;
+  email?: string;
+}): string {
+  const composed = [ui.given_name, ui.family_name].filter(Boolean).join(" ").trim();
+  return composed || ui.name || ui.preferred_username || ui.email || "Unknown user";
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
@@ -263,7 +272,7 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     }
 
     issued.consumed = true;
-    return this.issueTokens(client.client_id, issued.sub);
+    return this.issueTokens(client.client_id, issued.sub, issued.name);
   }
 
   async exchangeRefreshToken(
@@ -283,7 +292,8 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     if (typeof payload.sub !== "string" || !isValidSub(payload.sub)) {
       throw new Error("invalid_grant");
     }
-    return this.issueTokens(client.client_id, payload.sub);
+    const name = typeof payload.name === "string" ? payload.name : "Unknown user";
+    return this.issueTokens(client.client_id, payload.sub, name);
   }
 
   async verifyAccessToken(token: string): Promise<AuthInfo> {
@@ -315,7 +325,10 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
       clientId: typeof payload.client_id === "string" ? payload.client_id : "",
       scopes: [],
       expiresAt: payload.exp,
-      extra: { sub: payload.sub },
+      extra: {
+        sub: payload.sub,
+        name: typeof payload.name === "string" ? payload.name : "Unknown user",
+      },
     };
   }
 
@@ -381,11 +394,17 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     const userinfo = (await uiResp.json()) as {
       xero_userid?: string;
       sub?: string;
+      given_name?: string;
+      family_name?: string;
+      name?: string;
+      preferred_username?: string;
+      email?: string;
     };
     const sub = userinfo.xero_userid ?? userinfo.sub;
     if (!sub || !isValidSub(sub)) {
       throw new Error("Xero userinfo did not return a valid xero_userid/sub");
     }
+    const name = resolveDisplayName(userinfo);
 
     await this.persistXeroRefreshToken(sub, tokens.refresh_token);
 
@@ -394,6 +413,7 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     this.issuedCodes.set(ourCode, {
       clientId: pending.claudeClientId,
       sub,
+      name,
       codeChallenge: pending.claudeCodeChallenge,
       redirectUri: pending.claudeRedirectUri,
       scopes: pending.claudeScopes,
@@ -432,11 +452,16 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     });
   }
 
-  private issueTokens(clientId: string, sub: string): OAuthTokens {
+  private issueTokens(
+    clientId: string,
+    sub: string,
+    name: string,
+  ): OAuthTokens {
     const now = Math.floor(Date.now() / 1000);
     const accessToken = jwt.sign(
       {
         sub,
+        name,
         typ: "access",
         client_id: clientId,
         iat: now,
@@ -448,6 +473,7 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     const refreshToken = jwt.sign(
       {
         sub,
+        name,
         typ: "refresh",
         client_id: clientId,
         iat: now,

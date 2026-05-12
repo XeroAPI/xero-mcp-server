@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Item, Items } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 interface ItemDetails {
   code: string;
@@ -68,6 +69,10 @@ export async function updateXeroItem(
 ): Promise<XeroClientResponse<Item | null>> {
   try {
     const item = await updateItem(itemId, itemDetails);
+
+    if (item) {
+      await postAuditNote("Item", item.itemID, "Updated");
+    }
 
     return {
       result: item,

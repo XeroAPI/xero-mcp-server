@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Address, Contact, ContactPerson, CurrencyCode, Phone } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 type AddressInput = {
   addressLine1: string;
@@ -168,6 +169,9 @@ export async function createXeroContact(
     if (!createdContact) {
       throw new Error("Contact creation failed.");
     }
+
+    await postAuditNote("Contact", createdContact.contactID, "Created");
+
 
     return {
       result: createdContact,

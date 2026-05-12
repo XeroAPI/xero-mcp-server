@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Contact, ContactPerson, Phone, Address, Contacts } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 import {
   applyContactExtras,
   ContactExtras,
@@ -165,6 +166,9 @@ export async function updateXeroContact(
     if (!updatedContact) {
       throw new Error("Contact update failed.");
     }
+
+    await postAuditNote("Contact", updatedContact.contactID, "Updated");
+
 
     return {
       result: updatedContact,

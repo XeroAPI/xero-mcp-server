@@ -92,7 +92,8 @@ export function buildMcpRouter(config: McpHandlerConfig): Router {
         return;
       }
       try {
-        session = await openSession({ sub, config, sessions });
+        const name = readNameFromAuth(req);
+        session = await openSession({ sub, name, config, sessions });
       } catch (e) {
         const msg = (e as Error).message ?? "failed to start session";
         if (!res.headersSent) {
@@ -140,12 +141,18 @@ function readSubFromAuth(req: Request): string | undefined {
   return typeof sub === "string" ? sub : undefined;
 }
 
+function readNameFromAuth(req: Request): string {
+  const name = req.auth?.extra?.["name"];
+  return typeof name === "string" && name.length > 0 ? name : "Unknown user";
+}
+
 async function openSession(args: {
   sub: string;
+  name: string;
   config: McpHandlerConfig;
   sessions: Map<string, Session>;
 }): Promise<Session> {
-  const { sub, config, sessions } = args;
+  const { sub, name, config, sessions } = args;
 
   const http = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => randomUUID(),
@@ -159,6 +166,7 @@ async function openSession(args: {
       XERO_APP_CLIENT_ID: config.xeroAppClientId,
       XERO_APP_CLIENT_SECRET: config.xeroAppClientSecret,
       XERO_REFRESH_TOKEN_SECRET_NAME: `projects/${config.projectId}/secrets/xero-refresh-token-${sub}`,
+      XERO_USER_NAME: name,
     },
     stderr: "inherit",
   });

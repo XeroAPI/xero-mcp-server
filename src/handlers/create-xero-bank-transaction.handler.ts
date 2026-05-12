@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction, LineItemTracking } from "xero-node";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 interface BankTransactionLineItem {
   description: string;
@@ -69,6 +70,9 @@ export async function createXeroBankTransaction(
     if (!createdTransaction) {
       throw new Error("Bank transaction creation failed.");
     }
+
+    await postAuditNote("BankTransaction", createdTransaction.bankTransactionID, "Created");
+
 
     return {
       result: createdTransaction,

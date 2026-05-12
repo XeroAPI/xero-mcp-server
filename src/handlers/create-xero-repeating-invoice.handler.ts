@@ -9,6 +9,7 @@ import {
   Schedule,
 } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 export interface RepeatingInvoiceLineItem {
   description: string;
@@ -123,6 +124,9 @@ export async function createXeroRepeatingInvoice(
     if (!created) {
       throw new Error("Repeating invoice creation failed.");
     }
+
+    await postAuditNote("RepeatingInvoice", created.repeatingInvoiceID, "Created");
+
 
     return {
       result: created,

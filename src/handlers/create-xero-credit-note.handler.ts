@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote, CurrencyCode, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 interface CreditNoteLineItem {
   description: string;
@@ -100,6 +101,9 @@ export async function createXeroCreditNote(
     if (!createdCreditNote) {
       throw new Error("Credit note creation failed.");
     }
+
+    await postAuditNote("CreditNote", createdCreditNote.creditNoteID, "Created");
+
 
     return {
       result: createdCreditNote,

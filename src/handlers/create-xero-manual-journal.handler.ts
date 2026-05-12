@@ -8,6 +8,7 @@ import { xeroClient } from "../clients/xero-client.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 async function createManualJournal(
   narration: string,
@@ -85,6 +86,9 @@ export async function createXeroManualJournal(
     if (!createdManualJournal) {
       throw new Error("Manual journal creation failed.");
     }
+
+    await postAuditNote("ManualJournal", createdManualJournal.manualJournalID, "Created");
+
 
     return {
       result: createdManualJournal,

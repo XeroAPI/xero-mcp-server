@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 import {
   applyInvoiceExtras,
   InvoiceExtras,
@@ -104,6 +105,8 @@ export async function updateXeroInvoice(
     if (!updatedInvoice) {
       throw new Error("Invoice update failed.");
     }
+
+    await postAuditNote("Invoice", updatedInvoice.invoiceID, "Updated");
 
     return {
       result: updatedInvoice,

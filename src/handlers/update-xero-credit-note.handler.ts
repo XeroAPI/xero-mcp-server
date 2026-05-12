@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 import {
   applyCreditNoteCurrency,
   CreditNoteUpdateExtras,
@@ -101,6 +102,9 @@ export async function updateXeroCreditNote(
     if (!updatedCreditNote) {
       throw new Error("Credit note update failed.");
     }
+
+    await postAuditNote("CreditNote", updatedCreditNote.creditNoteID, "Updated");
+
 
     return {
       result: updatedCreditNote,

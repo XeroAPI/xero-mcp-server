@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CurrencyCode, Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 interface InvoiceLineItem {
   description: string;
@@ -107,6 +108,8 @@ export async function createXeroInvoice(
     if (!createdInvoice) {
       throw new Error("Invoice creation failed.");
     }
+
+    await postAuditNote("Invoice", createdInvoice.invoiceID, "Created");
 
     return {
       result: createdInvoice,

@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { LineItemTracking, Quote, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { postAuditNote } from "../helpers/post-audit-note.js";
 
 interface QuoteLineItem {
   description: string;
@@ -123,6 +124,9 @@ export async function updateXeroQuote(
     if (!updatedQuote) {
       throw new Error("Quote update failed.");
     }
+
+    await postAuditNote("Quote", updatedQuote.quoteID, "Updated");
+
 
     return {
       result: updatedQuote,
