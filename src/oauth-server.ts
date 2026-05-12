@@ -76,7 +76,6 @@ type IssuedCode = {
   codeChallenge: string;
   redirectUri: string;
   scopes?: string[];
-  consumed: boolean;
   createdAt: number;
 };
 
@@ -256,12 +255,10 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
   ): Promise<OAuthTokens> {
     const issued = this.issuedCodes.get(authorizationCode);
     if (!issued) throw new Error("invalid_grant");
-    if (issued.consumed) {
-      this.issuedCodes.delete(authorizationCode);
-      throw new Error("invalid_grant");
-    }
+    // Delete first so any concurrent re-use lands on the !issued branch and is
+    // rejected, instead of relying on a `consumed` flag that lives in the map.
+    this.issuedCodes.delete(authorizationCode);
     if (Date.now() - issued.createdAt > CODE_TTL_MS) {
-      this.issuedCodes.delete(authorizationCode);
       throw new Error("invalid_grant");
     }
     if (!constantTimeEqual(issued.clientId, client.client_id)) {
@@ -271,7 +268,6 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
       throw new Error("invalid_grant");
     }
 
-    issued.consumed = true;
     return this.issueTokens(client.client_id, issued.sub, issued.name);
   }
 
@@ -346,6 +342,9 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
     const pending = this.pendingState.get(state);
     if (!pending) throw new Error("Unknown state");
     this.pendingState.delete(state);
+    if (Date.now() - pending.createdAt > STATE_TTL_MS) {
+      throw new Error("Expired state");
+    }
 
     if (errorParam) {
       const url = new URL(pending.claudeRedirectUri);
@@ -417,7 +416,6 @@ export class XeroChainedOAuthProvider implements OAuthServerProvider {
       codeChallenge: pending.claudeCodeChallenge,
       redirectUri: pending.claudeRedirectUri,
       scopes: pending.claudeScopes,
-      consumed: false,
       createdAt: Date.now(),
     });
 

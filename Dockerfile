@@ -12,5 +12,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts \
     && npm cache clean --force
 COPY --from=builder /app/dist ./dist
+RUN chown -R node:node /app
+USER node
 EXPOSE 8080
 CMD ["node", "/app/dist/cloud-run-entrypoint.js"]
