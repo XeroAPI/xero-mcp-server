@@ -1,8 +1,8 @@
 # SwiftOtter team hosting — onboarding runbook
 
-Goal: every teammate connects to the **shared** `xero-mcp` Cloud Run service from Claude Desktop as a custom connector. The first time they click Connect, Claude opens a browser tab and they sign in at Xero. From then on it Just Works. Each Xero call is made with that teammate's own user identity, so Xero's History & Notes shows their real name on every action.
+Goal: every teammate connects to the **shared** `xero-mcp` Cloud Run service from Claude Desktop as a custom connector. The first time they click Connect, Claude opens a browser tab and they sign in at Xero. From then on it Just Works.
 
-The full design is in `/Users/bassplayer7/.claude-code/plans/what-s-the-best-way-place-dreamy-owl.md`.
+> Looking for how to **deploy updates** or **troubleshoot** the running service? See [`DEPLOY.md`](./DEPLOY.md). This doc covers the one-time setup and per-teammate onboarding flow only.
 
 ## Pieces
 
@@ -58,17 +58,16 @@ The full design is in `/Users/bassplayer7/.claude-code/plans/what-s-the-best-way
 
 Send the team a single message:
 
-> Open Claude Desktop → **Settings → Connectors → Add custom connector**. Paste this URL: `<service URL>`. Click **Connect**. A browser pops open — sign in to Xero as yourself, approve the SwiftOtter MCP app, done.
+> Open Claude Desktop → **Settings → Connectors → Add custom connector**. Paste this URL: `https://xero-mcp-1074937591843.us-central1.run.app/mcp`. Click **Connect**. A browser pops open — sign in to Xero as yourself, approve the SwiftOtter MCP app, done.
 
 That's the entire setup. No CLI, no config files, no shared tokens.
 
 ## Verification (first time only)
 
-- [ ] `curl <service URL>/healthz` returns `{"status":"ok"}` — confirms the service is up
-- [ ] `curl <service URL>/.well-known/oauth-authorization-server | jq` returns the OAuth metadata document
+- [ ] `curl https://xero-mcp-1074937591843.us-central1.run.app/status` returns `{"status":"ok"}` — confirms the service is up (note: `/healthz` is reserved by Cloud Run's frontend and 404s, use `/status` instead)
+- [ ] `curl https://xero-mcp-1074937591843.us-central1.run.app/.well-known/oauth-authorization-server | jq` returns the OAuth metadata document
 - [ ] Add the connector in Claude Desktop yourself, walk the OAuth flow, run `list_contacts` — should return SwiftOtter contacts
-- [ ] Ask Claude to create a test invoice. In Xero → History & Notes on the invoice, confirm the actor reads "Jesse Maxwell" (or whoever you signed in as). This is the key audit check.
-- [ ] Repeat for a second teammate (Brandon). His invoices should show "Brandon Eckenrode". Confirms per-user isolation.
+- [ ] Ask Claude to create a test invoice. Then look at Xero → History & Notes on that invoice. **Known limitation:** the History row will show `System Generated, MCP for Accounting Software (Xr)` rather than the teammate's name. Xero attributes API actions to the OAuth app, not to the user who authorized — this is by design on Xero's side, not a server bug. See [`DEPLOY.md`](./DEPLOY.md) for the three options (live with it, one-app-per-user, or auto-post a History note naming the user).
 
 ## Rotating credentials
 
@@ -103,7 +102,7 @@ Additionally, remove their Xero org membership in developer.xero.com / Xero org 
 - **Transport:** HTTPS (Cloud Run terminates TLS, HSTS on by default)
 - **Outer auth (Claude Desktop ↔ Cloud Run):** OAuth 2.1 with PKCE S256, JWT bearer tokens (HS256, 1 h access, 30 d refresh), Dynamic Client Registration per the MCP spec
 - **Inner auth (Cloud Run ↔ Xero):** OAuth 2.0 Authorization Code with PKCE — refresh tokens persist in Secret Manager
-- **Audit trail:** every Xero API call uses the caller's own refresh token, so Xero History & Notes shows real user names
+- **Audit trail:** every Xero API call uses the caller's own refresh token, BUT Xero attributes API actions to the app name (`MCP for Accounting Software`) in History & Notes — not the OAuth user. This is a Xero platform behavior, not a server bug. Cloud Logging records `sub → tool` calls as a workaround for server-side audit. See [`DEPLOY.md`](./DEPLOY.md) for options to get real-name attribution if needed.
 - **Tenant isolation:** each MCP session spawns a fresh child process with only that user's env vars; sessions cannot read each other's data
 - **Token storage on user laptops:** Claude Desktop's encrypted credential store (per Anthropic's MCP spec, never written to plain config files)
 - **Revocation:** delete a user's `xero-refresh-token-<sub>` secret; their access fails within 1 h
@@ -113,7 +112,7 @@ Additionally, remove their Xero org membership in developer.xero.com / Xero org 
 
 Two GitHub Actions workflows ship in `.github/workflows/`:
 
-- **`ci.yaml`** — runs on every PR + push to `main`. Lints, type-checks, builds the TypeScript, runs the Docker build + a "container stays up + supergateway listens" smoke test.
+- **`ci.yaml`** — runs on every PR + push to `main`. Lints, builds the TypeScript, runs the Docker build + a `/status`-based smoke test.
 - **`deploy.yaml`** — runs on push to `main` (or via `workflow_dispatch`). Submits Cloud Build to push `<region>-docker.pkg.dev/$PROJECT/xero-mcp/server:<sha>`, retags `:latest`, then `gcloud run services update xero-mcp` so the new image rolls out.
 
 The deploy workflow expects a single repo secret: `GCP_SA_KEY` (the deployer service-account JSON). The deployer SA needs: `roles/cloudbuild.builds.editor`, `roles/artifactregistry.writer`, `roles/run.admin`, `roles/iam.serviceAccountUser` (on the runner SA), `roles/logging.viewer`. Setup commands are in the project root or run them by hand following the pattern in `swiftotter/verdict` and `swiftotter/cove`.
