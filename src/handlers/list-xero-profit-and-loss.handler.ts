@@ -65,6 +65,7 @@ export async function listXeroProfitAndLoss(
       toDate,
       periods,
       timeframe,
+      standardLayout,
       paymentsOnly,
     );
 
