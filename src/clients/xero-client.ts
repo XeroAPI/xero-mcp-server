@@ -45,9 +45,12 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
+    // Granular Xero scopes — broad accounting.transactions / accounting.reports.read
+    // were deprecated for apps created on or after 2026-03-02.
+    // See https://developer.xero.com/faq/granular-scopes
     const scope =
       process.env.XERO_SCOPES ||
-      "accounting.transactions accounting.contacts accounting.settings accounting.reports.read accounting.attachments payroll.settings payroll.employees payroll.timesheets";
+      "accounting.contacts accounting.settings accounting.attachments accounting.invoices accounting.payments accounting.banktransactions accounting.manualjournals accounting.reports.profitandloss.read accounting.reports.balancesheet.read accounting.reports.trialbalance.read";
     const credentials = Buffer.from(
       `${this.clientId}:${this.clientSecret}`,
     ).toString("base64");

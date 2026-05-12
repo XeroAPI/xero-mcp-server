@@ -25,12 +25,16 @@
     "@google-cloud/secret-manager": "^6.1.2",
     "@modelcontextprotocol/sdk": "^1.23.4",
     "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "openid-client": "^6.8.1",
     "xero-node": "^13.3.0",
     "zod": "3.25"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.10",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",

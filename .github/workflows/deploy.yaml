@@ -15,10 +15,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  GCP_PROJECT: swiftotter-xero-mcp
+  GCP_PROJECT: internal-mcps-496022
   GCP_REGION: us-central1
   ARTIFACT_REPO: xero-mcp
   IMAGE_NAME: server
+  SERVICE_NAME: xero-mcp
 
 jobs:
   build-and-push:
@@ -77,14 +78,11 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   rollout:
-    name: Roll out to all xero-mcp-* services
+    name: Roll out the shared xero-mcp service
     needs: build-and-push
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -93,13 +91,13 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Roll image to all per-user services
-        env:
-          GCP_PROJECT: ${{ env.GCP_PROJECT }}
-          GCP_REGION: ${{ env.GCP_REGION }}
+      - name: Update Cloud Run service to new image
         run: |
-          chmod +x scripts/redeploy-all.sh
-          scripts/redeploy-all.sh "${{ needs.build-and-push.outputs.image }}"
+          gcloud run services update "${{ env.SERVICE_NAME }}" \
+            --project="${{ env.GCP_PROJECT }}" \
+            --region="${{ env.GCP_REGION }}" \
+            --image="${{ needs.build-and-push.outputs.image }}" \
+            --quiet
 
       - name: Rollout summary
         if: always()
@@ -107,6 +105,7 @@ jobs:
           {
             echo "## Rollout"
             echo ""
+            echo "- **Service:** \`${{ env.SERVICE_NAME }}\`"
             echo "- **Image:** \`${{ needs.build-and-push.outputs.image }}\`"
             echo "- **Status:** ${{ job.status }}"
           } >> "$GITHUB_STEP_SUMMARY"
