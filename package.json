@@ -18,6 +18,8 @@
     "build": "tsc && shx chmod +x dist/*.js",
     "prepare": "npm run build",
     "watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint:fix": "eslint --fix",
     "lint": "eslint ."
   },
@@ -37,6 +39,7 @@
     "prettier": "3.7.4",
     "shx": "^0.3.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "typescript-eslint": "^8.48.1",
+    "vitest": "^4.1.5"
   }
 }
