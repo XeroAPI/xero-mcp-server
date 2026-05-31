@@ -89,7 +89,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     "payroll.timesheets",
   ].join(" ");
 
-  // Granular scopes (required for new apps)
+  // Granular scopes (required for new apps post-April 2025)
   private readonly XERO_DEFAULT_AUTH_SCOPES_V2 = [
     "accounting.invoices",
     "accounting.payments",
@@ -143,8 +143,12 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
         axiosError.response?.status === 400 &&
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (axiosError.response?.data as any)?.error === "invalid_scope";
+      // Also fallback for other non-credential errors (e.g. 401 from new connections using deprecated V1 scopes)
+      const isCredentialError =
+        axiosError.response?.status === 401 ||
+        axiosError.response?.status === 403;
 
-      if (!isInvalidScope) {
+      if (!isInvalidScope && !isCredentialError) {
         throw this.formatTokenError(error, " with V1 scopes");
       }
 
