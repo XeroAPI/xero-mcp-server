@@ -1,40 +1,32 @@
-import { Timesheet } from "xero-node/dist/gen/model/payroll-nz/timesheet.js";
+import { NzTimesheet } from "../types/payroll-nz-types.js";
+import { AuV2Timesheet } from "../types/payroll-au-v2-types.js";
 
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
-async function revertTimesheet(timesheetID: string): Promise<Timesheet | null> {
-  await xeroClient.authenticate();
-
-  // Call the revertTimesheet endpoint from the PayrollNZApi
-  const revertedTimesheet = await xeroClient.payrollNZApi.revertTimesheet(
-    xeroClient.tenantId,
-    timesheetID,
-  );
-
-  return revertedTimesheet.body.timesheet ?? null;
-}
-
-/**
- * Revert a payroll timesheet to draft in Xero
- */
-export async function revertXeroPayrollTimesheet(timesheetID: string): Promise<
-  XeroClientResponse<Timesheet | null>
-> {
+export async function revertXeroPayrollTimesheet(
+  timesheetID: string,
+): Promise<XeroClientResponse<NzTimesheet | AuV2Timesheet | null>> {
   try {
-    const revertedTimesheet = await revertTimesheet(timesheetID);
+    await xeroClient.authenticate();
+    const region = await xeroClient.getRegion();
 
-    return {
-      result: revertedTimesheet,
-      isError: false,
-      error: null,
-    };
+    let result: NzTimesheet | AuV2Timesheet | null;
+
+    if (region === "AU") {
+      const res = await xeroClient.payrollAUV2Api.revertTimesheet(xeroClient.tenantId, timesheetID);
+      result = res.body.timesheet ?? null;
+    } else if (region === "UK") {
+      const res = await xeroClient.payrollUKApi.revertTimesheet(xeroClient.tenantId, timesheetID);
+      result = (res.body.timesheet ?? null) as unknown as NzTimesheet | null;
+    } else {
+      const res = await xeroClient.payrollNZApi.revertTimesheet(xeroClient.tenantId, timesheetID);
+      result = res.body.timesheet ?? null;
+    }
+
+    return { result, isError: false, error: null };
   } catch (error) {
-    return {
-      result: null,
-      isError: true,
-      error: formatError(error),
-    };
+    return { result: null, isError: true, error: formatError(error) };
   }
 }
