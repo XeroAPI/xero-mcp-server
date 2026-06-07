@@ -8,6 +8,7 @@ async function getInvoices(
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
   page: number,
+  pageSize: number = 10,
 ): Promise<Invoice[]> {
   await xeroClient.authenticate();
 
@@ -25,7 +26,7 @@ async function getInvoices(
     false, // createdByMyApp
     undefined, // unitdp
     false, // summaryOnly
-    10, // pageSize
+    pageSize, // pageSize
     undefined, // searchTerm
     getClientHeaders(),
   );
@@ -39,9 +40,10 @@ export async function listXeroInvoices(
   page: number = 1,
   contactIds?: string[],
   invoiceNumbers?: string[],
+  pageSize: number = 10,
 ): Promise<XeroClientResponse<Invoice[]>> {
   try {
-    const invoices = await getInvoices(invoiceNumbers, contactIds, page);
+    const invoices = await getInvoices(invoiceNumbers, contactIds, page, pageSize);
 
     return {
       result: invoices,
