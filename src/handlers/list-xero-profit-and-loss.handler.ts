@@ -1,24 +1,30 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
+import { ListProfitAndLossParams } from "../types/list-profit-and-loss-params.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { ReportWithRow } from "xero-node";
-
-// Define the valid timeframe options
-type TimeframeType = "MONTH" | "QUARTER" | "YEAR" | undefined;
 
 /**
  * Internal function to fetch profit and loss data from Xero
  */
 async function fetchProfitAndLoss(
-  fromDate?: string,
-  toDate?: string,
-  periods?: number,
-  timeframe?: TimeframeType,
-  standardLayout?: boolean,
-  paymentsOnly?: boolean,
+  params: ListProfitAndLossParams,
 ): Promise<ReportWithRow | null> {
   await xeroClient.authenticate();
+
+  const {
+    fromDate,
+    toDate,
+    periods,
+    timeframe,
+    trackingCategoryID,
+    trackingOptionID,
+    trackingCategoryID2,
+    trackingOptionID2,
+    standardLayout,
+    paymentsOnly,
+  } = params;
 
   const response = await xeroClient.accountingApi.getReportProfitAndLoss(
     xeroClient.tenantId,
@@ -26,10 +32,10 @@ async function fetchProfitAndLoss(
     toDate,
     periods,
     timeframe,
-    undefined, // trackingCategoryID
-    undefined, // trackingOptionID
-    undefined, // trackingCategoryID2
-    undefined, // trackingOptionID2
+    trackingCategoryID,
+    trackingCategoryID2,
+    trackingOptionID,
+    trackingOptionID2,
     standardLayout,
     paymentsOnly,
     getClientHeaders(),
@@ -40,33 +46,23 @@ async function fetchProfitAndLoss(
 
 /**
  * List profit and loss report from Xero
- * @param fromDate Optional start date for the report (YYYY-MM-DD)
- * @param toDate Optional end date for the report (YYYY-MM-DD)
- * @param periods Optional number of periods for the report
- * @param timeframe Optional timeframe for the report (MONTH, QUARTER, YEAR)
- * @param trackingCategoryID Optional tracking category ID
- * @param trackingOptionID Optional tracking option ID
- * @param trackingCategoryID2 Optional second tracking category ID
- * @param trackingOptionID2 Optional second tracking option ID
- * @param standardLayout Optional boolean to use standard layout
- * @param paymentsOnly Optional boolean to include only accounts with payments
+ * @param params Optional parameters for the report:
+ *  - fromDate: Optional start date for the report (YYYY-MM-DD)
+ *  - toDate: Optional end date for the report (YYYY-MM-DD)
+ *  - periods: Optional number of periods for the report
+ *  - timeframe: Optional timeframe for the report (MONTH, QUARTER, YEAR)
+ *  - trackingCategoryID: Optional tracking category ID
+ *  - trackingOptionID: Optional tracking option ID
+ *  - trackingCategoryID2: Optional second tracking category ID
+ *  - trackingOptionID2: Optional second tracking option ID
+ *  - standardLayout: Optional boolean to use standard layout
+ *  - paymentsOnly: Optional boolean to include only accounts with payments
  */
 export async function listXeroProfitAndLoss(
-  fromDate?: string,
-  toDate?: string,
-  periods?: number,
-  timeframe?: TimeframeType,
-  standardLayout?: boolean,
-  paymentsOnly?: boolean,
+  params: ListProfitAndLossParams,
 ): Promise<XeroClientResponse<ReportWithRow>> {
   try {
-    const profitAndLoss = await fetchProfitAndLoss(
-      fromDate,
-      toDate,
-      periods,
-      timeframe,
-      paymentsOnly,
-    );
+    const profitAndLoss = await fetchProfitAndLoss(params);
 
     if (!profitAndLoss) {
       return {
@@ -88,4 +84,4 @@ export async function listXeroProfitAndLoss(
       error: formatError(error),
     };
   }
-} 
+}
