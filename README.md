@@ -53,8 +53,8 @@ Custom connections require different scopes depending on when they were created.
 
 | Custom Connection Created | Required Scopes |
 |---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L91) (bundled permissions) |
+| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L94-L109) (granular permissions) |
 
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
@@ -129,6 +129,8 @@ accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
 accounting.contacts 
 accounting.settings 
+assets
+assets.read
 payroll.settings 
 payroll.employees 
 payroll.timesheets
@@ -138,6 +140,8 @@ payroll.timesheets
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
+- `list-assets`: Retrieve a list of assets
+- `list-asset-types`: Retrieve a list of assets types
 - `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
 - `list-invoices`: Retrieve a list of invoices
@@ -162,6 +166,7 @@ payroll.timesheets
 - `list-aged-payables-by-contact`: Retrieves aged payables for a contact
 - `list-contact-groups`: Retrieve a list of contact groups
 - `list-tracking-categories`: Retrieve a list of tracking categories
+- `create-asset`: Create a new asset
 - `create-bank-transaction`: Create a new bank transaction
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
@@ -173,6 +178,7 @@ payroll.timesheets
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
+- `update-asset`: Update an asset
 - `update-bank-transaction`: Update an existing bank transaction
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
