@@ -8,7 +8,8 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 const GetPayrollTimesheetTool = CreateXeroTool(
   "get-timesheet",
   `Retrieve a single payroll timesheet from Xero by its ID.
-This provides details such as the timesheet ID, employee ID, start and end dates, total hours, and the last updated date.`,
+This provides details such as the timesheet ID, employee ID, start and end dates, total hours, and the last updated date.
+Supports AU, NZ, and UK payroll regions. The organisation's region is auto-detected.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to retrieve."),
   },
@@ -40,20 +41,14 @@ This provides details such as the timesheet ID, employee ID, start and end dates
       };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ts = timesheet as any;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: [
-            `Timesheet ID: ${timesheet.timesheetID}`,
-            `Employee ID: ${timesheet.employeeID}`,
-            `Start Date: ${timesheet.startDate}`,
-            `End Date: ${timesheet.endDate}`,
-            `Total Hours: ${timesheet.totalHours}`,
-            `Last Updated: ${timesheet.updatedDateUTC}`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+          text: JSON.stringify(ts, null, 2),
         },
       ],
     };
