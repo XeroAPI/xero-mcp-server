@@ -16,6 +16,7 @@
   ],
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
+    "auth": "npm run build && node dist/auth.js",
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "test": "vitest run",

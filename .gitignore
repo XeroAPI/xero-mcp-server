@@ -142,3 +142,6 @@ dist
 
 # Cursor IDE
 .cursor/
+
+# Xero web-auth persisted tokenset (contains refresh/access tokens)
+.xero-tokenset.json

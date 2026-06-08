@@ -4,7 +4,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 ## Features
 
-- Xero OAuth2 authentication with custom connections
+- Xero OAuth2 authentication (custom connections, bearer token, or web authorization-code flow)
 - Contact management
 - Chart of Accounts management
 - Invoice creation and management
@@ -36,7 +36,7 @@ NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
 
 ### Authentication
 
-There are 2 modes of authentication supported in the Xero MCP server:
+There are 3 modes of authentication supported in the Xero MCP server: Custom Connections, Bearer Token, and Web (Authorization Code).
 
 #### 1. Custom Connections
 
@@ -133,6 +133,60 @@ payroll.settings
 payroll.employees 
 payroll.timesheets
 ```
+
+#### 3. Web (Authorization Code)
+
+Standard OAuth2 Authorization Code flow with a refresh token, persisted to disk.
+Use this when Custom Connections won't work (e.g. you need `offline_access` /
+refresh-backed access, which is **not valid** for the `client_credentials`
+grant Custom Connections use). A one-time browser consent is performed via the
+bundled `npm run auth` CLI; afterwards the server runs headless and refreshes
+the access token automatically.
+
+**Setup**
+
+1. In your app at <https://developer.xero.com> → **Configuration**, add the
+   redirect URI (default `http://localhost:5000/callback`).
+2. Configure the env (MCP config or a local `.env`):
+
+```json
+{
+  "mcpServers": {
+    "xero": {
+      "command": "npx",
+      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "env": {
+        "XERO_AUTH_MODE": "web",
+        "XERO_CLIENT_ID": "your_client_id_here",
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "XERO_REDIRECT_URI": "http://localhost:5000/callback",
+        "XERO_SCOPES": "offline_access accounting.transactions accounting.contacts accounting.attachments accounting.settings"
+      }
+    }
+  }
+}
+```
+
+3. Run the one-time consent (from the cloned repo, with the same env set):
+
+```bash
+npm run auth
+```
+
+This opens the consent screen, captures the redirect on a temporary local
+server, and writes the tokenset to `.xero-tokenset.json` (override with
+`XERO_TOKENSET_PATH`). Re-authenticate at any time by deleting that file and
+re-running `npm run auth`.
+
+**Web-auth env vars**
+
+| Var | Purpose | Default |
+|-----|---------|---------|
+| `XERO_AUTH_MODE` | `web` selects this mode | unset → custom/bearer |
+| `XERO_REDIRECT_URI` | OAuth redirect (must be registered in Xero) | `http://localhost:5000/callback` |
+| `XERO_SCOPES` | space-separated; **must include** `offline_access` | granular accounting scopes |
+| `XERO_TOKENSET_PATH` | tokenset file location | `<repo>/.xero-tokenset.json` |
+| `XERO_TENANT_ID` | pin a specific org | first connected tenant |
 
 
 ### Available MCP Commands
