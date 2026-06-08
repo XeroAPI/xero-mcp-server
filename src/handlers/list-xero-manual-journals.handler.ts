@@ -8,6 +8,7 @@ async function getManualJournals(
   page: number,
   manualJournalId?: string,
   modifiedAfter?: string,
+  pageSize: number = 10,
 ): Promise<ManualJournal[]> {
   await xeroClient.authenticate();
 
@@ -27,7 +28,7 @@ async function getManualJournals(
     undefined,
     "UpdatedDateUTC DESC",
     page,
-    10, // pageSize
+    pageSize, // pageSize
     getClientHeaders(),
   );
 
@@ -41,12 +42,14 @@ export async function listXeroManualJournals(
   page: number = 1,
   manualJournalId?: string,
   modifiedAfter?: string,
+  pageSize: number = 10,
 ): Promise<XeroClientResponse<ManualJournal[]>> {
   try {
     const manualJournals = await getManualJournals(
       page,
       manualJournalId,
       modifiedAfter,
+      pageSize,
     );
 
     return {

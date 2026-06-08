@@ -14,9 +14,10 @@ const ListCreditNotesTool = CreateXeroTool(
   {
     page: z.number(),
     contactId: z.string().optional(),
+    pageSize: z.number().min(1).max(100).default(10).optional().describe("Number of results per page (1-100, default 10)"),
   },
-  async ({ page, contactId }) => {
-    const response = await listXeroCreditNotes(page, contactId);
+  async ({ page, contactId, pageSize }) => {
+    const response = await listXeroCreditNotes(page, contactId, pageSize);
     if (response.error !== null) {
       return {
         content: [

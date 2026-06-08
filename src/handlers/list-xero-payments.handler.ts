@@ -6,6 +6,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getPayments(
   page: number = 1,
+  pageSize: number = 10,
   {
     invoiceNumber,
     invoiceId,
@@ -46,7 +47,7 @@ async function getPayments(
     where,
     "UpdatedDateUTC DESC", // order
     page, // page
-    10, // pageSize
+    pageSize, // pageSize
     getClientHeaders(), // options
   );
 
@@ -69,9 +70,10 @@ export async function listXeroPayments(
     paymentId?: string;
     reference?: string;
   },
+  pageSize: number = 10,
 ): Promise<XeroClientResponse<Payment[]>> {
   try {
-    const payments = await getPayments(page, {
+    const payments = await getPayments(page, pageSize, {
       invoiceNumber,
       invoiceId,
       paymentId,

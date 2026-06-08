@@ -48,18 +48,19 @@ const ListPaymentsTool = CreateXeroTool(
   If many payments are returned, ask the user if they want to see the next page.`,
   {
     page: z.number().default(1),
+    pageSize: z.number().min(1).max(100).default(10).optional().describe("Number of results per page (1-100, default 10)"),
     invoiceNumber: z.string().optional(),
     invoiceId: z.string().optional(),
     paymentId: z.string().optional(),
     reference: z.string().optional(),
   },
-  async ({ page, invoiceNumber, invoiceId, paymentId, reference }) => {
+  async ({ page, pageSize, invoiceNumber, invoiceId, paymentId, reference }) => {
     const response = await listXeroPayments(page, {
       invoiceNumber,
       invoiceId,
       paymentId,
       reference,
-    });
+    }, pageSize);
 
     if (response.error !== null) {
       return {

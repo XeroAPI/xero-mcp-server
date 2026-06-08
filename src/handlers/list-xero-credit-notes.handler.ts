@@ -7,6 +7,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 async function getCreditNotes(
   contactId: string | undefined,
   page: number,
+  pageSize: number = 10,
 ): Promise<CreditNote[]> {
   await xeroClient.authenticate();
 
@@ -17,7 +18,7 @@ async function getCreditNotes(
     "UpdatedDateUTC DESC", // order
     page, // page
     undefined, // unitdp
-    10, // pageSize
+    pageSize, // pageSize
     getClientHeaders(),
   );
 
@@ -30,9 +31,10 @@ async function getCreditNotes(
 export async function listXeroCreditNotes(
   page: number = 1,
   contactId?: string,
+  pageSize: number = 10,
 ): Promise<XeroClientResponse<CreditNote[]>> {
   try {
-    const creditNotes = await getCreditNotes(contactId, page);
+    const creditNotes = await getCreditNotes(contactId, page, pageSize);
 
     return {
       result: creditNotes,
