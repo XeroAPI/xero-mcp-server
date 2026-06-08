@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { loadTokenSet, saveTokenSet } from "./token-store.js";
 
 dotenv.config();
 
@@ -15,8 +16,32 @@ const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
 const grant_type = "client_credentials";
+// "web" | "custom" | "bearer". Unset preserves the original behaviour
+// (bearer if a bearer token is set, otherwise custom connections).
+const auth_mode = (process.env.XERO_AUTH_MODE || "").toLowerCase();
+const redirect_uri =
+  process.env.XERO_REDIRECT_URI || "http://localhost:5000/callback";
 
-if (!bearer_token && (!client_id || !client_secret)) {
+export const DEFAULT_WEB_AUTH_SCOPES =
+  "offline_access accounting.transactions accounting.contacts accounting.attachments accounting.settings";
+
+/** Shared OAuth2 (authorization-code) client config for web-auth mode. */
+export function buildWebAuthConfig(): IXeroClientConfig {
+  return {
+    clientId: client_id!,
+    clientSecret: client_secret!,
+    redirectUris: [redirect_uri],
+    scopes: (process.env.XERO_SCOPES || DEFAULT_WEB_AUTH_SCOPES).split(" "),
+  };
+}
+
+if (auth_mode === "web") {
+  if (!client_id || !client_secret) {
+    throw Error(
+      "XERO_AUTH_MODE=web requires XERO_CLIENT_ID and XERO_CLIENT_SECRET",
+    );
+  }
+} else if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
 
@@ -220,12 +245,88 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 }
 
-export const xeroClient = bearer_token
-  ? new BearerTokenXeroClient({
-      bearerToken: bearer_token,
-    })
-  : new CustomConnectionsXeroClient({
-      clientId: client_id!,
-      clientSecret: client_secret!,
-      grantType: grant_type,
-    });
+/**
+ * Standard OAuth2 Authorization Code flow ("web auth"), backed by a refresh
+ * token persisted on disk. The one-time consent is performed out-of-band by the
+ * `npm run auth` bootstrap CLI (src/auth.ts); this client only loads and
+ * refreshes the resulting tokenset.
+ */
+class WebAuthXeroClient extends MCPXeroClient {
+  // Skip re-reading/refreshing on every call while the access token is fresh.
+  private accessTokenExpiresAt = 0;
+
+  constructor() {
+    super(buildWebAuthConfig());
+  }
+
+  public async authenticate(): Promise<void> {
+    const now = Math.floor(Date.now() / 1000);
+    if (this.accessTokenExpiresAt - 60 > now && this.tenantId) {
+      return; // still valid
+    }
+
+    const saved = loadTokenSet();
+    if (!saved || !saved.refresh_token) {
+      throw new Error(
+        "No Xero tokenset found (web auth). Run `npm run auth` to complete consent.",
+      );
+    }
+
+    this.setTokenSet(saved);
+
+    const current = this.readTokenSet();
+    if (current.expired()) {
+      try {
+        await this.initialize();
+        const refreshed = await this.refreshToken();
+        saveTokenSet({ ...refreshed, tenantId: saved.tenantId });
+        this.accessTokenExpiresAt = refreshed.expires_at ?? 0;
+      } catch (error: unknown) {
+        const err = ensureError(error);
+        throw new Error(
+          `Failed to refresh Xero token: ${err.message}. The refresh token may be revoked or rotated — re-run \`npm run auth\`.`,
+        );
+      }
+    } else {
+      this.accessTokenExpiresAt = current.expires_at ?? 0;
+    }
+
+    // Resolve the tenant: explicit env override > persisted value > live lookup.
+    if (process.env.XERO_TENANT_ID) {
+      this.tenantId = process.env.XERO_TENANT_ID;
+    } else if (saved.tenantId) {
+      this.tenantId = saved.tenantId;
+    } else {
+      await this.updateTenants(false);
+    }
+  }
+}
+
+function createXeroClient(): MCPXeroClient {
+  switch (auth_mode) {
+    case "web":
+      return new WebAuthXeroClient();
+    case "bearer":
+      if (!bearer_token) {
+        throw Error("XERO_AUTH_MODE=bearer requires XERO_CLIENT_BEARER_TOKEN");
+      }
+      return new BearerTokenXeroClient({ bearerToken: bearer_token });
+    case "custom":
+      return new CustomConnectionsXeroClient({
+        clientId: client_id!,
+        clientSecret: client_secret!,
+        grantType: grant_type,
+      });
+    default:
+      // Unset: preserve original behaviour.
+      return bearer_token
+        ? new BearerTokenXeroClient({ bearerToken: bearer_token })
+        : new CustomConnectionsXeroClient({
+            clientId: client_id!,
+            clientSecret: client_secret!,
+            grantType: grant_type,
+          });
+  }
+}
+
+export const xeroClient = createXeroClient();
