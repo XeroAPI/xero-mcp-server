@@ -6,6 +6,7 @@ import {
   TokenSet,
   XeroClient,
 } from "xero-node";
+import { PayrollAuV2Api } from "xero-node/dist/gen/api/payrollAUV2Api.js";
 
 import { ensureError } from "../helpers/ensure-error.js";
 
@@ -20,9 +21,20 @@ if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
 
+export type PayrollRegion = "AU" | "NZ" | "UK";
+
 abstract class MCPXeroClient extends XeroClient {
   public tenantId: string;
   private shortCode: string;
+  private _region: PayrollRegion | null = null;
+  private _payrollAUV2Api: PayrollAuV2Api | null = null;
+
+  get payrollAUV2Api(): PayrollAuV2Api {
+    if (!this._payrollAUV2Api) {
+      this._payrollAUV2Api = new PayrollAuV2Api();
+    }
+    return this._payrollAUV2Api;
+  }
 
   protected constructor(config?: IXeroClientConfig) {
     super(config);
@@ -41,7 +53,7 @@ abstract class MCPXeroClient extends XeroClient {
     return this.tenants;
   }
 
-  private async getOrganisation(): Promise<Organisation> {
+  public async getOrganisation(): Promise<Organisation> {
     await this.authenticate();
 
     const organisationResponse = await this.accountingApi.getOrganisations(
@@ -71,6 +83,17 @@ abstract class MCPXeroClient extends XeroClient {
       }
     }
     return this.shortCode;
+  }
+
+  public async getRegion(): Promise<PayrollRegion> {
+    if (!this._region) {
+      const org = await this.getOrganisation();
+      const code = String(org.countryCode ?? "");
+      if (code === "AU") this._region = "AU";
+      else if (code === "GB") this._region = "UK";
+      else this._region = "NZ";
+    }
+    return this._region;
   }
 }
 
@@ -200,6 +223,8 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       expires_in: tokenResponse.expires_in,
       token_type: tokenResponse.token_type,
     });
+
+    this.payrollAUV2Api.accessToken = tokenResponse.access_token ?? "";
   }
 }
 
@@ -215,6 +240,8 @@ class BearerTokenXeroClient extends MCPXeroClient {
     this.setTokenSet({
       access_token: this.bearerToken,
     });
+
+    this.payrollAUV2Api.accessToken = this.bearerToken;
 
     await this.updateTenants();
   }

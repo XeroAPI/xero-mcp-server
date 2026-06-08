@@ -7,7 +7,8 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const RevertPayrollTimesheetTool = CreateXeroTool(
   "revert-timesheet",
-  `Revert a payroll timesheet to draft in Xero by its ID.`,
+  `Revert a payroll timesheet to draft in Xero by its ID.
+Supports AU, NZ, and UK payroll regions. The organisation's region is auto-detected.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to revert."),
   },
