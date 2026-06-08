@@ -1,5 +1,7 @@
-import { Employee } from "../../types/payroll-nz-types.js";
-import { listXeroPayrollEmployees } from "../../handlers/list-xero-payroll-employees.handler.js";
+import {
+  EmployeeResult,
+  listXeroPayrollEmployees,
+} from "../../handlers/list-xero-payroll-employees.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListPayrollEmployeesTool = CreateXeroTool(
@@ -30,7 +32,7 @@ The response presents a complete overview of all staff currently registered in y
           type: "text" as const,
           text: `Found ${employees?.length || 0} payroll employees:`,
         },
-        ...(employees?.map((employee: Employee) => ({
+        ...(employees?.map((employee: EmployeeResult) => ({
           type: "text" as const,
           text: [
             `Employee: ${employee.employeeID}`,

@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { listXeroPayrollEmployeeLeaveBalances } from "../../handlers/list-xero-payroll-employee-leave-balances.handler.js";
+import {
+  EmployeeLeaveBalanceResult,
+  listXeroPayrollEmployeeLeaveBalances,
+} from "../../handlers/list-xero-payroll-employee-leave-balances.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { EmployeeLeaveBalance } from "../../types/payroll-nz-types.js";
 
 const ListPayrollEmployeeLeaveBalancesTool = CreateXeroTool(
   "list-payroll-employee-leave-balances",
@@ -30,7 +32,7 @@ const ListPayrollEmployeeLeaveBalancesTool = CreateXeroTool(
           type: "text" as const,
           text: `Found ${leaveBalances?.length || 0} leave balances for employee ${employeeId}:`,
         },
-        ...(leaveBalances?.map((balance: EmployeeLeaveBalance) => ({
+        ...(leaveBalances?.map((balance: EmployeeLeaveBalanceResult) => ({
           type: "text" as const,
           text: [
             `Leave Type ID: ${balance.leaveTypeID || "Unknown"}`,

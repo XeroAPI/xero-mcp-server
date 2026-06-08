@@ -6,3 +6,5 @@ export { EmployeeLeaveBalance } from "xero-node/dist/gen/model/payroll-nz/employ
 export { EmployeeLeaveType } from "xero-node/dist/gen/model/payroll-nz/employeeLeaveType.js";
 export { LeavePeriod } from "xero-node/dist/gen/model/payroll-nz/leavePeriod.js";
 export { LeaveType } from "xero-node/dist/gen/model/payroll-nz/leaveType.js";
+export { PayRunCalendar } from "xero-node/dist/gen/model/payroll-nz/payRunCalendar.js";
+export { EarningsRate as NzEarningsRate } from "xero-node/dist/gen/model/payroll-nz/earningsRate.js";

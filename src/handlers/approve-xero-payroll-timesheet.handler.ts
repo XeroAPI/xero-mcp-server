@@ -1,40 +1,32 @@
-import { Timesheet } from "xero-node/dist/gen/model/payroll-nz/timesheet.js";
+import { NzTimesheet } from "../types/payroll-nz-types.js";
+import { AuV2Timesheet } from "../types/payroll-au-v2-types.js";
 
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
-async function approveTimesheet(timesheetID: string): Promise<Timesheet | null> {
-  await xeroClient.authenticate();
-
-  // Call the approveTimesheet endpoint from the PayrollNZApi
-  const approvedTimesheet = await xeroClient.payrollNZApi.approveTimesheet(
-    xeroClient.tenantId,
-    timesheetID,
-  );
-
-  return approvedTimesheet.body.timesheet ?? null;
-}
-
-/**
- * Approve a payroll timesheet in Xero
- */
-export async function approveXeroPayrollTimesheet(timesheetID: string): Promise<
-  XeroClientResponse<Timesheet | null>
-> {
+export async function approveXeroPayrollTimesheet(
+  timesheetID: string,
+): Promise<XeroClientResponse<NzTimesheet | AuV2Timesheet | null>> {
   try {
-    const approvedTimesheet = await approveTimesheet(timesheetID);
+    await xeroClient.authenticate();
+    const region = await xeroClient.getRegion();
 
-    return {
-      result: approvedTimesheet,
-      isError: false,
-      error: null,
-    };
+    let result: NzTimesheet | AuV2Timesheet | null;
+
+    if (region === "AU") {
+      const res = await xeroClient.payrollAUV2Api.approveTimesheet(xeroClient.tenantId, timesheetID);
+      result = res.body.timesheet ?? null;
+    } else if (region === "UK") {
+      const res = await xeroClient.payrollUKApi.approveTimesheet(xeroClient.tenantId, timesheetID);
+      result = (res.body.timesheet ?? null) as unknown as NzTimesheet | null;
+    } else {
+      const res = await xeroClient.payrollNZApi.approveTimesheet(xeroClient.tenantId, timesheetID);
+      result = res.body.timesheet ?? null;
+    }
+
+    return { result, isError: false, error: null };
   } catch (error) {
-    return {
-      result: null,
-      isError: true,
-      error: formatError(error),
-    };
+    return { result: null, isError: true, error: formatError(error) };
   }
 }

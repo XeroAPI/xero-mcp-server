@@ -2,55 +2,86 @@ import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
-import { EmployeeLeaveType } from "../types/payroll-nz-types.js";
+import { EmployeeLeaveType as NzEmployeeLeaveType } from "../types/payroll-nz-types.js";
+import { EmployeeLeaveType as UkEmployeeLeaveType } from "xero-node/dist/gen/model/payroll-uk/employeeLeaveType.js";
 
-/**
- * Internal function to fetch employee leave types from Xero
- */
-async function fetchEmployeeLeaveTypes(employeeId: string): Promise<EmployeeLeaveType[] | null> {
-  await xeroClient.authenticate();
+export interface EmployeeLeaveTypeResult {
+  leaveTypeID?: string;
+  scheduleOfAccrual?: string;
+  typeOfUnitsToAccrue?: string;
+  unitsAccruedAnnually?: number;
+  maximumToAccrue?: number;
+  openingBalance?: number;
+  rateAccruedHourly?: number;
+  scheduleOfAccrualDate?: string;
+}
 
-  if (!employeeId) {
-    throw new Error("Employee ID is required to fetch employee leave types");
-  }
+function mapLeaveType(
+  t: NzEmployeeLeaveType | UkEmployeeLeaveType,
+): EmployeeLeaveTypeResult {
+  // UK exposes hoursAccruedAnnually; NZ exposes unitsAccruedAnnually. Normalise to a single field.
+  const unitsAccruedAnnually =
+    "unitsAccruedAnnually" in t
+      ? t.unitsAccruedAnnually
+      : (t as UkEmployeeLeaveType).hoursAccruedAnnually;
 
-  const response = await xeroClient.payrollNZApi.getEmployeeLeaveTypes(
-    xeroClient.tenantId,
-    employeeId,
-    getClientHeaders(),
-  );
+  // UK only accrues in hours; NZ exposes typeOfUnitsToAccrue (e.g. "Hours", "Days").
+  const typeOfUnitsToAccrue =
+    "typeOfUnitsToAccrue" in t ? t.typeOfUnitsToAccrue : "Hours";
 
-  return response.body.leaveTypes ?? null;
+  return {
+    leaveTypeID: t.leaveTypeID,
+    scheduleOfAccrual:
+      t.scheduleOfAccrual !== undefined
+        ? String(t.scheduleOfAccrual)
+        : undefined,
+    typeOfUnitsToAccrue,
+    unitsAccruedAnnually,
+    maximumToAccrue: t.maximumToAccrue,
+    openingBalance: t.openingBalance,
+    rateAccruedHourly: t.rateAccruedHourly,
+    scheduleOfAccrualDate: t.scheduleOfAccrualDate,
+  };
 }
 
 /**
- * List employee leave types from Xero Payroll
- * @param employeeId The ID of the employee to retrieve leave types for
+ * List employee leave types from Xero Payroll, routing to the correct regional
+ * API. AU orgs use leave applications (a different model) and are not
+ * supported by this tool.
  */
 export async function listXeroPayrollEmployeeLeaveTypes(
   employeeId: string,
-): Promise<XeroClientResponse<EmployeeLeaveType[]>> {
+): Promise<XeroClientResponse<EmployeeLeaveTypeResult[]>> {
   try {
-    const leaveTypes = await fetchEmployeeLeaveTypes(employeeId);
+    if (!employeeId) {
+      throw new Error("Employee ID is required to fetch employee leave types");
+    }
 
-    if (!leaveTypes) {
+    await xeroClient.authenticate();
+    const region = await xeroClient.getRegion();
+
+    if (region === "AU") {
       return {
-        result: [],
-        isError: false,
-        error: null,
+        result: null,
+        isError: true,
+        error:
+          "Listing employee leave types is not supported for AU orgs. AU payroll exposes leave types as pay items, which are not yet available in this MCP server.",
       };
     }
 
-    return {
-      result: leaveTypes,
-      isError: false,
-      error: null,
-    };
+    const api =
+      region === "UK" ? xeroClient.payrollUKApi : xeroClient.payrollNZApi;
+
+    const response = await api.getEmployeeLeaveTypes(
+      xeroClient.tenantId,
+      employeeId,
+      getClientHeaders(),
+    );
+
+    const leaveTypes = (response.body.leaveTypes ?? []).map(mapLeaveType);
+
+    return { result: leaveTypes, isError: false, error: null };
   } catch (error) {
-    return {
-      result: null,
-      isError: true,
-      error: formatError(error),
-    };
+    return { result: null, isError: true, error: formatError(error) };
   }
 }

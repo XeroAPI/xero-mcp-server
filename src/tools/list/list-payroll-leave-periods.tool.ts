@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { listXeroPayrollLeavePeriods } from "../../handlers/list-xero-payroll-leave-periods.handler.js";
+import {
+  LeavePeriodResult,
+  listXeroPayrollLeavePeriods,
+} from "../../handlers/list-xero-payroll-leave-periods.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { LeavePeriod } from "../../types/payroll-nz-types.js";
 
 const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
   "list-payroll-leave-periods",
@@ -32,7 +34,7 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
           type: "text" as const,
           text: `Found ${periods?.length || 0} leave periods for employee ${employeeId}:`,
         },
-        ...(periods?.map((period: LeavePeriod) => ({
+        ...(periods?.map((period: LeavePeriodResult) => ({
           type: "text" as const,
           text: [
             `Period Status: ${period.periodStatus || "Unknown"}`,
