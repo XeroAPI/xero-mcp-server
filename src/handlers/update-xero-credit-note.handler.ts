@@ -69,12 +69,23 @@ export async function updateXeroCreditNote(
 
     const creditNoteStatus = existingCreditNote?.status;
 
-    // Only allow updates to DRAFT credit notes
-    if (creditNoteStatus !== CreditNote.StatusEnum.DRAFT) {
+    // DRAFT credit notes can be fully updated. AUTHORISED credit notes only
+    // accept changes to the date and reference; everything else is rejected.
+    if (creditNoteStatus === CreditNote.StatusEnum.AUTHORISED) {
+      if (lineItems || contactId) {
+        return {
+          result: null,
+          isError: true,
+          error:
+            "Only the date and reference of an authorised credit note can be updated. " +
+            "Line items and contact cannot be changed.",
+        };
+      }
+    } else if (creditNoteStatus !== CreditNote.StatusEnum.DRAFT) {
       return {
         result: null,
         isError: true,
-        error: `Cannot update credit note because it is not a draft. Current status: ${creditNoteStatus}`,
+        error: `Cannot update credit note because its status is ${creditNoteStatus}. Only draft credit notes can be fully updated; authorised credit notes can have their date and reference updated.`,
       };
     }
 
