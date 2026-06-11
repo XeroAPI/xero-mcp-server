@@ -33,6 +33,7 @@ const UpdateQuoteTool = CreateXeroTool(
     contactId: z.string().optional(),
     date: z.string().optional(),
     expiryDate: z.string().optional(),
+    currencyRate: z.number().positive().optional().describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency quotes. Defaults to XE.com day rate if omitted."),
   },
   async (
     {
@@ -46,6 +47,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
+      currencyRate,
     }
   ) => {
     const result = await updateXeroQuote(
@@ -59,6 +61,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
+      currencyRate,
     );
     if (result.isError) {
       return {

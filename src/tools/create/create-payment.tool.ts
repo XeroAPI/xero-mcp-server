@@ -31,14 +31,20 @@ const CreatePaymentTool = CreateXeroTool(
       .string()
       .optional()
       .describe("Optional payment reference/description"),
+    currencyRate: z
+      .number()
+      .positive()
+      .optional()
+      .describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency invoices. Defaults to XE.com day rate if omitted."),
   },
-  async ({ invoiceId, accountId, amount, date, reference }) => {
+  async ({ invoiceId, accountId, amount, date, reference, currencyRate }) => {
     const result = await createXeroPayment({
       invoiceId,
       accountId,
       amount,
       date,
       reference,
+      currencyRate,
     });
     if (result.isError) {
       return {

@@ -35,6 +35,7 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  currencyRate?: number,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -42,6 +43,7 @@ async function updateInvoice(
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    currencyRate: currencyRate,
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -68,6 +70,7 @@ export async function updateXeroInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  currencyRate?: number,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
@@ -90,6 +93,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      currencyRate,
     );
 
     if (!updatedInvoice) {

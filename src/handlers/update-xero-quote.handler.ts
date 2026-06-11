@@ -36,7 +36,8 @@ async function updateQuote(
   contactId?: string,
   date?: string,
   expiryDate?: string,
-  existingQuote?: Quote
+  existingQuote?: Quote,
+  currencyRate?: number,
 ): Promise<Quote | undefined> {
   // Create quote object with only the fields that are being updated
   const quote: Quote = {
@@ -47,6 +48,7 @@ async function updateQuote(
     summary: summary,
     quoteNumber: quoteNumber,
     expiryDate: expiryDate,
+    currencyRate: currencyRate,
   };
   
   // Only add contact if contactId is provided, otherwise use existing
@@ -90,6 +92,7 @@ export async function updateXeroQuote(
   contactId?: string,
   date?: string,
   expiryDate?: string,
+  currencyRate?: number,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     const existingQuote = await getQuote(quoteId);
@@ -116,7 +119,8 @@ export async function updateXeroQuote(
       contactId,
       date,
       expiryDate,
-      existingQuote
+      existingQuote,
+      currencyRate,
     );
 
     if (!updatedQuote) {

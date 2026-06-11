@@ -20,6 +20,7 @@ async function createInvoice(
   type: Invoice.TypeEnum,
   reference: string | undefined,
   date: string | undefined,
+  currencyRate: number | undefined,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
@@ -37,6 +38,7 @@ async function createInvoice(
       ? { invoiceNumber: reference }
       : { reference: reference }),
     status: Invoice.StatusEnum.DRAFT,
+    currencyRate: currencyRate,
   };
 
   const response = await xeroClient.accountingApi.createInvoices(
@@ -62,6 +64,7 @@ export async function createXeroInvoice(
   type: Invoice.TypeEnum = Invoice.TypeEnum.ACCREC,
   reference?: string,
   date?: string,
+  currencyRate?: number,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const createdInvoice = await createInvoice(
@@ -70,6 +73,7 @@ export async function createXeroInvoice(
       type,
       reference,
       date,
+      currencyRate,
     );
 
     if (!createdInvoice) {

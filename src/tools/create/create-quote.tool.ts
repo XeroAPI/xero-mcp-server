@@ -25,6 +25,7 @@ const CreateQuoteTool = CreateXeroTool(
     terms: z.string().optional(),
     title: z.string().optional(),
     summary: z.string().optional(),
+    currencyRate: z.number().positive().optional().describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency quotes. Defaults to XE.com day rate if omitted."),
   },
   async ({
     contactId,
@@ -34,6 +35,7 @@ const CreateQuoteTool = CreateXeroTool(
     terms,
     title,
     summary,
+    currencyRate,
   }) => {
     const result = await createXeroQuote(
       contactId,
@@ -43,6 +45,7 @@ const CreateQuoteTool = CreateXeroTool(
       terms,
       title,
       summary,
+      currencyRate,
     );
     if (result.isError) {
       return {

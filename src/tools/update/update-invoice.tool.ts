@@ -44,6 +44,7 @@ const UpdateInvoiceTool = CreateXeroTool(
     date: z.string().optional().describe("The date of the invoice."),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
       Can be obtained from the list-contacts tool."),
+    currencyRate: z.number().positive().optional().describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency invoices. Defaults to XE.com day rate if omitted."),
   },
   async (
     {
@@ -53,6 +54,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      currencyRate,
     }: {
       invoiceId: string;
       lineItems?: Array<{
@@ -66,6 +68,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate?: string;
       date?: string;
       contactId?: string;
+      currencyRate?: number;
     },
     //_extra: { signal: AbortSignal },
   ) => {
@@ -76,6 +79,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      currencyRate,
     );
     if (result.isError) {
       return {
