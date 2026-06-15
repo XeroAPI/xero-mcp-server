@@ -3,6 +3,12 @@ import { z } from "zod";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { Contact, SalesTrackingCategory } from "xero-node";
+
+const trackingCategorySchema = z.object({
+  trackingCategoryName: z.string(),
+  trackingOptionName: z.string(),
+});
 
 const UpdateContactTool = CreateXeroTool(
   "update-contact",
@@ -17,6 +23,18 @@ const UpdateContactTool = CreateXeroTool(
     lastName: z.string().optional(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    purchasesDefaultAccountCode: z.string().optional(),
+    salesDefaultAccountCode: z.string().optional(),
+    purchasesDefaultLineAmountType: z
+      .enum(["EXCLUSIVE", "INCLUSIVE", "NO_TAX"])
+      .optional(),
+    salesDefaultLineAmountType: z
+      .enum(["EXCLUSIVE", "INCLUSIVE", "NO_TAX"])
+      .optional(),
+    defaultPurchasesTrackingCategories: z
+      .array(trackingCategorySchema)
+      .optional(),
+    defaultSalesTrackingCategories: z.array(trackingCategorySchema).optional(),
     address: z
       .object({
         addressLine1: z.string(),
@@ -35,12 +53,30 @@ const UpdateContactTool = CreateXeroTool(
     lastName,
     email,
     phone,
+    purchasesDefaultAccountCode,
+    salesDefaultAccountCode,
+    purchasesDefaultLineAmountType,
+    salesDefaultLineAmountType,
+    defaultPurchasesTrackingCategories,
+    defaultSalesTrackingCategories,
     address,
   }: {
     contactId: string;
     name: string;
     email?: string;
     phone?: string;
+    purchasesDefaultAccountCode?: string;
+    salesDefaultAccountCode?: string;
+    purchasesDefaultLineAmountType?: "EXCLUSIVE" | "INCLUSIVE" | "NO_TAX";
+    salesDefaultLineAmountType?: "EXCLUSIVE" | "INCLUSIVE" | "NO_TAX";
+    defaultPurchasesTrackingCategories?: Array<{
+      trackingCategoryName: string;
+      trackingOptionName: string;
+    }>;
+    defaultSalesTrackingCategories?: Array<{
+      trackingCategoryName: string;
+      trackingOptionName: string;
+    }>;
     address?: {
       addressLine1: string;
       addressLine2?: string;
@@ -53,6 +89,19 @@ const UpdateContactTool = CreateXeroTool(
     lastName?: string;
   }) => {
     try {
+      const mapTrackingCategories = (
+        categories:
+          | Array<{
+              trackingCategoryName: string;
+              trackingOptionName: string;
+            }>
+          | undefined,
+      ): SalesTrackingCategory[] | undefined =>
+        categories?.map((category) => ({
+          trackingCategoryName: category.trackingCategoryName,
+          trackingOptionName: category.trackingOptionName,
+        }));
+
       const response = await updateXeroContact(
         contactId,
         name,
@@ -61,6 +110,16 @@ const UpdateContactTool = CreateXeroTool(
         email,
         phone,
         address,
+        purchasesDefaultAccountCode,
+        salesDefaultAccountCode,
+        purchasesDefaultLineAmountType as
+          | Contact.PurchasesDefaultLineAmountTypeEnum
+          | undefined,
+        salesDefaultLineAmountType as
+          | Contact.SalesDefaultLineAmountTypeEnum
+          | undefined,
+        mapTrackingCategories(defaultPurchasesTrackingCategories),
+        mapTrackingCategories(defaultSalesTrackingCategories),
       );
       if (response.isError) {
         return {

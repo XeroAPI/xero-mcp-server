@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Contact, Phone, Address, Contacts } from "xero-node";
+import { Contact, Phone, Address, Contacts, SalesTrackingCategory } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function updateContact(
@@ -11,6 +11,16 @@ async function updateContact(
   email: string | undefined,
   phone: string | undefined,
   address: Address | undefined,
+  purchasesDefaultAccountCode: string | undefined,
+  salesDefaultAccountCode: string | undefined,
+  purchasesDefaultLineAmountType:
+    | Contact.PurchasesDefaultLineAmountTypeEnum
+    | undefined,
+  salesDefaultLineAmountType:
+    | Contact.SalesDefaultLineAmountTypeEnum
+    | undefined,
+  purchasesTrackingCategories: SalesTrackingCategory[] | undefined,
+  salesTrackingCategories: SalesTrackingCategory[] | undefined,
   contactId: string,
 ): Promise<Contact | undefined> {
   await xeroClient.authenticate();
@@ -41,6 +51,12 @@ async function updateContact(
           },
         ]
       : undefined,
+    purchasesDefaultAccountCode,
+    salesDefaultAccountCode,
+    purchasesDefaultLineAmountType,
+    salesDefaultLineAmountType,
+    purchasesTrackingCategories,
+    salesTrackingCategories,
   };
 
   const contacts: Contacts = {
@@ -70,6 +86,12 @@ export async function updateXeroContact(
   email?: string,
   phone?: string,
   address?: Address,
+  purchasesDefaultAccountCode?: string,
+  salesDefaultAccountCode?: string,
+  purchasesDefaultLineAmountType?: Contact.PurchasesDefaultLineAmountTypeEnum,
+  salesDefaultLineAmountType?: Contact.SalesDefaultLineAmountTypeEnum,
+  purchasesTrackingCategories?: SalesTrackingCategory[],
+  salesTrackingCategories?: SalesTrackingCategory[],
 ): Promise<XeroClientResponse<Contact>> {
   try {
     const updatedContact = await updateContact(
@@ -79,6 +101,12 @@ export async function updateXeroContact(
       email,
       phone,
       address,
+      purchasesDefaultAccountCode,
+      salesDefaultAccountCode,
+      purchasesDefaultLineAmountType,
+      salesDefaultLineAmountType,
+      purchasesTrackingCategories,
+      salesTrackingCategories,
       contactId,
     );
 

@@ -15,6 +15,8 @@ async function fetchProfitAndLoss(
   toDate?: string,
   periods?: number,
   timeframe?: TimeframeType,
+  trackingOptionID1?: string,
+  trackingOptionID2?: string,
   standardLayout?: boolean,
   paymentsOnly?: boolean,
 ): Promise<ReportWithRow | null> {
@@ -27,9 +29,9 @@ async function fetchProfitAndLoss(
     periods,
     timeframe,
     undefined, // trackingCategoryID
-    undefined, // trackingOptionID
     undefined, // trackingCategoryID2
-    undefined, // trackingOptionID2
+    trackingOptionID1,
+    trackingOptionID2,
     standardLayout,
     paymentsOnly,
     getClientHeaders(),
@@ -56,6 +58,8 @@ export async function listXeroProfitAndLoss(
   toDate?: string,
   periods?: number,
   timeframe?: TimeframeType,
+  trackingOptionID1?: string,
+  trackingOptionID2?: string,
   standardLayout?: boolean,
   paymentsOnly?: boolean,
 ): Promise<XeroClientResponse<ReportWithRow>> {
@@ -65,6 +69,9 @@ export async function listXeroProfitAndLoss(
       toDate,
       periods,
       timeframe,
+      trackingOptionID1,
+      trackingOptionID2,
+      standardLayout,
       paymentsOnly,
     );
 

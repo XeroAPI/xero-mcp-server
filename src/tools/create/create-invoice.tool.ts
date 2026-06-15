@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createXeroInvoice } from "../../handlers/create-xero-invoice.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { Invoice } from "xero-node";
+import { CurrencyCode, Invoice } from "xero-node";
 
 const trackingSchema = z.object({
   name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
@@ -41,10 +41,20 @@ const CreateInvoiceTool = CreateXeroTool(
       If the type is not specified, the default is ACCREC."),
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
+    currencyCode: z.string().describe("Optional ISO 4217 currency code, for example EUR, USD, or GBP").optional(),
+    currencyRate: z.number().describe("Optional exchange rate to apply to the invoice").optional(),
   },
-  async ({ contactId, lineItems, type, reference, date }) => {
+  async ({ contactId, lineItems, type, reference, date, currencyCode, currencyRate }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
+    const result = await createXeroInvoice(
+      contactId,
+      lineItems,
+      xeroInvoiceType,
+      reference,
+      date,
+      currencyCode as CurrencyCode | undefined,
+      currencyRate,
+    );
     if (result.isError) {
       return {
         content: [

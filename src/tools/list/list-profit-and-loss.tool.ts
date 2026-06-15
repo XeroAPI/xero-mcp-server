@@ -10,6 +10,8 @@ const ListProfitAndLossTool = CreateXeroTool(
     toDate: z.string().optional().describe("Optional end date in YYYY-MM-DD format"),
     periods: z.number().optional().describe("Optional number of periods to compare"),
     timeframe: z.enum(["MONTH", "QUARTER", "YEAR"]).optional().describe("Optional timeframe for the report (MONTH, QUARTER, YEAR)"),
+    trackingOptionID1: z.string().optional().describe("Optional tracking option ID 1"),
+    trackingOptionID2: z.string().optional().describe("Optional tracking option ID 2"),
     standardLayout: z.boolean().optional().describe("Optional flag to use standard layout"),
     paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
   },
@@ -19,6 +21,8 @@ const ListProfitAndLossTool = CreateXeroTool(
       args?.toDate,
       args?.periods,
       args?.timeframe,
+      args?.trackingOptionID1,
+      args?.trackingOptionID2,
       args?.standardLayout,
       args?.paymentsOnly,
     );

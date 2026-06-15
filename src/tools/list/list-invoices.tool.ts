@@ -15,13 +15,24 @@ const ListInvoicesTool = CreateXeroTool(
   {
     page: z.number(),
     contactIds: z.array(z.string()).optional(),
+    status: z.string().optional().describe("Optional single invoice status filter, for example DRAFT, SUBMITTED, AUTHORISED, or PAID"),
+    statuses: z
+      .array(z.string())
+      .optional()
+      .describe("Optional list of invoice status filters, for example [DRAFT, AUTHORISED]"),
     invoiceNumbers: z
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ page, contactIds, status, statuses, invoiceNumbers }) => {
+    const statusFilters = statuses ?? (status ? [status] : undefined);
+    const response = await listXeroInvoices(
+      page,
+      contactIds,
+      invoiceNumbers,
+      statusFilters,
+    );
     if (response.error !== null) {
       return {
         content: [

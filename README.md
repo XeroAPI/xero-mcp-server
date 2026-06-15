@@ -174,6 +174,7 @@ payroll.timesheets
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
 - `update-bank-transaction`: Update an existing bank transaction
+- `add-invoice-note`: Add a history note to an invoice
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
 - `update-item`: Update an existing item
