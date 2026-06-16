@@ -19,9 +19,20 @@ const ListInvoicesTool = CreateXeroTool(
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
+    invoiceIds: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "Filter by invoice IDs. When provided, invoice line items (including each line's Line Item ID) will also be returned",
+      ),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ page, contactIds, invoiceNumbers, invoiceIds }) => {
+    const response = await listXeroInvoices(
+      page,
+      contactIds,
+      invoiceNumbers,
+      invoiceIds,
+    );
     if (response.error !== null) {
       return {
         content: [
@@ -34,7 +45,8 @@ const ListInvoicesTool = CreateXeroTool(
     }
 
     const invoices = response.result;
-    const returnLineItems = (invoiceNumbers?.length ?? 0) > 0;
+    const returnLineItems =
+      (invoiceNumbers?.length ?? 0) > 0 || (invoiceIds?.length ?? 0) > 0;
 
     return {
       content: [
