@@ -24,22 +24,57 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.23.4",
-    "dotenv": "^16.4.7",
-    "openid-client": "^6.8.1",
-    "xero-node": "^13.3.0",
-    "zod": "3.25"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^16.6.1",
+    "openid-client": "^6.8.4",
+    "xero-node": "^13.4.0",
+    "zod": "~3.25.76"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/node": "^22.13.10",
-    "eslint": "^9.39.1",
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^22.19.21",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "prettier": "3.7.4",
     "shx": "^0.3.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1",
+    "typescript-eslint": "^8.61.0",
     "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "@modelcontextprotocol/sdk": {
+      "ajv": "^8.20.0"
+    },
+    "ajv": {
+      "fast-uri": "^3.1.2"
+    },
+    "axios": {
+      "follow-redirects": "^1.16.0",
+      "form-data": "^4.0.6"
+    },
+    "express": {
+      "qs": "^6.15.2"
+    },
+    "flat-cache": {
+      "flatted": "^3.4.2"
+    },
+    "glob": {
+      "minimatch": "^3.1.5"
+    },
+    "minimatch": {
+      "brace-expansion": "^1.1.15"
+    },
+    "router": {
+      "path-to-regexp": "^8.4.2"
+    },
+    "tinyglobby": {
+      "picomatch": "^4.0.4"
+    },
+    "xero-node": {
+      "axios": "^1.17.0"
+    },
+    "form-data": "4.0.6",
+    "vite": "8.0.16"
   }
 }
