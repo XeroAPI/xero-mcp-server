@@ -29,27 +29,24 @@ async function getBankTransaction(bankTransactionId: string): Promise<BankTransa
 
 async function updateBankTransaction(
   bankTransactionId: string,
-  existingBankTransaction: BankTransaction,
   type?: BankTransactionType,
   contactId?: string,
   lineItems?: BankTransactionLineItem[],
   reference?: string,
   date?: string
 ): Promise<BankTransaction | undefined> {
-  const bankTransaction: BankTransaction = {
-    ...existingBankTransaction,
-    bankTransactionID: bankTransactionId,
-    type: type ? BankTransaction.TypeEnum[type] : existingBankTransaction.type,
-    contact: contactId ? { contactID: contactId } : existingBankTransaction.contact,
-    lineItems: lineItems ? lineItems : existingBankTransaction.lineItems,
-    reference: reference ? reference : existingBankTransaction.reference,
-    date: date ? date : existingBankTransaction.date
+  const bankTransaction: Partial<BankTransaction> = {
+    ...(type ? { type: BankTransaction.TypeEnum[type] } : {}),
+    ...(contactId ? { contact: { contactID: contactId } } : {}),
+    ...(lineItems ? { lineItems } : {}),
+    ...(reference ? { reference } : {}),
+    ...(date ? { date } : {}),
   };
 
   const response = await xeroClient.accountingApi.updateBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
-    { bankTransactions: [bankTransaction] }, // bankTransactions
+    { bankTransactions: [bankTransaction as BankTransaction] }, // bankTransactions
     undefined, // unitdp
     undefined, // idempotencyKey
     getClientHeaders() // options
@@ -75,7 +72,6 @@ export async function updateXeroBankTransaction(
 
     const updatedBankTransaction = await updateBankTransaction(
       bankTransactionId,
-      existingBankTransaction,
       type,
       contactId,
       lineItems,
