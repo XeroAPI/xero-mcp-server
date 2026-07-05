@@ -134,6 +134,26 @@ payroll.employees
 payroll.timesheets
 ```
 
+#### Selecting a tenant (multi-organisation support)
+
+By default, the MCP server uses the **first** tenant returned by Xero's connections endpoint. If your app or bearer token is connected to more than one organisation, set the `XERO_TENANT_ID` environment variable to the tenant ID of the organisation you want this server instance to operate on:
+
+```json
+{
+  "mcpServers": {
+    "xero": {
+      "command": "npx",
+      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "env": {
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "XERO_TENANT_ID": "your_tenant_id"
+      }
+    }
+  }
+}
+```
+
+`XERO_TENANT_ID` works with both authentication methods. If it is set but does not match any authorised connection, the server fails with an error listing the available tenant IDs — it never silently falls back to a different organisation. If it is omitted, the existing first-tenant behaviour is unchanged.
 
 ### Available MCP Commands
 

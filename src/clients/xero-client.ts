@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { selectTenantId } from "../helpers/select-tenant-id.js";
 
 dotenv.config();
 
@@ -36,7 +37,7 @@ abstract class MCPXeroClient extends XeroClient {
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
     if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
+      this.tenantId = selectTenantId(this.tenants, process.env.XERO_TENANT_ID);
     }
     return this.tenants;
   }
@@ -186,7 +187,10 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     );
 
     if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
+      this.tenantId = selectTenantId(
+        connectionsResponse.data,
+        process.env.XERO_TENANT_ID,
+      );
     }
 
     return response.data;
