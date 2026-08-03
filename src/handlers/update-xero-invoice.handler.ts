@@ -21,7 +21,7 @@ async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
   const response = await xeroClient.accountingApi.getInvoice(
     xeroClient.tenantId,
     invoiceId, // invoiceId
-    undefined, // unitdp
+    4, // unitdp: preserve up to 4 decimal places for unit amounts
     getClientHeaders(), // options
   );
 
@@ -50,7 +50,7 @@ async function updateInvoice(
     {
       invoices: [invoice],
     }, // invoices
-    undefined, // unitdp
+    4, // unitdp: preserve up to 4 decimal places for unit amounts (Xero rounds to 2dp by default)
     undefined, // idempotencyKey
     getClientHeaders(), // options
   );

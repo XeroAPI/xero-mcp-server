@@ -45,7 +45,7 @@ async function createInvoice(
       invoices: [invoice],
     }, // invoices
     true, //summarizeErrors
-    undefined, //unitdp
+    4, // unitdp: preserve up to 4 decimal places for unit amounts (Xero rounds to 2dp by default)
     undefined, //idempotencyKey
     getClientHeaders(),
   );
