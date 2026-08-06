@@ -22,11 +22,11 @@ async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Prom
 
     const response = await xeroClient.accountingApi.getReportBalanceSheet(
         xeroClient.tenantId,
-        date || undefined,
-        periods || undefined,
-        timeframe || undefined,
-        trackingOptionID1 || undefined,
-        trackingOptionID2 || undefined,
+        date ?? undefined,
+        periods ?? undefined,
+        timeframe ?? undefined,
+        trackingOptionID1 ?? undefined,
+        trackingOptionID2 ?? undefined,
         standardLayout ?? undefined,
         paymentsOnly ?? undefined,
         getClientHeaders(),

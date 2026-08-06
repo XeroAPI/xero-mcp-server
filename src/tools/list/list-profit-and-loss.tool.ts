@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroProfitAndLoss } from "../../handlers/list-xero-profit-and-loss.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { reportPeriodsSchema } from "../../helpers/report-periods-schema.js";
 
 const ListProfitAndLossTool = CreateXeroTool(
   "list-profit-and-loss",
@@ -8,7 +9,9 @@ const ListProfitAndLossTool = CreateXeroTool(
   {
     fromDate: z.string().optional().describe("Optional start date in YYYY-MM-DD format"),
     toDate: z.string().optional().describe("Optional end date in YYYY-MM-DD format"),
-    periods: z.number().optional().describe("Optional number of periods to compare"),
+    periods: reportPeriodsSchema.optional().describe(
+      "Optional number of periods to compare (an integer between 1 and 11)",
+    ),
     timeframe: z.enum(["MONTH", "QUARTER", "YEAR"]).optional().describe("Optional timeframe for the report (MONTH, QUARTER, YEAR)"),
     standardLayout: z.boolean().optional().describe("Optional flag to use standard layout"),
     paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
@@ -59,4 +62,4 @@ const ListProfitAndLossTool = CreateXeroTool(
   },
 );
 
-export default ListProfitAndLossTool; 
+export default ListProfitAndLossTool;
