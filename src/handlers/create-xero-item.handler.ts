@@ -33,8 +33,6 @@ async function createItem(
     name: itemDetails.name,
     description: itemDetails.description,
     purchaseDescription: itemDetails.purchaseDescription,
-    isPurchased: !!itemDetails.purchaseDetails,
-    isSold: !!itemDetails.salesDetails,
     purchaseDetails: itemDetails.purchaseDetails
       ? {
           unitPrice: itemDetails.purchaseDetails.unitPrice,
@@ -90,4 +88,4 @@ export async function createXeroItem(
       error: formatError(error),
     };
   }
-} 
+}
