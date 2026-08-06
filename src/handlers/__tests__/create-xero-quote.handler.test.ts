@@ -46,4 +46,20 @@ describe("createXeroQuote", () => {
       }),
     ]);
   });
+
+  it("forwards an idempotency key for safe retries", async () => {
+    const result = await createXeroQuote(
+      "contact-id",
+      [{ description: "Consulting services" }],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "quote-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createQuotes.mock.calls[0][3]).toBe("quote-retry-key");
+  });
 });

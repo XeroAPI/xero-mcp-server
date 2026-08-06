@@ -36,6 +36,9 @@ const CreateQuoteTool = CreateXeroTool(
     terms: z.string().optional(),
     title: z.string().optional(),
     summary: z.string().optional(),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact quote to prevent duplicates.",
+    ),
   },
   async ({
     contactId,
@@ -45,6 +48,7 @@ const CreateQuoteTool = CreateXeroTool(
     terms,
     title,
     summary,
+    idempotencyKey,
   }) => {
     const result = await createXeroQuote(
       contactId,
@@ -54,6 +58,7 @@ const CreateQuoteTool = CreateXeroTool(
       terms,
       title,
       summary,
+      idempotencyKey,
     );
     if (result.isError) {
       return {

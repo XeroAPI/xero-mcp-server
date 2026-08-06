@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -17,6 +18,9 @@ vi.mock("../../helpers/get-deeplink.js", () => ({
 import CreateQuoteTool from "./create-quote.tool.js";
 
 describe("create-quote tool", () => {
+  const tool = CreateQuoteTool();
+  const schema = z.object(tool.schema as z.ZodRawShape);
+
   it("forwards quote discounts and tracking option IDs", async () => {
     mocks.createXeroQuote.mockResolvedValue({
       result: { quoteID: "quote-id" },
@@ -25,7 +29,7 @@ describe("create-quote tool", () => {
     });
     mocks.getDeepLink.mockResolvedValue(null);
 
-    await CreateQuoteTool().handler({
+    await tool.handler({
       contactId: "contact-id",
       lineItems: [{
         description: "Consulting services",
@@ -33,6 +37,7 @@ describe("create-quote tool", () => {
         discountRate: 10,
         discountAmount: 5,
       }],
+      idempotencyKey: "quote-retry-key",
     }, {} as never);
 
     expect(mocks.createXeroQuote).toHaveBeenCalledWith(
@@ -47,6 +52,20 @@ describe("create-quote tool", () => {
       undefined,
       undefined,
       undefined,
+      "quote-retry-key",
     );
+  });
+
+  it("limits idempotency keys to Xero's supported length", () => {
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{ description: "Consulting services" }],
+      idempotencyKey: "x".repeat(128),
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{ description: "Consulting services" }],
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 });

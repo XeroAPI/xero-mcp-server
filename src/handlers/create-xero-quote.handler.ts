@@ -24,6 +24,7 @@ async function createQuote(
   lineItems: QuoteLineItem[],
   title: string | undefined,
   summary: string | undefined,
+  idempotencyKey: string | undefined,
 ): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
@@ -50,7 +51,7 @@ async function createQuote(
       quotes: [quote],
     }, // quotes
     true, //summarizeErrors
-    undefined, //idempotencyKey
+    idempotencyKey,
     getClientHeaders(),
   );
   const createdQuote = response.body.quotes?.[0];
@@ -68,6 +69,7 @@ export async function createXeroQuote(
   terms?: string,
   title?: string,
   summary?: string,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     const createdQuote = await createQuote(
@@ -78,6 +80,7 @@ export async function createXeroQuote(
       lineItems,
       title,
       summary,
+      idempotencyKey,
     );
 
     if (!createdQuote) {
