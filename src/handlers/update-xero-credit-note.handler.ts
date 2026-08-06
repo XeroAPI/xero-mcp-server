@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { ensureCreditNoteSucceeded } from "../helpers/ensure-credit-note-succeeded.js";
 
 interface CreditNoteLineItem {
   lineItemID?: string;
@@ -105,12 +106,13 @@ export async function updateXeroCreditNote(
       idempotencyKey,
     );
 
-    if (!updatedCreditNote) {
-      throw new Error("Credit note update failed.");
-    }
+    const successfulCreditNote = ensureCreditNoteSucceeded(
+      updatedCreditNote,
+      "update",
+    );
 
     return {
-      result: updatedCreditNote,
+      result: successfulCreditNote,
       isError: false,
       error: null,
     };

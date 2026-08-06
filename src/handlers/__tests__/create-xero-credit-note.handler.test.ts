@@ -191,4 +191,36 @@ describe("createXeroCreditNote", () => {
     });
     expect(mocks.createCreditNotes).not.toHaveBeenCalled();
   });
+
+  it("reports Xero validation errors instead of claiming creation succeeded", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: {
+        creditNotes: [{
+          validationErrors: [{ message: "A credit note reference is required." }],
+        }],
+      },
+    });
+
+    const result = await createXeroCreditNote("contact-id");
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "A credit note reference is required.",
+    });
+  });
+
+  it("reports a generic error for message-less Xero validation failures", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ validationErrors: [{}] }] },
+    });
+
+    const result = await createXeroCreditNote("contact-id");
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
 });

@@ -144,4 +144,26 @@ describe("updateXeroCreditNote", () => {
       "credit-note-update-retry-key",
     );
   });
+
+  it("reports an error response returned with an HTTP-successful update", async () => {
+    mocks.getCreditNote.mockResolvedValue({
+      body: {
+        creditNotes: [{
+          status: CreditNote.StatusEnum.DRAFT,
+          type: CreditNote.TypeEnum.ACCRECCREDIT,
+        }],
+      },
+    });
+    mocks.updateCreditNote.mockResolvedValue({
+      body: { creditNotes: [{ hasErrors: true }] },
+    });
+
+    const result = await updateXeroCreditNote("credit-note-id");
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
 });
