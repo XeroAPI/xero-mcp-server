@@ -5,7 +5,8 @@ import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 type PaymentProps = {
-  invoiceId: string;
+  invoiceId?: string;
+  creditNoteId?: string;
   accountId: string;
   amount: number;
   date?: string;
@@ -14,17 +15,22 @@ type PaymentProps = {
 
 async function createPayment({
   invoiceId,
+  creditNoteId,
   accountId,
   amount,
   date,
   reference,
 }: PaymentProps): Promise<Payment | undefined> {
+  if (Boolean(invoiceId) === Boolean(creditNoteId)) {
+    throw new Error("Provide exactly one invoice ID or credit note ID.");
+  }
+
   await xeroClient.authenticate();
 
   const payment: Payment = {
-    invoice: {
-      invoiceID: invoiceId,
-    },
+    ...(invoiceId
+      ? { invoice: { invoiceID: invoiceId } }
+      : { creditNote: { creditNoteID: creditNoteId! } }),
     account: {
       accountID: accountId,
     },
@@ -48,6 +54,7 @@ async function createPayment({
  */
 export async function createXeroPayment({
   invoiceId,
+  creditNoteId,
   accountId,
   amount,
   date,
@@ -56,6 +63,7 @@ export async function createXeroPayment({
   try {
     const createdPayment = await createPayment({
       invoiceId,
+      creditNoteId,
       accountId,
       amount,
       date,
