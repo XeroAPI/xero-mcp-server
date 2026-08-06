@@ -36,6 +36,7 @@ const CreateManualJournalTool = CreateXeroTool(
           // TODO: TODO: tracking can be added here
         }),
       )
+      .min(2, "At least two journal lines are required")
       .describe(
         "The manualJournalLines element must contain at least two individual manualJournalLine sub-elements",
       ),
