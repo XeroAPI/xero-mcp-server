@@ -57,6 +57,9 @@ const UpdateInvoiceTool = CreateXeroTool(
     ),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
       Can be obtained from the list-contacts tool."),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact invoice update to prevent duplicate processing.",
+    ),
   },
   async (
     {
@@ -68,6 +71,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       expectedPaymentDate,
       plannedPaymentDate,
       contactId,
+      idempotencyKey,
     }: {
       invoiceId: string;
       lineItems?: Array<{
@@ -92,6 +96,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       expectedPaymentDate?: string;
       plannedPaymentDate?: string;
       contactId?: string;
+      idempotencyKey?: string;
     },
     //_extra: { signal: AbortSignal },
   ) => {
@@ -109,6 +114,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       contactId,
       expectedPaymentDate,
       plannedPaymentDate,
+      idempotencyKey,
     );
     if (result.isError) {
       return {

@@ -41,6 +41,7 @@ async function updateInvoice(
   expectedPaymentDate?: string,
   plannedPaymentDate?: string,
   lineAmountTypes?: Invoice["lineAmountTypes"],
+  idempotencyKey?: string,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -60,7 +61,7 @@ async function updateInvoice(
       invoices: [invoice],
     }, // invoices
     undefined, // unitdp
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders(), // options
   );
 
@@ -79,6 +80,7 @@ export async function updateXeroInvoice(
   contactId?: string,
   expectedPaymentDate?: string,
   plannedPaymentDate?: string,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
@@ -136,6 +138,7 @@ export async function updateXeroInvoice(
       expectedPaymentDate,
       plannedPaymentDate,
       existingInvoice?.lineAmountTypes,
+      idempotencyKey,
     );
 
     if (!updatedInvoice) {

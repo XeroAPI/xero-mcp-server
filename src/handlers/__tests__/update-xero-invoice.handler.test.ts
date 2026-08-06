@@ -117,6 +117,32 @@ describe("updateXeroInvoice", () => {
     });
   });
 
+  it("forwards an idempotency key for safe invoice-update retries", async () => {
+    mocks.getInvoice.mockResolvedValue({
+      body: {
+        invoices: [{
+          status: Invoice.StatusEnum.DRAFT,
+          type: Invoice.TypeEnum.ACCREC,
+        }],
+      },
+    });
+
+    const result = await updateXeroInvoice(
+      "invoice-id",
+      undefined,
+      "Updated reference",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "invoice-update-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateInvoice.mock.calls[0][4]).toBe("invoice-update-retry-key");
+  });
+
   it("rejects a sales-only expected payment date on a bill", async () => {
     mocks.getInvoice.mockResolvedValue({
       body: {

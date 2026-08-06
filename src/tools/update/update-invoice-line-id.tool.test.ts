@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Invoice } from "xero-node";
 
@@ -61,6 +62,7 @@ describe("update-invoice line item IDs", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
     expect(mocks.updateXeroInvoice.mock.calls[0]?.[1][0]).not.toHaveProperty("lineItemId");
   });
@@ -91,8 +93,39 @@ describe("update-invoice line item IDs", () => {
       undefined,
       "2026-09-15",
       undefined,
+      undefined,
     );
     const responseText = result.content.find((content) => content.type === "text")?.text;
     expect(responseText).toContain("Expected Payment Date: 2026-09-15");
+  });
+
+  it("forwards an idempotency key for safe retries", async () => {
+    mocks.updateXeroInvoice.mockResolvedValue({
+      result: { invoiceID: "invoice-id", type: Invoice.TypeEnum.ACCREC },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await UpdateInvoiceTool().handler({
+      invoiceId: "invoice-id",
+      reference: "Updated reference",
+      idempotencyKey: "invoice-update-retry-key",
+    }, {} as never);
+
+    expect(mocks.updateXeroInvoice.mock.calls[0][8]).toBe("invoice-update-retry-key");
+  });
+
+  it("limits idempotency keys to Xero's supported length", () => {
+    const schema = z.object(UpdateInvoiceTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      invoiceId: "invoice-id",
+      idempotencyKey: "x".repeat(128),
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      invoiceId: "invoice-id",
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 });
