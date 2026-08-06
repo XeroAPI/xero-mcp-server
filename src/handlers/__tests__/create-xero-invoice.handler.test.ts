@@ -76,4 +76,34 @@ describe("createXeroInvoice", () => {
       status: Invoice.StatusEnum.AUTHORISED,
     });
   });
+
+  it("sends sales invoice discounts", async () => {
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{
+        description: "Consulting services",
+        discountRate: 10,
+        discountAmount: 5,
+      }],
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createInvoices.mock.calls[0][1].invoices[0].lineItems).toEqual([
+      expect.objectContaining({ discountRate: 10, discountAmount: 5 }),
+    ]);
+  });
+
+  it("rejects line discounts on ACCPAY bills", async () => {
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{ description: "Office supplies", discountRate: 10 }],
+      Invoice.TypeEnum.ACCPAY,
+    );
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "Line discounts are only supported on ACCREC sales invoices.",
+    });
+    expect(mocks.createInvoices).not.toHaveBeenCalled();
+  });
 });

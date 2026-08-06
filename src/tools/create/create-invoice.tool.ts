@@ -22,6 +22,12 @@ const lineItemSchema = z.object({
   tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
     Can be obtained from the list-tracking-categories tool. \
     Only use if prompted by the user.").optional(),
+  discountRate: z.number().optional().describe(
+    "Optional percentage discount for an ACCREC sales-invoice line. Not supported for ACCPAY bills.",
+  ),
+  discountAmount: z.number().optional().describe(
+    "Optional discount amount for an ACCREC sales-invoice line. Not supported for ACCPAY bills.",
+  ),
 }).refine((lineItem) => lineItem.description || lineItem.itemCode, {
   message: "A line item requires a description or item code.",
   path: ["description"],

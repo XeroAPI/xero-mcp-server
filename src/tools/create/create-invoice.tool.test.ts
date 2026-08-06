@@ -118,4 +118,33 @@ describe("create-invoice tool", () => {
     const responseText = result.content.find((content) => content.type === "text")?.text;
     expect(responseText).toContain("Due Date: 2026-08-31");
   });
+
+  it("forwards sales invoice discounts", async () => {
+    mocks.createXeroInvoice.mockResolvedValue({
+      result: { invoiceID: "invoice-id", type: Invoice.TypeEnum.ACCREC },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      contactId: "contact-id",
+      lineItems: [{
+        description: "Consulting services",
+        discountRate: 10,
+        discountAmount: 5,
+      }],
+    }, {} as never);
+
+    expect(mocks.createXeroInvoice).toHaveBeenCalledWith(
+      "contact-id",
+      [expect.objectContaining({ discountRate: 10, discountAmount: 5 })],
+      Invoice.TypeEnum.ACCREC,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+  });
 });

@@ -12,6 +12,8 @@ interface InvoiceLineItem {
   taxType?: string;
   itemCode?: string;
   tracking?: LineItemTracking[];
+  discountRate?: number;
+  discountAmount?: number;
 }
 
 async function createInvoice(
@@ -68,6 +70,17 @@ export async function createXeroInvoice(
   status?: Invoice.StatusEnum,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
+    const hasDiscount = lineItems.some(
+      (lineItem) => lineItem.discountRate !== undefined || lineItem.discountAmount !== undefined,
+    );
+    if (hasDiscount && type !== Invoice.TypeEnum.ACCREC) {
+      return {
+        result: null,
+        isError: true,
+        error: "Line discounts are only supported on ACCREC sales invoices.",
+      };
+    }
+
     const createdInvoice = await createInvoice(
       contactId,
       lineItems,
