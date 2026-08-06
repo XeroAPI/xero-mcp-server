@@ -12,7 +12,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v20 or higher)
 - npm or pnpm
 - A Xero developer account with API credentials
 
