@@ -38,6 +38,8 @@ async def main():
 if __name__ == "__main__":
     # Let's make sure the user has npx installed
     if not shutil.which("npx"):
-        raise RuntimeError("npx is not installed. Please install it with `npm install -g npx`.")
+        raise RuntimeError(
+            "npx is not available. Install or update Node.js/npm (which provides npx), then try again."
+        )
 
     asyncio.run(main())
