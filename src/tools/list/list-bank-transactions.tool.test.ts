@@ -22,5 +22,6 @@ describe("list-bank-transactions", () => {
     }).success).toBe(false);
     expect(tool.description).toContain("next page of bank transactions");
     expect(tool.description).not.toContain("next page of quotes");
+    expect(tool.description).not.toContain("provided in the provided");
   });
 });

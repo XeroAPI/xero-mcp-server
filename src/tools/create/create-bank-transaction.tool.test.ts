@@ -66,4 +66,21 @@ describe("create-bank-transaction", () => {
 
     expect(createBankTransaction.mock.calls[0][9]).toBe(0.7456);
   });
+
+  it("labels a successful action as a created bank transaction", async () => {
+    const result = await CreateBankTransactionTool().handler({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+    }, {} as never);
+
+    expect(result.content[0]).toMatchObject({
+      text: expect.stringContaining(
+        "Bank transaction created successfully:\nID: bank-transaction-id",
+      ),
+    });
+    expect(result.content[0]).not.toMatchObject({
+      text: expect.stringContaining("undefined"),
+    });
+  });
 });

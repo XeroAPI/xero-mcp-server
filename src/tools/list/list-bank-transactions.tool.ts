@@ -11,7 +11,7 @@ const ListBankTransactionsTool = CreateXeroTool(
   Ask the user if they want the next page of bank transactions after running this tool if
   10 bank transactions are returned.
   If they do, call this tool again with the next page number and the bank account
-  if one was provided in the provided in the previous call.`,
+  if one was provided in the previous call.`,
   {
     page: z.number(),
     bankAccountId: z.string().uuid().optional().describe(

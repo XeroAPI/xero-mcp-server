@@ -91,12 +91,18 @@ const CreateBankTransactionTool = CreateXeroTool(
         {
           type: "text" as const,
           text: [
-            "Bank transaction successfully:",
-            `ID: ${bankTransaction?.bankTransactionID}`,
-            `Date: ${bankTransaction?.date}`,
-            `Contact: ${bankTransaction?.contact?.name}`,
-            `Total: ${bankTransaction?.total}`,
-            `Status: ${bankTransaction?.status}`,
+            "Bank transaction created successfully:",
+            bankTransaction?.bankTransactionID
+              ? `ID: ${bankTransaction.bankTransactionID}`
+              : null,
+            bankTransaction?.date ? `Date: ${bankTransaction.date}` : null,
+            bankTransaction?.contact?.name
+              ? `Contact: ${bankTransaction.contact.name}`
+              : null,
+            bankTransaction?.total !== undefined
+              ? `Total: ${bankTransaction.total}`
+              : null,
+            bankTransaction?.status ? `Status: ${bankTransaction.status}` : null,
             bankTransaction?.isReconciled !== undefined
               ? `Reconciliation: ${bankTransaction.isReconciled ? "Reconciled" : "Unreconciled"}`
               : null,
