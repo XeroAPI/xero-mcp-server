@@ -29,6 +29,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       "Customer credit-note reference, or supplier credit-note number.",
     ),
     date: z.string().optional(),
+    dueDate: z.string().optional(),
     contactId: z.string().optional(),
   },
   async (
@@ -37,6 +38,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       lineItems,
       reference,
       date,
+      dueDate,
       contactId,
     }: {
       creditNoteId: string;
@@ -49,6 +51,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       }>;
       reference?: string;
       date?: string;
+      dueDate?: string;
       contactId?: string;
     },
   ) => {
@@ -58,6 +61,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference,
       contactId,
       date,
+      dueDate,
     );
     if (result.isError) {
       return {
@@ -84,6 +88,8 @@ const UpdateCreditNoteTool = CreateXeroTool(
             "Credit note updated successfully:",
             `ID: ${creditNote?.creditNoteID}`,
             `Contact: ${creditNote?.contact?.name}`,
+            creditNote?.date ? `Date: ${creditNote.date}` : null,
+            creditNote?.dueDate ? `Due Date: ${creditNote.dueDate}` : null,
             `Total: ${creditNote?.total}`,
             `Status: ${creditNote?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

@@ -52,6 +52,42 @@ describe("createXeroCreditNote", () => {
     );
   });
 
+  it("leaves omitted dates to Xero's organisation-timezone defaults", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
+    });
+
+    const result = await createXeroCreditNote("contact-id");
+
+    expect(result.isError).toBe(false);
+    const creditNote = mocks.createCreditNotes.mock.calls[0][1].creditNotes[0];
+    expect(creditNote).not.toHaveProperty("date");
+    expect(creditNote).not.toHaveProperty("dueDate");
+  });
+
+  it("sends explicitly supplied issue and due dates", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
+    });
+
+    const result = await createXeroCreditNote(
+      "contact-id",
+      [{ description: "Returned goods" }],
+      CreditNote.TypeEnum.ACCRECCREDIT,
+      undefined,
+      CreditNote.StatusEnum.DRAFT,
+      undefined,
+      "2026-07-31",
+      "2026-08-30",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createCreditNotes.mock.calls[0][1].creditNotes[0]).toMatchObject({
+      date: "2026-07-31",
+      dueDate: "2026-08-30",
+    });
+  });
+
   it("creates an approved credit note when requested", async () => {
     mocks.createCreditNotes.mockResolvedValue({
       body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
@@ -94,5 +130,21 @@ describe("createXeroCreditNote", () => {
     );
 
     expect(mocks.createCreditNotes.mock.calls[0][4]).toBe("credit-note-retry-key");
+  });
+
+  it("rejects an authorised credit note with no lines before calling Xero", async () => {
+    const result = await createXeroCreditNote(
+      "contact-id",
+      undefined,
+      CreditNote.TypeEnum.ACCRECCREDIT,
+      undefined,
+      CreditNote.StatusEnum.AUTHORISED,
+    );
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "An authorised credit note requires at least one line item.",
+    });
+    expect(mocks.createCreditNotes).not.toHaveBeenCalled();
   });
 });

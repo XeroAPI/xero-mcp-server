@@ -42,11 +42,22 @@ describe("updateXeroCreditNote", () => {
       },
     });
 
-    const result = await updateXeroCreditNote("credit-note-id", undefined, "SUP-001");
+    const result = await updateXeroCreditNote(
+      "credit-note-id",
+      undefined,
+      "SUP-001",
+      undefined,
+      "2026-07-31",
+      "2026-08-30",
+    );
 
     expect(result.isError).toBe(false);
     const creditNote = mocks.updateCreditNote.mock.calls[0][2].creditNotes[0];
-    expect(creditNote).toMatchObject({ creditNoteNumber: "SUP-001" });
+    expect(creditNote).toMatchObject({
+      creditNoteNumber: "SUP-001",
+      date: "2026-07-31",
+      dueDate: "2026-08-30",
+    });
     expect(creditNote).not.toHaveProperty("reference");
   });
 

@@ -20,6 +20,8 @@ async function createCreditNote(
   reference?: string,
   status: CreditNote.StatusEnum = CreditNote.StatusEnum.DRAFT,
   idempotencyKey?: string,
+  date?: string,
+  dueDate?: string,
 ): Promise<CreditNote | undefined> {
   await xeroClient.authenticate();
 
@@ -29,7 +31,8 @@ async function createCreditNote(
       contactID: contactId,
     },
     ...(lineItems ? { lineItems } : {}),
-    date: new Date().toISOString().split("T")[0], // Today's date
+    ...(date !== undefined ? { date } : {}),
+    ...(dueDate !== undefined ? { dueDate } : {}),
     ...(reference !== undefined
       ? type === CreditNote.TypeEnum.ACCPAYCREDIT
         ? { creditNoteNumber: reference }
@@ -62,8 +65,14 @@ export async function createXeroCreditNote(
   reference?: string,
   status: CreditNote.StatusEnum = CreditNote.StatusEnum.DRAFT,
   idempotencyKey?: string,
+  date?: string,
+  dueDate?: string,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
+    if (status === CreditNote.StatusEnum.AUTHORISED && (!lineItems || lineItems.length === 0)) {
+      throw new Error("An authorised credit note requires at least one line item.");
+    }
+
     const createdCreditNote = await createCreditNote(
       contactId,
       lineItems,
@@ -71,6 +80,8 @@ export async function createXeroCreditNote(
       reference,
       status,
       idempotencyKey,
+      date,
+      dueDate,
     );
 
     if (!createdCreditNote) {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreditNote } from "xero-node";
 
 const mocks = vi.hoisted(() => ({
@@ -24,6 +24,10 @@ describe("create-credit-note tool", () => {
   const tool = CreateCreditNoteTool();
   const schema = z.object(tool.schema as z.ZodRawShape);
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("accepts Xero's minimum draft credit note", () => {
     expect(schema.safeParse({ contactId: "contact-id" }).success).toBe(true);
     expect(schema.safeParse({
@@ -34,10 +38,6 @@ describe("create-credit-note tool", () => {
       contactId: "contact-id",
       lineItems: [{}],
     }).success).toBe(false);
-    expect(schema.safeParse({
-      contactId: "contact-id",
-      status: "AUTHORISED",
-    }).success).toBe(true);
     expect(schema.safeParse({
       contactId: "contact-id",
       status: "SUBMITTED",
@@ -54,26 +54,48 @@ describe("create-credit-note tool", () => {
         creditNoteID: "credit-note-id",
         type: CreditNote.TypeEnum.ACCPAYCREDIT,
         contact: { name: "Example supplier" },
+        date: "2026-07-31",
+        dueDate: "2026-08-30",
       },
       isError: false,
       error: null,
     });
     mocks.getDeepLink.mockResolvedValue(null);
 
-    await tool.handler({
+    const result = await tool.handler({
       contactId: "contact-id",
+      lineItems: [{ description: "Returned goods" }],
       type: "ACCPAYCREDIT",
+      date: "2026-07-31",
+      dueDate: "2026-08-30",
       status: "AUTHORISED",
       idempotencyKey: "credit-note-retry-key",
     }, {} as never);
 
     expect(mocks.createXeroCreditNote).toHaveBeenCalledWith(
       "contact-id",
-      undefined,
+      [{ description: "Returned goods" }],
       CreditNote.TypeEnum.ACCPAYCREDIT,
       undefined,
       CreditNote.StatusEnum.AUTHORISED,
       "credit-note-retry-key",
+      "2026-07-31",
+      "2026-08-30",
+    );
+    const text = result.content.find((content) => content.type === "text")?.text;
+    expect(text).toContain("Due Date: 2026-08-30");
+  });
+
+  it("rejects an empty authorised credit note before calling the handler", async () => {
+    const result = await tool.handler({
+      contactId: "contact-id",
+      status: "AUTHORISED",
+    }, {} as never);
+    const text = result.content.find((content) => content.type === "text")?.text;
+
+    expect(mocks.createXeroCreditNote).not.toHaveBeenCalled();
+    expect(text).toBe(
+      "Error creating credit note: An authorised credit note requires at least one line item.",
     );
   });
 });

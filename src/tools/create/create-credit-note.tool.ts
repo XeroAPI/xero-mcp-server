@@ -31,14 +31,27 @@ const CreateCreditNoteTool = CreateXeroTool(
     reference: z.string().optional().describe(
       "Reference for an ACCRECCREDIT note or the credit note number for an ACCPAYCREDIT note.",
     ),
+    date: z.string().optional().describe(
+      "Optional issue date (YYYY-MM-DD). When omitted, Xero uses the current date in the organisation's timezone.",
+    ),
+    dueDate: z.string().optional().describe("Optional due date (YYYY-MM-DD)."),
     status: z.enum(["DRAFT", "AUTHORISED"]).optional().describe(
-      "Credit note status. Defaults to DRAFT; use AUTHORISED to create an approved credit note.",
+      "Credit note status. Defaults to DRAFT; AUTHORISED requires at least one line item.",
     ),
     idempotencyKey: z.string().min(1).max(128).optional().describe(
       "Optional retry key. Reuse the same key when retrying this exact credit note to prevent duplicates.",
     ),
   },
-  async ({ contactId, lineItems, type, reference, status, idempotencyKey }) => {
+  async ({ contactId, lineItems, type, reference, date, dueDate, status, idempotencyKey }) => {
+    if (status === "AUTHORISED" && (!lineItems || lineItems.length === 0)) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: "Error creating credit note: An authorised credit note requires at least one line item.",
+        }],
+      };
+    }
+
     const creditNoteType = type === "ACCPAYCREDIT"
       ? CreditNote.TypeEnum.ACCPAYCREDIT
       : CreditNote.TypeEnum.ACCRECCREDIT;
@@ -52,6 +65,8 @@ const CreateCreditNoteTool = CreateXeroTool(
       reference,
       creditNoteStatus,
       idempotencyKey,
+      date,
+      dueDate,
     );
     if (result.isError) {
       return {
@@ -79,6 +94,8 @@ const CreateCreditNoteTool = CreateXeroTool(
             `ID: ${creditNote?.creditNoteID}`,
             `Contact: ${creditNote?.contact?.name}`,
             `Type: ${creditNote?.type}`,
+            creditNote?.date ? `Date: ${creditNote.date}` : null,
+            creditNote?.dueDate ? `Due Date: ${creditNote.dueDate}` : null,
             `Total: ${creditNote?.total}`,
             `Status: ${creditNote?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

@@ -32,11 +32,13 @@ async function updateCreditNote(
   reference?: string,
   contactId?: string,
   date?: string,
+  dueDate?: string,
   type?: CreditNote.TypeEnum,
 ): Promise<CreditNote | null> {
   const creditNote: CreditNote = {
     lineItems: lineItems,
-    date: date,
+    ...(date !== undefined ? { date } : {}),
+    ...(dueDate !== undefined ? { dueDate } : {}),
     contact: contactId ? { contactID: contactId } : undefined,
     ...(reference !== undefined
       ? type === CreditNote.TypeEnum.ACCPAYCREDIT
@@ -68,6 +70,7 @@ export async function updateXeroCreditNote(
   reference?: string,
   contactId?: string,
   date?: string,
+  dueDate?: string,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const existingCreditNote = await getCreditNote(creditNoteId);
@@ -89,6 +92,7 @@ export async function updateXeroCreditNote(
       reference,
       contactId,
       date,
+      dueDate,
       existingCreditNote?.type,
     );
 

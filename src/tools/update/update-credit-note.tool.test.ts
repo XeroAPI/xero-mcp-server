@@ -28,6 +28,8 @@ describe("update-credit-note tool", () => {
     await UpdateCreditNoteTool().handler({
       creditNoteId: "credit-note-id",
       reference: "SUP-001",
+      date: "2026-07-31",
+      dueDate: "2026-08-30",
     }, {} as never);
 
     expect(mocks.updateXeroCreditNote).toHaveBeenCalledWith(
@@ -35,7 +37,8 @@ describe("update-credit-note tool", () => {
       undefined,
       "SUP-001",
       undefined,
-      undefined,
+      "2026-07-31",
+      "2026-08-30",
     );
   });
 });
