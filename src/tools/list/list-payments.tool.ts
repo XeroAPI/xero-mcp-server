@@ -34,6 +34,61 @@ function paymentFormatter(payment: Payment): string {
           .filter(Boolean)
           .join("\n")
       : null,
+    payment.creditNote
+      ? [
+          "Credit Note:",
+          `  Credit Note Number: ${payment.creditNote.creditNoteNumber || payment.creditNoteNumber || "Unknown"}`,
+          `  Credit Note ID: ${payment.creditNote.creditNoteID || "Unknown"}`,
+          payment.creditNote.contact
+            ? `  Contact: ${payment.creditNote.contact.name || "Unknown"} (${payment.creditNote.contact.contactID || "Unknown ID"})`
+            : null,
+          payment.creditNote.type ? `  Type: ${payment.creditNote.type}` : null,
+          payment.creditNote.total !== undefined
+            ? `  Total: ${payment.creditNote.total}`
+            : null,
+          payment.creditNote.remainingCredit !== undefined
+            ? `  Remaining Credit: ${payment.creditNote.remainingCredit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : null,
+    payment.prepayment
+      ? [
+          "Prepayment:",
+          `  Prepayment ID: ${payment.prepayment.prepaymentID || "Unknown"}`,
+          payment.prepayment.contact
+            ? `  Contact: ${payment.prepayment.contact.name || "Unknown"} (${payment.prepayment.contact.contactID || "Unknown ID"})`
+            : null,
+          payment.prepayment.type ? `  Type: ${payment.prepayment.type}` : null,
+          payment.prepayment.total !== undefined
+            ? `  Total: ${payment.prepayment.total}`
+            : null,
+          payment.prepayment.remainingCredit !== undefined
+            ? `  Remaining Credit: ${payment.prepayment.remainingCredit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : null,
+    payment.overpayment
+      ? [
+          "Overpayment:",
+          `  Overpayment ID: ${payment.overpayment.overpaymentID || "Unknown"}`,
+          payment.overpayment.contact
+            ? `  Contact: ${payment.overpayment.contact.name || "Unknown"} (${payment.overpayment.contact.contactID || "Unknown ID"})`
+            : null,
+          payment.overpayment.type ? `  Type: ${payment.overpayment.type}` : null,
+          payment.overpayment.total !== undefined
+            ? `  Total: ${payment.overpayment.total}`
+            : null,
+          payment.overpayment.remainingCredit !== undefined
+            ? `  Remaining Credit: ${payment.overpayment.remainingCredit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -42,8 +97,8 @@ function paymentFormatter(payment: Payment): string {
 const ListPaymentsTool = CreateXeroTool(
   "list-payments",
   `List payments in Xero. 
-  This tool shows all payments made against invoices, including payment date, amount, and payment method.
-  You can filter payments by invoice number, invoice ID, payment ID, or invoice reference.
+  This tool shows payments applied to invoices, credit notes, prepayments, and overpayments, including payment date, amount, and payment method.
+  You can filter payments by invoice number, invoice ID, payment ID, or payment reference.
   Ask the user if they want to see payments for a specific invoice, contact, payment or reference before running.
   If many payments are returned, ask the user if they want to see the next page.`,
   {
@@ -51,7 +106,7 @@ const ListPaymentsTool = CreateXeroTool(
     invoiceNumber: z.string().optional(),
     invoiceId: z.string().optional(),
     paymentId: z.string().optional(),
-    reference: z.string().optional(),
+    reference: z.string().optional().describe("Optional payment reference."),
   },
   async ({ page, invoiceNumber, invoiceId, paymentId, reference }) => {
     const response = await listXeroPayments(page, {
