@@ -18,7 +18,7 @@ async function getCreditNotes(
     contactId ? `Contact.ContactID=guid("${contactId}")` : undefined, // where
     "UpdatedDateUTC DESC", // order
     page, // page
-    undefined, // unitdp
+    4, // unitdp
     10, // pageSize
     getClientHeaders(),
   );
