@@ -13,7 +13,7 @@ const lineItemSchema = z.object({
 
 const UpdateQuoteTool = CreateXeroTool(
   "update-quote",
-  "Update a quote in Xero. Draft and sent quotes can be edited; Xero status transitions are also supported.\
+  "Update a quote in Xero. Draft and sent quotes can be edited. Declined, accepted, and invoiced quotes permit contact changes; all Xero status transitions are also supported.\
   All line items must be provided. Any line items not provided will be removed. Including existing line items.\
   Do not modify line items that have not been specified by the user. \
  When a quote is updated, a deep link to the quote in Xero is returned. \

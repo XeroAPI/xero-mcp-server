@@ -113,6 +113,32 @@ describe("updateXeroQuote", () => {
     );
   });
 
+  it("allows contact changes to accepted quotes", async () => {
+    mocks.getQuote.mockResolvedValue({
+      body: { quotes: [{ status: QuoteStatusCodes.ACCEPTED }] },
+    });
+
+    const result = await updateXeroQuote(
+      "quote-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "updated-contact-id",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateQuote).toHaveBeenCalledWith(
+      "tenant-id",
+      "quote-id",
+      { quotes: [{ contact: { contactID: "updated-contact-id" } }] },
+      undefined,
+      expect.any(Object),
+    );
+  });
+
   it("rejects field changes alongside a transition from a non-editable quote", async () => {
     mocks.getQuote.mockResolvedValue({
       body: { quotes: [{ status: QuoteStatusCodes.ACCEPTED }] },
@@ -135,7 +161,7 @@ describe("updateXeroQuote", () => {
     expect(result).toMatchObject({
       result: null,
       isError: true,
-      error: "Cannot update quote fields alongside a status transition. Current status: ACCEPTED",
+      error: "Cannot update quote fields in this status. Current status: ACCEPTED",
     });
     expect(mocks.updateQuote).not.toHaveBeenCalled();
   });

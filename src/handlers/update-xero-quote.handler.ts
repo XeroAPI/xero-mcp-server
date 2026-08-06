@@ -116,31 +116,36 @@ export async function updateXeroQuote(
       quoteStatus !== undefined &&
       nextStatus !== undefined &&
       validStatusTransitions[quoteStatus]?.includes(nextStatus);
-    const hasChangesOutsideStatus = [
+    const hasChangesOtherThanContact = [
       lineItems,
       reference,
       terms,
       title,
       summary,
       quoteNumber,
-      contactId,
       date,
       expiryDate,
     ].some((value) => value !== undefined);
+    const isContactOnlyUpdate =
+      contactId !== undefined && !hasChangesOtherThanContact;
 
-    if (nextStatus !== undefined ? !isValidStatusTransition : !isEditable) {
+    if (!isEditable && hasChangesOtherThanContact) {
+      return {
+        result: null,
+        isError: true,
+        error: `Cannot update quote fields in this status. Current status: ${quoteStatus}`,
+      };
+    }
+
+    if (
+      nextStatus !== undefined
+        ? !isValidStatusTransition
+        : !isEditable && !isContactOnlyUpdate
+    ) {
       return {
         result: null,
         isError: true,
         error: `Cannot update quote because it is neither editable nor eligible for the requested status transition. Current status: ${quoteStatus}`,
-      };
-    }
-
-    if (!isEditable && hasChangesOutsideStatus) {
-      return {
-        result: null,
-        isError: true,
-        error: `Cannot update quote fields alongside a status transition. Current status: ${quoteStatus}`,
       };
     }
 
