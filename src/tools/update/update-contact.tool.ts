@@ -99,7 +99,7 @@ const UpdateContactTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error creating contact: ${err.message}`,
+            text: `Error updating contact: ${err.message}`,
           },
         ],
       };
