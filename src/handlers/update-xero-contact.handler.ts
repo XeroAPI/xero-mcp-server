@@ -16,6 +16,7 @@ async function updateContact(
   phoneCountryCode: string | undefined,
   phoneAreaCode: string | undefined,
   contactId: string,
+  idempotencyKey: string | undefined,
 ): Promise<Contact | undefined> {
   await xeroClient.authenticate();
 
@@ -58,7 +59,7 @@ async function updateContact(
     xeroClient.tenantId,
     contactId, // contactId
     contacts, // contacts
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders(),
   );
 
@@ -81,6 +82,7 @@ export async function updateXeroContact(
   phoneType?: Phone.PhoneTypeEnum,
   phoneCountryCode?: string,
   phoneAreaCode?: string,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<Contact>> {
   try {
     const updatedContact = await updateContact(
@@ -95,6 +97,7 @@ export async function updateXeroContact(
       phoneCountryCode,
       phoneAreaCode,
       contactId,
+      idempotencyKey,
     );
 
     if (!updatedContact) {

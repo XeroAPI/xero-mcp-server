@@ -48,6 +48,9 @@ const UpdateContactTool = CreateXeroTool(
           .describe("Optional address type. Use POBOX for a mailing address."),
       })
       .optional(),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact contact update to prevent duplicate processing.",
+    ),
   },
   async ({
     contactId,
@@ -61,6 +64,7 @@ const UpdateContactTool = CreateXeroTool(
     phoneAreaCode,
     contactStatus,
     address,
+    idempotencyKey,
   }: {
     contactId: string;
     name?: string;
@@ -81,6 +85,7 @@ const UpdateContactTool = CreateXeroTool(
     };
     firstName?: string;
     lastName?: string;
+    idempotencyKey?: string;
   }) => {
     const hasPhoneDetails = [
       phoneType,
@@ -144,6 +149,7 @@ const UpdateContactTool = CreateXeroTool(
         phoneType ? Phone.PhoneTypeEnum[phoneType] : undefined,
         phoneCountryCode,
         phoneAreaCode,
+        idempotencyKey,
       );
       if (response.isError) {
         return {

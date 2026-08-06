@@ -14,10 +14,13 @@ const CreateContactTool = CreateXeroTool(
     name: z.string(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact contact creation to prevent duplicates.",
+    ),
   },
-  async ({ name, email, phone }) => {
+  async ({ name, email, phone, idempotencyKey }) => {
     try {
-      const response = await createXeroContact(name, email, phone);
+      const response = await createXeroContact(name, email, phone, idempotencyKey);
       if (response.isError) {
         return {
           content: [

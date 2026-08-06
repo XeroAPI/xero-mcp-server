@@ -58,6 +58,7 @@ describe("update-contact tool", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -88,6 +89,7 @@ describe("update-contact tool", () => {
       undefined,
       undefined,
       Contact.ContactStatusEnum.ARCHIVED,
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -123,6 +125,7 @@ describe("update-contact tool", () => {
         addressLine1: "PO Box 123",
         addressType: Address.AddressTypeEnum.POBOX,
       }),
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -166,7 +169,38 @@ describe("update-contact tool", () => {
       Phone.PhoneTypeEnum.OFFICE,
       "64",
       "04",
+      undefined,
     );
+  });
+
+  it("forwards an idempotency key for safe retries", async () => {
+    mocks.updateXeroContact.mockResolvedValue({
+      result: { contactID: "contact-id", name: "Example contact" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      contactId: "contact-id",
+      email: "contact@example.com",
+      idempotencyKey: "contact-update-retry-key",
+    }, {} as never);
+
+    expect(mocks.updateXeroContact.mock.calls[0][11]).toBe("contact-update-retry-key");
+  });
+
+  it("limits idempotency keys to Xero's supported length", () => {
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      email: "contact@example.com",
+      idempotencyKey: "x".repeat(128),
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      email: "contact@example.com",
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 
   it("does not send phone metadata without a phone number", async () => {

@@ -8,6 +8,7 @@ async function createContact(
   name: string,
   email?: string,
   phone?: string,
+  idempotencyKey?: string,
 ): Promise<Contact | undefined> {
   await xeroClient.authenticate();
 
@@ -30,7 +31,7 @@ async function createContact(
       contacts: [contact],
     }, //contacts
     true, //summarizeErrors
-    undefined, //idempotencyKey
+    idempotencyKey,
     getClientHeaders(), // options
   );
 
@@ -44,9 +45,10 @@ export async function createXeroContact(
   name: string,
   email?: string,
   phone?: string,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<Contact>> {
   try {
-    const createdContact = await createContact(name, email, phone);
+    const createdContact = await createContact(name, email, phone, idempotencyKey);
 
     if (!createdContact) {
       throw new Error("Contact creation failed.");

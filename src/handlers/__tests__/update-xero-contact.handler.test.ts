@@ -161,4 +161,24 @@ describe("updateXeroContact", () => {
       { headers: {} },
     );
   });
+
+  it("forwards an idempotency key for safe contact-update retries", async () => {
+    const result = await updateXeroContact(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "contact-update-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateContact.mock.calls[0][3]).toBe("contact-update-retry-key");
+  });
 });
