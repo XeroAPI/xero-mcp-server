@@ -42,12 +42,16 @@ const CreateInvoiceTool = CreateXeroTool(
       ACCPAY is for purchase invoices, Accounts Payable invoices, supplier invoices, or bills. \
       If the type is not specified, the default is ACCREC.").optional(),
     reference: z.string().describe("A reference number for the invoice.").optional(),
-    date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
+    date: z.string().describe("Optional issue date (YYYY-MM-DD). When omitted, Xero uses the current date in the organisation's timezone.").optional(),
+    dueDate: z.string().describe("Optional due date for the invoice (YYYY-MM-DD format). When omitted, no due date is sent to Xero.").optional(),
+    status: z.enum(["DRAFT", "SUBMITTED", "AUTHORISED"]).describe(
+      "Optional initial invoice status. Use AUTHORISED only when the invoice is ready to be approved.",
+    ).optional(),
     idempotencyKey: z.string().min(1).max(128).optional().describe(
       "Optional retry key. Reuse the same key when retrying this exact invoice to prevent duplicates.",
     ),
   },
-  async ({ contactId, lineItems, type, reference, date, idempotencyKey }) => {
+  async ({ contactId, lineItems, type, reference, date, dueDate, status, idempotencyKey }) => {
     const xeroInvoiceType = type === "ACCPAY" ? Invoice.TypeEnum.ACCPAY : Invoice.TypeEnum.ACCREC;
     const result = await createXeroInvoice(
       contactId,
@@ -56,6 +60,8 @@ const CreateInvoiceTool = CreateXeroTool(
       reference,
       date,
       idempotencyKey,
+      dueDate,
+      status ? Invoice.StatusEnum[status] : undefined,
     );
     if (result.isError) {
       return {
@@ -87,6 +93,7 @@ const CreateInvoiceTool = CreateXeroTool(
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
             `Date: ${invoice?.date}`,
+            invoice?.dueDate ? `Due Date: ${invoice.dueDate}` : null,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

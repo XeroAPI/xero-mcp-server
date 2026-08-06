@@ -43,4 +43,37 @@ describe("createXeroInvoice", () => {
     expect(result.isError).toBe(false);
     expect(mocks.createInvoices.mock.calls[0][4]).toBe("invoice-retry-key");
   });
+
+  it("leaves dates, payment terms, and status to Xero when they are not supplied", async () => {
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{ description: "Consulting services" }],
+    );
+
+    expect(result.isError).toBe(false);
+    const invoice = mocks.createInvoices.mock.calls[0][1].invoices[0];
+    expect(invoice).not.toHaveProperty("date");
+    expect(invoice).not.toHaveProperty("dueDate");
+    expect(invoice).not.toHaveProperty("status");
+  });
+
+  it("sends a supplied due date and initial status", async () => {
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{ description: "Consulting services" }],
+      Invoice.TypeEnum.ACCREC,
+      undefined,
+      "2026-08-01",
+      undefined,
+      "2026-08-31",
+      Invoice.StatusEnum.AUTHORISED,
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createInvoices.mock.calls[0][1].invoices[0]).toMatchObject({
+      date: "2026-08-01",
+      dueDate: "2026-08-31",
+      status: Invoice.StatusEnum.AUTHORISED,
+    });
+  });
 });

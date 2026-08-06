@@ -21,6 +21,8 @@ async function createInvoice(
   reference: string | undefined,
   date: string | undefined,
   idempotencyKey?: string,
+  dueDate?: string,
+  status?: Invoice.StatusEnum,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
@@ -30,14 +32,12 @@ async function createInvoice(
       contactID: contactId,
     },
     lineItems: lineItems,
-    date: date || new Date().toISOString().split("T")[0], // Use provided date or today's date
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 30 days from now
+    ...(date !== undefined ? { date } : {}),
+    ...(dueDate !== undefined ? { dueDate } : {}),
     ...(type === Invoice.TypeEnum.ACCPAY
       ? { invoiceNumber: reference }
       : { reference: reference }),
-    status: Invoice.StatusEnum.DRAFT,
+    ...(status !== undefined ? { status } : {}),
   };
 
   const response = await xeroClient.accountingApi.createInvoices(
@@ -64,6 +64,8 @@ export async function createXeroInvoice(
   reference?: string,
   date?: string,
   idempotencyKey?: string,
+  dueDate?: string,
+  status?: Invoice.StatusEnum,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const createdInvoice = await createInvoice(
@@ -73,6 +75,8 @@ export async function createXeroInvoice(
       reference,
       date,
       idempotencyKey,
+      dueDate,
+      status,
     );
 
     if (!createdInvoice) {
