@@ -32,8 +32,12 @@ const ListTaxRatesTool = CreateXeroTool(
             `Tax Rate: ${taxRate.name || "Unnamed"}`,
             `Tax Type: ${taxRate.taxType || "No tax type"}`,
             `Status: ${taxRate.status || "Unknown status"}`,
-            `Display Tax Rate: ${taxRate.displayTaxRate || "0.0000"}%`,
-            `Effective Rate: ${taxRate.effectiveRate || "0.0000"}%`,
+            taxRate.displayTaxRate !== undefined
+              ? `Display Tax Rate: ${taxRate.displayTaxRate}%`
+              : null,
+            taxRate.effectiveRate !== undefined
+              ? `Effective Rate: ${taxRate.effectiveRate}%`
+              : null,
             taxRate.taxComponents?.length
               ? `Tax Components:\n${taxRate.taxComponents
                   .map(
