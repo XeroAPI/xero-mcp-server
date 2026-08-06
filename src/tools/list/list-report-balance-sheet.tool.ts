@@ -10,7 +10,7 @@ const ListReportBalanceSheetTool = CreateXeroTool(
   {
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
     periods: reportPeriodsSchema.optional().describe(
-      "Optional number of periods to compare (an integer between 1 and 11)",
+      "Optional number of periods to compare (an integer between 1 and 12)",
     ),
     timeframe: z.enum(["MONTH", "QUARTER", "YEAR"]).optional().describe("Optional timeframe for the report (MONTH, QUARTER, YEAR)"),
     trackingOptionID1: z.string().optional().describe("Optional tracking option ID 1"),
