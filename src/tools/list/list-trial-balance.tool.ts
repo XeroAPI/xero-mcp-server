@@ -32,7 +32,11 @@ const ListTrialBalanceTool = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: `Date: ${trialBalanceReport?.reportDate || "Not specified"}`,
+          text: `Requested period: ${trialBalanceReport?.reportTitles?.at(-1) ?? "Not specified"}`,
+        },
+        {
+          type: "text" as const,
+          text: `Generated date: ${trialBalanceReport?.reportDate ?? "Unknown"}`,
         },
         {
           type: "text" as const,
@@ -47,4 +51,4 @@ const ListTrialBalanceTool = CreateXeroTool(
   },
 );
 
-export default ListTrialBalanceTool; 
+export default ListTrialBalanceTool;
