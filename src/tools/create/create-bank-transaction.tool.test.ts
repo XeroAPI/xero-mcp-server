@@ -1,3 +1,4 @@
+import { LineAmountTypes } from "xero-node";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../handlers/create-xero-bank-transaction.handler.js", () => ({
@@ -39,6 +40,18 @@ describe("create-bank-transaction", () => {
       "2026-08-06",
       undefined,
       undefined,
+      undefined,
     );
+  });
+
+  it("forwards the requested line amount tax treatment", async () => {
+    await CreateBankTransactionTool().handler({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+      lineAmountTypes: "Exclusive",
+    }, {} as never);
+
+    expect(createBankTransaction.mock.calls[0][8]).toBe(LineAmountTypes.Exclusive);
   });
 });

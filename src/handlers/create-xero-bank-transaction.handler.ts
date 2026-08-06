@@ -1,6 +1,6 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
-import { BankTransaction } from "xero-node";
+import { BankTransaction, LineAmountTypes } from "xero-node";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
@@ -24,6 +24,7 @@ async function createBankTransaction(
   date?: string,
   isReconciled?: boolean,
   idempotencyKey?: string,
+  lineAmountTypes?: LineAmountTypes,
 ): Promise<BankTransaction | undefined> {
   await xeroClient.authenticate();
 
@@ -37,6 +38,7 @@ async function createBankTransaction(
     ...(date !== undefined ? { date } : {}),
     reference: reference,
     ...(isReconciled !== undefined ? { isReconciled } : {}),
+    ...(lineAmountTypes !== undefined ? { lineAmountTypes } : {}),
     status: BankTransaction.StatusEnum.AUTHORISED
   };
 
@@ -65,6 +67,7 @@ export async function createXeroBankTransaction(
   date?: string,
   isReconciled?: boolean,
   idempotencyKey?: string,
+  lineAmountTypes?: LineAmountTypes,
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
     const createdTransaction = await createBankTransaction(
@@ -76,6 +79,7 @@ export async function createXeroBankTransaction(
       date,
       isReconciled,
       idempotencyKey,
+      lineAmountTypes,
     );
   
     if (!createdTransaction) {

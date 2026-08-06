@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroBankTransaction } from "../../handlers/create-xero-bank-transaction.handler.js";
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
+import { LineAmountTypes } from "xero-node";
 
 const lineItemSchema = z.object({
   description: z.string().min(1).optional(),
@@ -33,6 +34,9 @@ const CreateBankTransactionTool = CreateXeroTool(
     isReconciled: z.boolean().optional().describe(
       "Optional reconciliation state. Use true only when the transaction should be marked reconciled.",
     ),
+    lineAmountTypes: z.enum(["Exclusive", "Inclusive", "NoTax"]).optional().describe(
+      "Optional tax treatment for the supplied line amounts.",
+    ),
     idempotencyKey: z.string().min(1).max(128).optional().describe(
       "Optional retry key. Reuse the same key when retrying this exact transaction to prevent duplicates.",
     ),
@@ -46,6 +50,7 @@ const CreateBankTransactionTool = CreateXeroTool(
     date,
     isReconciled,
     idempotencyKey,
+    lineAmountTypes,
   }) => {
     const result = await createXeroBankTransaction(
       type,
@@ -56,6 +61,7 @@ const CreateBankTransactionTool = CreateXeroTool(
       date,
       isReconciled,
       idempotencyKey,
+      lineAmountTypes ? LineAmountTypes[lineAmountTypes] : undefined,
     );
 
     if (result.isError) {
