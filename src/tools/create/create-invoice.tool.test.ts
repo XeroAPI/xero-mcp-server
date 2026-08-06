@@ -47,6 +47,12 @@ describe("create-invoice tool", () => {
       contactId: "contact-id",
       lineItems: [{}],
     }).success).toBe(false);
+
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{ description: "Consulting services" }],
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 
   it("defaults omitted invoice types to ACCREC", async () => {
@@ -70,6 +76,7 @@ describe("create-invoice tool", () => {
       "contact-id",
       [{ description: "Consulting services" }],
       Invoice.TypeEnum.ACCREC,
+      undefined,
       undefined,
       undefined,
     );

@@ -43,10 +43,20 @@ const CreateInvoiceTool = CreateXeroTool(
       If the type is not specified, the default is ACCREC.").optional(),
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact invoice to prevent duplicates.",
+    ),
   },
-  async ({ contactId, lineItems, type, reference, date }) => {
+  async ({ contactId, lineItems, type, reference, date, idempotencyKey }) => {
     const xeroInvoiceType = type === "ACCPAY" ? Invoice.TypeEnum.ACCPAY : Invoice.TypeEnum.ACCREC;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
+    const result = await createXeroInvoice(
+      contactId,
+      lineItems,
+      xeroInvoiceType,
+      reference,
+      date,
+      idempotencyKey,
+    );
     if (result.isError) {
       return {
         content: [
