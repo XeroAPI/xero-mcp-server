@@ -38,11 +38,12 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
             `Period Status: ${period.periodStatus || "Unknown"}`,
             period.periodStartDate ? `Start Date: ${period.periodStartDate}` : null,
             period.periodEndDate ? `End Date: ${period.periodEndDate}` : null,
-            period.numberOfUnits ? `Number of Units: ${period.numberOfUnits}` : null,
-            period.numberOfUnitsTaken ? `Payment Date: ${period.numberOfUnitsTaken}` : null,
-            period.typeOfUnits ? `Payment Date: ${period.typeOfUnits}` : null,
-            period.typeOfUnitsTaken ? `Payment Date: ${period.typeOfUnitsTaken}` : null,
-            period.periodStatus ? `Period Status: ${period.periodStatus}` : null,
+            period.numberOfUnits !== undefined ? `Number of Units: ${period.numberOfUnits}` : null,
+            period.numberOfUnitsTaken !== undefined
+              ? `Number of Units Taken: ${period.numberOfUnitsTaken}`
+              : null,
+            period.typeOfUnits ? `Type of Units: ${period.typeOfUnits}` : null,
+            period.typeOfUnitsTaken ? `Type of Units Taken: ${period.typeOfUnitsTaken}` : null,
           ]
             .filter(Boolean)
             .join("\n"),
