@@ -54,14 +54,14 @@ const ListQuotesTool = CreateXeroTool(
             quote.lineAmountTypes
               ? `Line Amount Types: ${quote.lineAmountTypes}`
               : null,
-            quote.subTotal ? `Sub Total: ${quote.subTotal}` : null,
-            quote.totalTax ? `Total Tax: ${quote.totalTax}` : null,
+            quote.subTotal !== undefined ? `Sub Total: ${quote.subTotal}` : null,
+            quote.totalTax !== undefined ? `Total Tax: ${quote.totalTax}` : null,
             `Total: ${quote.total || 0}`,
-            quote.totalDiscount
+            quote.totalDiscount !== undefined
               ? `Total Discount: ${quote.totalDiscount}`
               : null,
             quote.currencyCode ? `Currency: ${quote.currencyCode}` : null,
-            quote.currencyRate ? `Currency Rate: ${quote.currencyRate}` : null,
+            quote.currencyRate !== undefined ? `Currency Rate: ${quote.currencyRate}` : null,
             quote.updatedDateUTC
               ? `Last Updated: ${quote.updatedDateUTC}`
               : null,

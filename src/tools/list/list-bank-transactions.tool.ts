@@ -47,9 +47,9 @@ const ListBankTransactionsTool = CreateXeroTool(
               : null,
             transaction.reference ? `Reference: ${transaction.reference}` : null,
             transaction.date ? `Date: ${transaction.date}` : null,
-            transaction.subTotal ? `Sub Total: ${transaction.subTotal}` : null,
-            transaction.totalTax ? `Total Tax: ${transaction.totalTax}` : null,
-            transaction.total ? `Total: ${transaction.total}` : null,
+            transaction.subTotal !== undefined ? `Sub Total: ${transaction.subTotal}` : null,
+            transaction.totalTax !== undefined ? `Total Tax: ${transaction.totalTax}` : null,
+            transaction.total !== undefined ? `Total: ${transaction.total}` : null,
             transaction.isReconciled !== undefined ? (`${transaction.isReconciled ? "Reconciled" : "Unreconciled"}`) : null,
             transaction.currencyCode ? `Currency Code: ${transaction.currencyCode}` : null,
             `${transaction.status || "Unknown"}`,
@@ -57,7 +57,7 @@ const ListBankTransactionsTool = CreateXeroTool(
             transaction.hasAttachments !== undefined
               ? (transaction.hasAttachments ? "Has attachments" : "Does not have attachments")
               : null,
-            `Line Items: ${transaction.lineItems?.map(formatLineItem)}`,
+            `Line Items: ${(transaction.lineItems ?? []).map(formatLineItem).join("\n\n")}`,
           ].filter(Boolean).join("\n")
         })) || [])
       ]

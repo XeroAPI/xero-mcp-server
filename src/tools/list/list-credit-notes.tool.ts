@@ -51,13 +51,13 @@ const ListCreditNotesTool = CreateXeroTool(
             creditNote.lineAmountTypes
               ? `Line Amount Types: ${creditNote.lineAmountTypes}`
               : null,
-            creditNote.subTotal ? `Sub Total: ${creditNote.subTotal}` : null,
-            creditNote.totalTax ? `Total Tax: ${creditNote.totalTax}` : null,
+            creditNote.subTotal !== undefined ? `Sub Total: ${creditNote.subTotal}` : null,
+            creditNote.totalTax !== undefined ? `Total Tax: ${creditNote.totalTax}` : null,
             `Total: ${creditNote.total || 0}`,
             creditNote.currencyCode
               ? `Currency: ${creditNote.currencyCode}`
               : null,
-            creditNote.currencyRate
+            creditNote.currencyRate !== undefined
               ? `Currency Rate: ${creditNote.currencyRate}`
               : null,
             creditNote.updatedDateUTC
