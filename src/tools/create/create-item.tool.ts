@@ -3,9 +3,10 @@ import { createXeroItem } from "../../handlers/create-xero-item.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const purchaseDetailsSchema = z.object({
-  unitPrice: z.number(),
+  unitPrice: z.number().optional(),
   taxType: z.string().optional(),
   accountCode: z.string().optional(),
+  cogsAccountCode: z.string().optional(),
 });
 
 const salesDetailsSchema = z.object({
@@ -79,4 +80,4 @@ const CreateItemTool = CreateXeroTool(
   },
 );
 
-export default CreateItemTool; 
+export default CreateItemTool;

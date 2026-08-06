@@ -6,6 +6,7 @@ const purchaseDetailsSchema = z.object({
   unitPrice: z.number().optional(),
   taxType: z.string().optional(),
   accountCode: z.string().optional(),
+  cogsAccountCode: z.string().optional(),
 });
 
 const salesDetailsSchema = z.object({
@@ -84,4 +85,4 @@ const UpdateItemTool = CreateXeroTool(
   },
 );
 
-export default UpdateItemTool; 
+export default UpdateItemTool;

@@ -10,9 +10,10 @@ interface ItemDetails {
   description?: string;
   purchaseDescription?: string;
   purchaseDetails?: {
-    unitPrice: number;
+    unitPrice?: number;
     taxType?: string;
     accountCode?: string;
+    cogsAccountCode?: string;
   };
   salesDetails?: {
     unitPrice: number;
@@ -40,6 +41,7 @@ async function createItem(
           unitPrice: itemDetails.purchaseDetails.unitPrice,
           taxType: itemDetails.purchaseDetails.taxType,
           accountCode: itemDetails.purchaseDetails.accountCode,
+          cOGSAccountCode: itemDetails.purchaseDetails.cogsAccountCode,
         }
       : undefined,
     salesDetails: itemDetails.salesDetails
@@ -90,4 +92,4 @@ export async function createXeroItem(
       error: formatError(error),
     };
   }
-} 
+}

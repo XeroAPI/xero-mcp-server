@@ -13,6 +13,7 @@ interface ItemDetails {
     unitPrice?: number;
     taxType?: string;
     accountCode?: string;
+    cogsAccountCode?: string;
   };
   salesDetails?: {
     unitPrice?: number;
@@ -34,7 +35,14 @@ async function updateItem(
     name: itemDetails.name,
     description: itemDetails.description,
     purchaseDescription: itemDetails.purchaseDescription,
-    purchaseDetails: itemDetails.purchaseDetails,
+    purchaseDetails: itemDetails.purchaseDetails
+      ? {
+          unitPrice: itemDetails.purchaseDetails.unitPrice,
+          taxType: itemDetails.purchaseDetails.taxType,
+          accountCode: itemDetails.purchaseDetails.accountCode,
+          cOGSAccountCode: itemDetails.purchaseDetails.cogsAccountCode,
+        }
+      : undefined,
     salesDetails: itemDetails.salesDetails,
     isTrackedAsInventory: itemDetails.isTrackedAsInventory,
     inventoryAssetAccountCode: itemDetails.inventoryAssetAccountCode,
@@ -81,4 +89,4 @@ export async function updateXeroItem(
       error: formatError(error),
     };
   }
-} 
+}
