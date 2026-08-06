@@ -42,6 +42,8 @@ const ListItemsTool = CreateXeroTool(
             item.purchaseDetails?.unitPrice !== undefined ? `Purchase Price: ${item.purchaseDetails.unitPrice}` : null,
             item.salesDetails?.accountCode ? `Sales Account: ${item.salesDetails.accountCode}` : null,
             item.purchaseDetails?.accountCode ? `Purchase Account: ${item.purchaseDetails.accountCode}` : null,
+            item.purchaseDetails?.cOGSAccountCode ? `COGS Account: ${item.purchaseDetails.cOGSAccountCode}` : null,
+            item.inventoryAssetAccountCode ? `Inventory Asset Account: ${item.inventoryAssetAccountCode}` : null,
             item.isTrackedAsInventory !== undefined ? `Tracked as Inventory: ${item.isTrackedAsInventory ? 'Yes' : 'No'}` : null,
             item.isSold !== undefined ? `Is Sold: ${item.isSold ? 'Yes' : 'No'}` : null,
             item.isPurchased !== undefined ? `Is Purchased: ${item.isPurchased ? 'Yes' : 'No'}` : null,
@@ -56,4 +58,4 @@ const ListItemsTool = CreateXeroTool(
   },
 );
 
-export default ListItemsTool; 
+export default ListItemsTool;
