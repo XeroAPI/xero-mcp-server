@@ -118,6 +118,49 @@ describe("formatError", () => {
       const sdkError = { response: { statusCode: 502 } };
       expect(formatError(sdkError)).toBe("502 HTTP error");
     });
+
+    it("extracts validation messages from the SDK's JSON-string error shape", () => {
+      const sdkError = JSON.stringify({
+        response: {
+          statusCode: 400,
+          body: {
+            Elements: [{
+              ValidationErrors: [
+                { Message: "The account code is invalid." },
+                { Message: "The tax type is required." },
+              ],
+            }],
+          },
+          headers: { "set-cookie": "secret-cookie" },
+          request: { headers: { authorization: "Bearer SDK_SECRET" } },
+        },
+        body: { shouldNotBeRead: "secret-body" },
+      });
+
+      const result = formatError(sdkError);
+
+      expect(result).toBe(
+        "400 HTTP error: The account code is invalid.; The tax type is required.",
+      );
+      expect(result).not.toContain("SDK_SECRET");
+      expect(result).not.toContain("secret-cookie");
+      expect(result).not.toContain("secret-body");
+    });
+
+    it("reads top-level SDK validation errors from the safe body fallback", () => {
+      const sdkError = JSON.stringify({
+        response: { statusCode: 400 },
+        body: {
+          ValidationErrors: [{ Message: "A contact is required." }],
+        },
+        request: { headers: { authorization: "Bearer SDK_SECRET" } },
+      });
+
+      const result = formatError(sdkError);
+
+      expect(result).toBe("400 HTTP error: A contact is required.");
+      expect(result).not.toContain("SDK_SECRET");
+    });
   });
 
   describe("plain Error", () => {
@@ -145,6 +188,12 @@ describe("formatError", () => {
 
     it("handles string errors safely", () => {
       expect(formatError("something blew up")).toBe(
+        "An unexpected error occurred while communicating with Xero.",
+      );
+    });
+
+    it("handles malformed JSON SDK error strings safely", () => {
+      expect(formatError('{"request":{"headers":{"authorization":"Bearer LEAKY"}}')).toBe(
         "An unexpected error occurred while communicating with Xero.",
       );
     });

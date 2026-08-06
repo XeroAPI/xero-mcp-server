@@ -1,20 +1,19 @@
 import { AxiosError } from "axios";
 
-interface XeroSdkProblem {
-  title?: string;
-  detail?: string;
-  status?: number;
-}
-
 interface XeroSdkError {
   response: {
     statusCode: number;
-    body?: {
-      httpStatusCode?: string;
-      problem?: XeroSdkProblem;
-      Detail?: string;
-    };
+    body?: unknown;
   };
+  body?: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 function isXeroSdkError(error: unknown): error is XeroSdkError {
@@ -22,6 +21,44 @@ function isXeroSdkError(error: unknown): error is XeroSdkError {
   const response = (error as { response?: unknown }).response;
   if (typeof response !== "object" || response === null) return false;
   return typeof (response as { statusCode?: unknown }).statusCode === "number";
+}
+
+function parseXeroSdkError(error: unknown): XeroSdkError | null {
+  if (typeof error !== "string") return null;
+
+  try {
+    const parsed: unknown = JSON.parse(error);
+    return isXeroSdkError(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function getValidationErrorMessages(validationErrors: unknown): string[] {
+  if (!Array.isArray(validationErrors)) return [];
+
+  return validationErrors.flatMap((validationError) => {
+    if (!isRecord(validationError)) return [];
+    const message = getString(validationError.Message);
+    return message ? [message] : [];
+  });
+}
+
+function getValidationErrorDetail(body: unknown): string | undefined {
+  if (!isRecord(body)) return undefined;
+
+  const messages = getValidationErrorMessages(body.ValidationErrors);
+  if (Array.isArray(body.Elements)) {
+    for (const element of body.Elements) {
+      if (isRecord(element)) {
+        messages.push(
+          ...getValidationErrorMessages(element.ValidationErrors),
+        );
+      }
+    }
+  }
+
+  return messages.length ? messages.join("; ") : undefined;
 }
 
 function formatHttpStatus(status: number): string {
@@ -39,18 +76,43 @@ function formatHttpStatus(status: number): string {
   }
 }
 
+function formatXeroSdkError(error: XeroSdkError): string {
+  const status = error.response.statusCode;
+  const mapped = formatHttpStatus(status);
+  if (mapped) return mapped;
+
+  const body = error.response.body ?? error.body;
+  const bodyFields = isRecord(body) ? body : undefined;
+  const problem = isRecord(bodyFields?.problem)
+    ? bodyFields.problem
+    : undefined;
+  const title = getString(problem?.title)
+    ?? getString(bodyFields?.httpStatusCode)
+    ?? "HTTP error";
+  const detail = getString(problem?.detail)
+    ?? getString(bodyFields?.detail)
+    ?? getString(bodyFields?.Detail)
+    ?? getValidationErrorDetail(body);
+  return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
+}
+
 /**
  * Format error messages for return to the LLM.
  *
- * Never stringify unknown error objects — the xero-node SDK rejects with a
- * plain object whose `request.headers.authorization` field contains the
- * caller's Bearer token. Whitelist the fields we extract so secrets never
- * reach the response.
+ * Never stringify unknown error values — xero-node may reject with a JSON
+ * string containing `request.headers.authorization`. Parse only its expected
+ * response shape and whitelist the fields we extract so secrets never reach
+ * the response.
  */
 export function formatError(error: unknown): string {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
-    const detail = error.response?.data?.Detail;
+    const responseBody = error.response?.data;
+    const detail = isRecord(responseBody)
+      ? getString(responseBody.Detail)
+        ?? getString(responseBody.detail)
+        ?? getValidationErrorDetail(responseBody)
+      : undefined;
 
     if (status !== undefined) {
       const mapped = formatHttpStatus(status);
@@ -59,16 +121,9 @@ export function formatError(error: unknown): string {
     return detail || "An error occurred while communicating with Xero.";
   }
 
-  if (isXeroSdkError(error)) {
-    const status = error.response.statusCode;
-    const mapped = formatHttpStatus(status);
-    if (mapped) return mapped;
-
-    const body = error.response.body;
-    const problem = body?.problem;
-    const title = problem?.title ?? body?.httpStatusCode ?? "HTTP error";
-    const detail = problem?.detail ?? body?.Detail;
-    return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
+  const sdkError = isXeroSdkError(error) ? error : parseXeroSdkError(error);
+  if (sdkError) {
+    return formatXeroSdkError(sdkError);
   }
 
   if (error instanceof Error) {
