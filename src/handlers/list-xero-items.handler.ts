@@ -12,7 +12,7 @@ async function getItems(): Promise<Item[]> {
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order
-    undefined, // unitdp
+    4, // unitdp: preserve item unit prices to four decimal places
     getClientHeaders(),
   );
   return items.body.items ?? [];

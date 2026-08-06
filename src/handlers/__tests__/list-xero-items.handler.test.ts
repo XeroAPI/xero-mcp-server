@@ -18,7 +18,7 @@ vi.mock("../../clients/xero-client.js", () => ({
 import { listXeroItems } from "../list-xero-items.handler.js";
 
 describe("listXeroItems", () => {
-  it("does not pass a page number as the unit decimal precision", async () => {
+  it("requests four-decimal item prices without passing an unsupported page number", async () => {
     mocks.authenticate.mockResolvedValueOnce(undefined);
     mocks.getItems.mockResolvedValueOnce({ body: { items: [] } });
 
@@ -32,7 +32,7 @@ describe("listXeroItems", () => {
       undefined,
       undefined,
       undefined,
-      undefined,
+      4,
       expect.any(Object),
     );
   });
