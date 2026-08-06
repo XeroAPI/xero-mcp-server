@@ -28,7 +28,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 ### Create a Xero Account
 
-If you don't already have a Xero account and organisation already, can create one by signing up [here](https://www.xero.com/au/signup/) using the free trial.
+If you don't already have a Xero account and organisation, you can create one by signing up [here](https://www.xero.com/au/signup/) for a free trial.
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
 
@@ -40,8 +40,8 @@ There are 2 modes of authentication supported in the Xero MCP server:
 
 #### 1. Custom Connections
 
-This is a better choice for testing and development which allows you to specify client id and secrets for a specific organisation.
-It is also the recommended approach if you are integrating this into 3rd party MCP clients such as Claude Desktop.
+This is a better choice for testing and development, allowing you to specify a client ID and client secret for a specific organisation.
+It is also the recommended approach if you are integrating with third-party MCP clients such as Claude Desktop.
 
 ##### Configuring your Xero Developer account
 
@@ -62,7 +62,7 @@ Custom connections require different scopes depending on when they were created.
 
 ##### Integrating the MCP server with Claude Desktop
 
-To add the MCP server to Claude go to Settings > Developer > Edit config and add the following to your claude_desktop_config.json file:
+To add the MCP server to Claude, go to Settings > Developer > Edit config and add the following to your claude_desktop_config.json file:
 
 ```json
 {
@@ -86,7 +86,7 @@ NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"c
 
 #### 2. Bearer Token
 
-This is a better choice if you are to support multiple Xero accounts at runtime and allow the MCP client to execute an auth flow (such as PKCE) as required.
+This is a better choice if you need to support multiple Xero accounts at runtime and allow the MCP client to execute an auth flow (such as PKCE) as required.
 In this case, use the following configuration:
 
 ```json
@@ -103,7 +103,7 @@ In this case, use the following configuration:
 }
 ```
 
-NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_ID` if defined.
+NOTE: `XERO_CLIENT_BEARER_TOKEN` takes precedence over `XERO_CLIENT_ID` when both are defined.
 
 ##### Required Scopes for Bearer Token
 
@@ -127,10 +127,10 @@ accounting.reports.aged.read
 accounting.reports.balancesheet.read
 accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
-accounting.contacts 
-accounting.settings 
-payroll.settings 
-payroll.employees 
+accounting.contacts
+accounting.settings
+payroll.settings
+payroll.employees
 payroll.timesheets
 ```
 
@@ -215,9 +215,9 @@ pnpm build
 
 ### Integrating with Claude Desktop
 
-To link your Xero MCP server in development to Claude Desktop go to Settings > Developer > Edit config and add the following to your `claude_desktop_config.json` file:
+To link your Xero MCP server in development to Claude Desktop, go to Settings > Developer > Edit config and add the following to your `claude_desktop_config.json` file:
 
-NOTE: For Windows ensure the `args` path escapes the `\` between folders ie. `"C:\\projects\xero-mcp-server\\dist\\index.js"`
+NOTE: On Windows, escape each backslash in the `args` path, e.g. `"C:\\projects\\xero-mcp-server\\dist\\index.js"`.
 
 ```json
 {
