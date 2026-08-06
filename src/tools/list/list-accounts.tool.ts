@@ -3,7 +3,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListAccountsTool = CreateXeroTool(
   "list-accounts",
-  "Lists all accounts in Xero. Use this tool to get the account codes and names to be used when creating invoices in Xero",
+  "Lists all accounts in Xero. Use this tool to get account codes and names for invoices, bills, and payments.",
   {},
   async () => {
     const response = await listXeroAccounts();
@@ -36,6 +36,9 @@ const ListAccountsTool = CreateXeroTool(
             `Status: ${account.status || "Unknown status"}`,
             account.description ? `Description: ${account.description}` : null,
             account.taxType ? `Tax Type: ${account.taxType}` : null,
+            account.enablePaymentsToAccount !== undefined
+              ? `Payments Enabled: ${account.enablePaymentsToAccount ? "Yes" : "No"}`
+              : null,
           ]
             .filter(Boolean)
             .join("\n"),
