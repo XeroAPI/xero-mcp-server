@@ -39,7 +39,7 @@ describe("financial list tool output", () => {
     vi.clearAllMocks();
   });
 
-  it("keeps zero invoice balances and separates requested line items", async () => {
+  it("keeps zero invoice balances and renders concise requested line items", async () => {
     mocks.listInvoices.mockResolvedValue({
       error: null,
       result: [{
@@ -69,7 +69,10 @@ describe("financial list tool output", () => {
       text: expect.stringContaining(`${zeroValueText}\nTotal Discount: 0\nCurrency Rate: 0\nAmount Due: 0\nAmount Paid: 0\nAmount Credited: 0`),
     });
     expect(result.content[1]).toMatchObject({
-      text: expect.stringContaining("Description: First line\nQuantity: undefined\nUnit Amount: undefined\nAccount Code: undefined\nTax Type: undefined\nTracking: undefined\nLine Amount: undefined\n\nItem ID: undefined\nItem Code: undefined\nDescription: Second line"),
+      text: expect.stringContaining("Line Items: Description: First line\n\nDescription: Second line"),
+    });
+    expect(result.content[1]).not.toMatchObject({
+      text: expect.stringContaining("undefined"),
     });
   });
 
