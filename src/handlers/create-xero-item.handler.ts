@@ -10,12 +10,12 @@ interface ItemDetails {
   description?: string;
   purchaseDescription?: string;
   purchaseDetails?: {
-    unitPrice: number;
+    unitPrice?: number;
     taxType?: string;
     accountCode?: string;
   };
   salesDetails?: {
-    unitPrice: number;
+    unitPrice?: number;
     taxType?: string;
     accountCode?: string;
   };

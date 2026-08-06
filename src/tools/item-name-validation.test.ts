@@ -24,4 +24,14 @@ describe("item tool validation", () => {
 
     expect(schema.safeParse({ itemId: "item-id", code: "SKU-001" }).success).toBe(true);
   });
+
+  it("allows sales and purchase defaults without a unit price", () => {
+    const schema = z.object(CreateItemTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      code: "SKU-001",
+      salesDetails: { accountCode: "200", taxType: "OUTPUT2" },
+      purchaseDetails: { accountCode: "300", taxType: "INPUT2" },
+    }).success).toBe(true);
+  });
 });
