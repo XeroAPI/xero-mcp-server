@@ -3,13 +3,32 @@ import { updateXeroQuote } from "../../handlers/update-xero-quote.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
+const trackingSchema = z.object({
+  name: z.string().optional(),
+  option: z.string().optional(),
+  trackingCategoryID: z.string().optional(),
+  trackingOptionID: z.string().optional(),
+}).refine(
+  (tracking) => (
+    (tracking.name !== undefined && tracking.option !== undefined)
+    || (tracking.trackingCategoryID !== undefined && tracking.trackingOptionID !== undefined)
+  ),
+  "Tracking requires a category and option name, or both Xero IDs.",
+);
+
 const lineItemSchema = z.object({
+  lineItemId: z.string().min(1).optional().describe(
+    "Existing Xero line item ID. Include this to update a line without recreating it.",
+  ),
   description: z.string().min(1),
   quantity: z.number().optional(),
   unitAmount: z.number().optional(),
   itemCode: z.string().optional(),
   accountCode: z.string().optional(),
   taxType: z.string().optional(),
+  tracking: z.array(trackingSchema).max(2).optional(),
+  discountRate: z.number().optional(),
+  discountAmount: z.number().optional(),
 });
 
 const UpdateQuoteTool = CreateXeroTool(
@@ -49,9 +68,14 @@ const UpdateQuoteTool = CreateXeroTool(
       expiryDate,
     }
   ) => {
+    const xeroLineItems = lineItems?.map(({ lineItemId, ...lineItem }) => ({
+      ...lineItem,
+      ...(lineItemId ? { lineItemID: lineItemId } : {}),
+    }));
+
     const result = await updateXeroQuote(
       quoteId,
-      lineItems,
+      xeroLineItems,
       reference,
       terms,
       title,
