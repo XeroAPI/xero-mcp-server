@@ -1,13 +1,18 @@
 import { listXeroPayrollLeaveTypes } from "../../handlers/list-xero-payroll-leave-types.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { LeaveType } from "../../types/payroll-nz-types.js";
+import { z } from "zod";
 
 const ListPayrollLeaveTypesTool = CreateXeroTool(
   "list-payroll-leave-types",
-  "Lists all available leave types in Xero Payroll. This provides information about all the leave categories configured in your Xero system, including statutory and organization-specific leave types.",
-  {},
-  async () => {
-    const response = await listXeroPayrollLeaveTypes();
+  "Lists available leave types in Xero Payroll. This provides information about leave categories configured in your Xero system, including statutory and organization-specific leave types.",
+  {
+    page: z.number().int().positive().optional().describe(
+      "Optional page number to retrieve. If not provided, the first page is returned.",
+    ),
+  },
+  async ({ page }) => {
+    const response = await listXeroPayrollLeaveTypes(page);
     if (response.isError) {
       return {
         content: [
@@ -25,7 +30,7 @@ const ListPayrollLeaveTypesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${leaveTypes?.length || 0} payroll leave types:`,
+          text: `Found ${leaveTypes?.length || 0} payroll leave types${page ? ` (page ${page})` : ""}:`,
         },        ...(leaveTypes?.map((leaveType: LeaveType) => ({
           type: "text" as const,
           text: [

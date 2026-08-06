@@ -7,13 +7,13 @@ import { LeaveType } from "../types/payroll-nz-types.js";
 /**
  * Internal function to fetch leave types from Xero
  */
-async function fetchLeaveTypes(): Promise<LeaveType[] | null> {
+async function fetchLeaveTypes(page?: number): Promise<LeaveType[] | null> {
   await xeroClient.authenticate();
 
   const response = await xeroClient.payrollNZApi.getLeaveTypes(
     xeroClient.tenantId,
-    undefined, // page
-    undefined, // pageSize
+    page, // page
+    undefined, // activeOnly
     getClientHeaders(),
   );
 
@@ -21,13 +21,13 @@ async function fetchLeaveTypes(): Promise<LeaveType[] | null> {
 }
 
 /**
- * List all leave types from Xero Payroll
+ * List a page of leave types from Xero Payroll
  */
-export async function listXeroPayrollLeaveTypes(): Promise<
+export async function listXeroPayrollLeaveTypes(page?: number): Promise<
   XeroClientResponse<LeaveType[]>
 > {
   try {
-    const leaveTypes = await fetchLeaveTypes();
+    const leaveTypes = await fetchLeaveTypes(page);
 
     if (!leaveTypes) {
       return {
