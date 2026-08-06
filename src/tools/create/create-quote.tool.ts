@@ -4,11 +4,12 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const lineItemSchema = z.object({
-  description: z.string(),
-  quantity: z.number(),
-  unitAmount: z.number(),
-  accountCode: z.string(),
-  taxType: z.string(),
+  description: z.string().min(1),
+  quantity: z.number().optional(),
+  unitAmount: z.number().optional(),
+  itemCode: z.string().optional(),
+  accountCode: z.string().optional(),
+  taxType: z.string().optional(),
 });
 
 const CreateQuoteTool = CreateXeroTool(
@@ -19,7 +20,7 @@ const CreateQuoteTool = CreateXeroTool(
  This link should be displayed to the user.",
   {
     contactId: z.string(),
-    lineItems: z.array(lineItemSchema),
+    lineItems: z.array(lineItemSchema).min(1),
     reference: z.string().optional(),
     quoteNumber: z.string().optional(),
     terms: z.string().optional(),

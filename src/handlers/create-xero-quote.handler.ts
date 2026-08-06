@@ -6,10 +6,11 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface QuoteLineItem {
   description: string;
-  quantity: number;
-  unitAmount: number;
-  accountCode: string;
-  taxType: string;
+  quantity?: number;
+  unitAmount?: number;
+  itemCode?: string;
+  accountCode?: string;
+  taxType?: string;
 }
 
 async function createQuote(
