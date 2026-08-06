@@ -25,4 +25,29 @@ describe("list-timesheets tool", () => {
       text: "Found 0 timesheets (page 2):",
     });
   });
+
+  it("keeps zero hours without rendering absent optional fields as undefined", async () => {
+    mocks.listTimesheets.mockResolvedValue({
+      isError: false,
+      result: [{
+        payrollCalendarID: "calendar-id",
+        employeeID: "employee-id",
+        startDate: "2026-08-01",
+        endDate: "2026-08-07",
+        totalHours: 0,
+      }],
+    });
+
+    const result = await ListPayrollTimesheetsTool().handler({}, {} as never);
+
+    expect(result.content[1]).toEqual({
+      type: "text",
+      text: [
+        "Employee ID: employee-id",
+        "Start Date: 2026-08-01",
+        "End Date: 2026-08-07",
+        "Total Hours: 0",
+      ].join("\n"),
+    });
+  });
 });

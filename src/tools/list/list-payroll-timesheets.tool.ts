@@ -38,12 +38,12 @@ This retrieves comprehensive timesheet details including timesheet IDs, employee
         ...(timesheets?.map((timesheet: Timesheet) => ({
           type: "text" as const,
           text: [
-            `Timesheet ID: ${timesheet.timesheetID}`,
+            timesheet.timesheetID ? `Timesheet ID: ${timesheet.timesheetID}` : null,
             `Employee ID: ${timesheet.employeeID}`,
             `Start Date: ${timesheet.startDate}`,
             `End Date: ${timesheet.endDate}`,
-            `Total Hours: ${timesheet.totalHours}`,
-            `Last Updated: ${timesheet.updatedDateUTC}`,
+            timesheet.totalHours !== undefined ? `Total Hours: ${timesheet.totalHours}` : null,
+            timesheet.updatedDateUTC ? `Last Updated: ${timesheet.updatedDateUTC.toISOString()}` : null,
           ]
             .filter(Boolean)
             .join("\n"),
