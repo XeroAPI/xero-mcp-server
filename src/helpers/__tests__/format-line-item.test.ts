@@ -11,4 +11,14 @@ describe("formatLineItem", () => {
 
     expect(text).toContain("Line Item ID: line-item-id");
   });
+
+  it("includes zero-valued sales invoice discounts", () => {
+    const text = formatLineItem({
+      discountRate: 0,
+      discountAmount: 0,
+    } as LineItem);
+
+    expect(text).toContain("Discount Rate: 0");
+    expect(text).toContain("Discount Amount: 0");
+  });
 });

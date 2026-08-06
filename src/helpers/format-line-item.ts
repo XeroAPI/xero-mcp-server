@@ -11,6 +11,8 @@ export const formatLineItem = (lineItem: LineItem): string => {
     `Account Code: ${lineItem.accountCode}`,
     `Tax Type: ${lineItem.taxType}`,
     `Tracking: ${lineItem.tracking}`,
+    lineItem.discountRate !== undefined ? `Discount Rate: ${lineItem.discountRate}` : null,
+    lineItem.discountAmount !== undefined ? `Discount Amount: ${lineItem.discountAmount}` : null,
     `Line Amount: ${lineItem.lineAmount}`,
   ]
     .filter(Boolean)

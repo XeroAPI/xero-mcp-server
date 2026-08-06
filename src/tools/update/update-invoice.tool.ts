@@ -12,7 +12,7 @@ const trackingSchema = z.object({
 });
 
 const lineItemSchema = z.object({
-  lineItemId: z.string().optional().describe("Existing Xero line item ID. Include this to update a line without recreating it."),
+  lineItemId: z.string().min(1).optional().describe("Existing Xero line item ID. Include this to update a line without recreating it."),
   description: z.string().describe("The description of the line item"),
   quantity: z.number().describe("The quantity of the line item"),
   unitAmount: z.number().describe("The price per unit of the line item"),
@@ -24,6 +24,12 @@ const lineItemSchema = z.object({
   tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
     Can be obtained from the list-tracking-categories tool. \
     Only use if prompted by the user.").optional(),
+  discountRate: z.number().optional().describe(
+    "Optional percentage discount for an ACCREC sales-invoice line. Not supported for ACCPAY bills.",
+  ),
+  discountAmount: z.number().optional().describe(
+    "Optional discount amount for an ACCREC sales-invoice line. Not supported for ACCPAY bills.",
+  ),
 });
 
 const UpdateInvoiceTool = CreateXeroTool(
@@ -63,6 +69,14 @@ const UpdateInvoiceTool = CreateXeroTool(
         unitAmount: number;
         accountCode: string;
         taxType: string;
+        itemCode?: string;
+        tracking?: Array<{
+          name: string;
+          option: string;
+          trackingCategoryID: string;
+        }>;
+        discountRate?: number;
+        discountAmount?: number;
       }>;
       reference?: string;
       dueDate?: string;

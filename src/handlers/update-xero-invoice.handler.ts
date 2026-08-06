@@ -13,6 +13,8 @@ interface InvoiceLineItem {
   taxType: string;
   itemCode?: string;
   tracking?: LineItemTracking[];
+  discountRate?: number;
+  discountAmount?: number;
 }
 
 async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
@@ -36,6 +38,7 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  lineAmountTypes?: Invoice["lineAmountTypes"],
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -43,6 +46,7 @@ async function updateInvoice(
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    ...(lineAmountTypes !== undefined ? { lineAmountTypes } : {}),
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -84,6 +88,17 @@ export async function updateXeroInvoice(
       };
     }
 
+    const hasDiscount = lineItems?.some(
+      (lineItem) => lineItem.discountRate !== undefined || lineItem.discountAmount !== undefined,
+    );
+    if (hasDiscount && existingInvoice?.type !== Invoice.TypeEnum.ACCREC) {
+      return {
+        result: null,
+        isError: true,
+        error: "Line discounts are only supported on ACCREC sales invoices.",
+      };
+    }
+
     const updatedInvoice = await updateInvoice(
       invoiceId,
       lineItems,
@@ -91,6 +106,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      existingInvoice?.lineAmountTypes,
     );
 
     if (!updatedInvoice) {

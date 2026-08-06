@@ -38,6 +38,8 @@ describe("update-invoice line item IDs", () => {
         unitAmount: 100,
         accountCode: "200",
         taxType: "OUTPUT",
+        discountRate: 10,
+        discountAmount: 5,
       }],
     }, {} as never);
 
@@ -46,6 +48,8 @@ describe("update-invoice line item IDs", () => {
       [expect.objectContaining({
         lineItemID: "line-item-id",
         description: "Consulting services",
+        discountRate: 10,
+        discountAmount: 5,
       })],
       undefined,
       undefined,
