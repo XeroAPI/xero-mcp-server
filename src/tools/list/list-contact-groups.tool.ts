@@ -10,11 +10,11 @@ const ListContactGroupsTool = CreateXeroTool(
     contactGroupId: z
       .string()
       .optional()
-      .describe("Optional ID of the contact group to retrieve"),    
+      .describe("Optional ID of the contact group to retrieve"),
   },
   async (args) => {
     const response = await listXeroContactGroups(args?.contactGroupId);
-    
+
     if (response.error !== null) {
       return {
         content: [
@@ -40,13 +40,15 @@ const ListContactGroupsTool = CreateXeroTool(
             `Contact Group ID: ${contactGroup.contactGroupID}`,
             `Name: ${contactGroup.name}`,
             `Status: ${contactGroup.status}`,
-            contactGroup.contacts
-              ? contactGroup.contacts.map(contact => [
+            contactGroup.contacts === undefined
+              ? "Members are not returned when listing groups. Provide contactGroupId to retrieve this group's contacts."
+              : contactGroup.contacts.length
+                ? contactGroup.contacts.map(contact => [
                   `Contact ID: ${contact.contactID}`,
                   `Name: ${contact.name}`,
                 ].join('\n')
-              ).join('\n')
-              : "No contacts in this contact group.",            
+                ).join('\n')
+                : "No contacts in this contact group.",
           ]
             .filter(Boolean)
             .join("\n"),
