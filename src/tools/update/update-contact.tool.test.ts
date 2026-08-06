@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Contact } from "xero-node";
+import { Address, Contact } from "xero-node";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -85,6 +85,39 @@ describe("update-contact tool", () => {
       undefined,
       undefined,
       Contact.ContactStatusEnum.ARCHIVED,
+    );
+  });
+
+  it("accepts and forwards a PO Box address update", async () => {
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      address: { addressLine1: "PO Box 123", addressType: "POBOX" },
+    }).success).toBe(true);
+
+    mocks.updateXeroContact.mockResolvedValue({
+      result: { contactID: "contact-id", name: "Example contact" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      contactId: "contact-id",
+      address: { addressLine1: "PO Box 123", addressType: "POBOX" },
+    }, {} as never);
+
+    expect(mocks.updateXeroContact).toHaveBeenCalledWith(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      expect.objectContaining({
+        addressLine1: "PO Box 123",
+        addressType: Address.AddressTypeEnum.POBOX,
+      }),
+      undefined,
     );
   });
 

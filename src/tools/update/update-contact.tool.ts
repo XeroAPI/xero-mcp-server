@@ -1,6 +1,6 @@
 import { updateXeroContact } from "../../handlers/update-xero-contact.handler.js";
 import { z } from "zod";
-import { Contact } from "xero-node";
+import { Address, Contact } from "xero-node";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
@@ -30,6 +30,10 @@ const UpdateContactTool = CreateXeroTool(
         region: z.string().optional(),
         postalCode: z.string().optional(),
         country: z.string().optional(),
+        addressType: z
+          .enum(["STREET", "POBOX"])
+          .optional()
+          .describe("Optional address type. Use POBOX for a mailing address."),
       })
       .optional(),
   },
@@ -55,6 +59,7 @@ const UpdateContactTool = CreateXeroTool(
       region?: string;
       postalCode?: string;
       country?: string;
+      addressType?: "STREET" | "POBOX";
     };
     firstName?: string;
     lastName?: string;
@@ -71,6 +76,14 @@ const UpdateContactTool = CreateXeroTool(
     }
 
     try {
+      const xeroAddress = address
+        ? {
+            ...address,
+            addressType: address.addressType
+              ? Address.AddressTypeEnum[address.addressType]
+              : undefined,
+          }
+        : undefined;
       const response = await updateXeroContact(
         contactId,
         name,
@@ -78,7 +91,7 @@ const UpdateContactTool = CreateXeroTool(
         lastName,
         email,
         phone,
-        address,
+        xeroAddress,
         contactStatus
           ? Contact.ContactStatusEnum[contactStatus]
           : undefined,
