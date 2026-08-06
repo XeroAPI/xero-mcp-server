@@ -8,12 +8,16 @@ export function ensureManualJournalSucceeded(
     throw new Error(`Manual journal ${operation} failed.`);
   }
 
-  const validationMessages = manualJournal.validationErrors
-    ?.map((validationError) => validationError.message)
-    .filter((message): message is string => Boolean(message));
+  const validationErrors = manualJournal.validationErrors ?? [];
 
-  if (validationMessages?.length) {
-    throw new Error(validationMessages.join("; "));
+  if (validationErrors.length) {
+    const validationMessages = validationErrors
+      .map((validationError) => validationError.message)
+      .filter((message): message is string => Boolean(message));
+
+    throw new Error(
+      validationMessages.join("; ") || "Xero returned a validation error.",
+    );
   }
 
   return manualJournal;

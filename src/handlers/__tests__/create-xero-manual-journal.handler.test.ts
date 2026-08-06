@@ -93,4 +93,26 @@ describe("createXeroManualJournal", () => {
       error: "Account code is invalid.",
     });
   });
+
+  it("rejects a validation error without a message", async () => {
+    mocks.createManualJournals.mockResolvedValue({
+      body: {
+        manualJournals: [{ validationErrors: [{}] }],
+      },
+    });
+
+    const result = await createXeroManualJournal(
+      "Accrual",
+      [
+        { lineAmount: 100, accountCode: "200" },
+        { lineAmount: -100, accountCode: "300" },
+      ],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
 });
