@@ -74,7 +74,7 @@ abstract class MCPXeroClient extends XeroClient {
   }
 }
 
-class CustomConnectionsXeroClient extends MCPXeroClient {
+export class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
 
@@ -173,21 +173,9 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    // Get the tenant ID from the connections endpoint
-    const token = response.data.access_token;
-    const connectionsResponse = await axios.get(
-      "https://api.xero.com/connections",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      },
-    );
-
-    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
-    }
+    // Custom Connections are bound to a single tenant. xero-node requires an
+    // empty tenant ID for their tenanted API calls.
+    this.tenantId = "";
 
     return response.data;
   }
@@ -203,7 +191,7 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 }
 
-class BearerTokenXeroClient extends MCPXeroClient {
+export class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
 
   constructor(config: { bearerToken: string }) {
@@ -216,7 +204,7 @@ class BearerTokenXeroClient extends MCPXeroClient {
       access_token: this.bearerToken,
     });
 
-    await this.updateTenants();
+    await this.updateTenants(false);
   }
 }
 
