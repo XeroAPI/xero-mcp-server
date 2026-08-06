@@ -27,8 +27,8 @@ async function fetchProfitAndLoss(
     periods,
     timeframe,
     undefined, // trackingCategoryID
-    undefined, // trackingOptionID
     undefined, // trackingCategoryID2
+    undefined, // trackingOptionID
     undefined, // trackingOptionID2
     standardLayout,
     paymentsOnly,
@@ -65,6 +65,7 @@ export async function listXeroProfitAndLoss(
       toDate,
       periods,
       timeframe,
+      standardLayout,
       paymentsOnly,
     );
 
@@ -88,4 +89,4 @@ export async function listXeroProfitAndLoss(
       error: formatError(error),
     };
   }
-} 
+}
