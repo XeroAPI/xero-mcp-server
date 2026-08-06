@@ -7,8 +7,8 @@ import { Invoice } from "xero-node";
 const trackingSchema = z.object({
   name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
   option: z.string().describe("The name of the tracking option. Can be obtained from the list-tracking-categories tool"),
-  trackingCategoryID: z.string().describe("The ID of the tracking category. \
-    Can be obtained from the list-tracking-categories tool"),
+  trackingCategoryID: z.string().optional().describe("Optional ID of the tracking category. \
+    Xero accepts the category name and option without an ID."),
 });
 
 const lineItemSchema = z.object({
