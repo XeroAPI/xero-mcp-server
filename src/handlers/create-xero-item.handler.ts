@@ -65,7 +65,7 @@ async function createItem(
     xeroClient.tenantId,
     items, // items
     true, // summarizeErrors
-    undefined, // unitdp
+    4, // unitdp: preserve item unit prices to four decimal places
     undefined, // idempotencyKey
     getClientHeaders()
   );

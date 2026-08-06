@@ -54,7 +54,7 @@ async function updateItem(
     xeroClient.tenantId,
     itemId,
     items,
-    undefined, // unitdp
+    4, // unitdp: preserve item unit prices to four decimal places
     undefined, // idempotencyKey
     getClientHeaders()
   );

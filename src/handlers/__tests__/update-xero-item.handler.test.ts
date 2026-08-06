@@ -44,7 +44,7 @@ describe("updateXeroItem", () => {
       {
         items: [expect.objectContaining({ isSold: false, isPurchased: true })],
       },
-      undefined,
+      4,
       undefined,
       { headers: {} },
     );
