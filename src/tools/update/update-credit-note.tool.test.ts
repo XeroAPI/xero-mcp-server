@@ -40,6 +40,7 @@ describe("update-credit-note tool", () => {
       undefined,
       "2026-07-31",
       "2026-08-30",
+      undefined,
     );
   });
 
@@ -77,6 +78,7 @@ describe("update-credit-note tool", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
     expect(mocks.updateXeroCreditNote.mock.calls[0][1][0]).not.toHaveProperty("lineItemId");
   });
@@ -101,6 +103,39 @@ describe("update-credit-note tool", () => {
     expect(schema.safeParse({
       ...base,
       lineItems: [{ ...base.lineItems[0], tracking: [{}] }],
+    }).success).toBe(false);
+  });
+
+  it("forwards an idempotency key for safe retries", async () => {
+    vi.clearAllMocks();
+    mocks.updateXeroCreditNote.mockResolvedValue({
+      result: { creditNoteID: "credit-note-id" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await UpdateCreditNoteTool().handler({
+      creditNoteId: "credit-note-id",
+      reference: "CUST-001",
+      idempotencyKey: "credit-note-update-retry-key",
+    }, {} as never);
+
+    expect(mocks.updateXeroCreditNote.mock.calls[0][6]).toBe(
+      "credit-note-update-retry-key",
+    );
+  });
+
+  it("limits idempotency keys to Xero's supported length", () => {
+    const schema = z.object(UpdateCreditNoteTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      creditNoteId: "credit-note-id",
+      idempotencyKey: "x".repeat(128),
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      creditNoteId: "credit-note-id",
+      idempotencyKey: "x".repeat(129),
     }).success).toBe(false);
   });
 });

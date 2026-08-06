@@ -49,6 +49,9 @@ const UpdateCreditNoteTool = CreateXeroTool(
     date: z.string().optional(),
     dueDate: z.string().optional(),
     contactId: z.string().optional(),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact credit-note update to prevent duplicate processing.",
+    ),
   },
   async (
     {
@@ -58,6 +61,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       date,
       dueDate,
       contactId,
+      idempotencyKey,
     }: {
       creditNoteId: string;
       lineItems?: Array<{
@@ -79,6 +83,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       date?: string;
       dueDate?: string;
       contactId?: string;
+      idempotencyKey?: string;
     },
   ) => {
     const xeroLineItems = lineItems?.map(({ lineItemId, ...lineItem }) => ({
@@ -93,6 +98,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       contactId,
       date,
       dueDate,
+      idempotencyKey,
     );
     if (result.isError) {
       return {

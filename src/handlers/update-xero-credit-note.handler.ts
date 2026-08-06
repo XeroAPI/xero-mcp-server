@@ -38,6 +38,7 @@ async function updateCreditNote(
   dueDate?: string,
   type?: CreditNote.TypeEnum,
   lineAmountTypes?: CreditNote["lineAmountTypes"],
+  idempotencyKey?: string,
 ): Promise<CreditNote | null> {
   const creditNote: CreditNote = {
     lineItems: lineItems,
@@ -59,7 +60,7 @@ async function updateCreditNote(
       creditNotes: [creditNote],
     }, // creditNotes
     undefined, // unitdp
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders(), // options
   );
 
@@ -76,6 +77,7 @@ export async function updateXeroCreditNote(
   contactId?: string,
   date?: string,
   dueDate?: string,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const existingCreditNote = await getCreditNote(creditNoteId);
@@ -100,6 +102,7 @@ export async function updateXeroCreditNote(
       dueDate,
       existingCreditNote?.type,
       existingCreditNote?.lineAmountTypes,
+      idempotencyKey,
     );
 
     if (!updatedCreditNote) {

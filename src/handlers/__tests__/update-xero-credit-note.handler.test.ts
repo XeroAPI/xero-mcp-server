@@ -118,4 +118,30 @@ describe("updateXeroCreditNote", () => {
       })],
     });
   });
+
+  it("forwards an idempotency key for safe credit-note update retries", async () => {
+    mocks.getCreditNote.mockResolvedValue({
+      body: {
+        creditNotes: [{
+          status: CreditNote.StatusEnum.DRAFT,
+          type: CreditNote.TypeEnum.ACCRECCREDIT,
+        }],
+      },
+    });
+
+    const result = await updateXeroCreditNote(
+      "credit-note-id",
+      undefined,
+      "CUST-001",
+      undefined,
+      undefined,
+      undefined,
+      "credit-note-update-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateCreditNote.mock.calls[0][4]).toBe(
+      "credit-note-update-retry-key",
+    );
+  });
 });
