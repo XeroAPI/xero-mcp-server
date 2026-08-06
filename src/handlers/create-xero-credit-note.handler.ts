@@ -50,7 +50,7 @@ async function createCreditNote(
       creditNotes: [creditNote],
     }, // creditNotes
     true, // summarizeErrors
-    undefined, // unitdp
+    4, // unitdp
     idempotencyKey,
     getClientHeaders(),
   );

@@ -117,6 +117,8 @@ describe("updateXeroCreditNote", () => {
         }],
       })],
     });
+    expect(mocks.getCreditNote.mock.calls[0][2]).toBe(4);
+    expect(mocks.updateCreditNote.mock.calls[0][3]).toBe(4);
   });
 
   it("forwards an idempotency key for safe credit-note update retries", async () => {

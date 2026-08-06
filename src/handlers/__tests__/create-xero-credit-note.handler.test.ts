@@ -46,7 +46,7 @@ describe("createXeroCreditNote", () => {
         })],
       },
       true,
-      undefined,
+      4,
       undefined,
       expect.objectContaining({ headers: expect.any(Object) }),
     );
@@ -153,7 +153,7 @@ describe("createXeroCreditNote", () => {
         })],
       },
       true,
-      undefined,
+      4,
       undefined,
       expect.objectContaining({ headers: expect.any(Object) }),
     );
@@ -174,6 +174,20 @@ describe("createXeroCreditNote", () => {
     );
 
     expect(mocks.createCreditNotes.mock.calls[0][4]).toBe("credit-note-retry-key");
+  });
+
+  it("requests four decimal places for credit note line prices", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
+    });
+
+    const result = await createXeroCreditNote("contact-id", [{
+      description: "Returned goods",
+      unitAmount: 10.1234,
+    }]);
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createCreditNotes.mock.calls[0][3]).toBe(4);
   });
 
   it("rejects an authorised credit note with no lines before calling Xero", async () => {

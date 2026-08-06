@@ -23,7 +23,7 @@ async function getCreditNote(creditNoteId: string): Promise<CreditNote | null> {
   const response = await xeroClient.accountingApi.getCreditNote(
     xeroClient.tenantId,
     creditNoteId, // creditNoteId
-    undefined, // unitdp
+    4, // unitdp
     getClientHeaders(), // options
   );
 
@@ -60,7 +60,7 @@ async function updateCreditNote(
     {
       creditNotes: [creditNote],
     }, // creditNotes
-    undefined, // unitdp
+    4, // unitdp
     idempotencyKey,
     getClientHeaders(), // options
   );
