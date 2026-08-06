@@ -30,7 +30,12 @@ describe("list-quotes tool", () => {
           taxAmount: 0,
           discountRate: 0,
           discountAmount: 0,
-          tracking: [{ name: "Region", option: "West" }],
+          tracking: [{
+            name: "Region",
+            option: "West",
+            trackingCategoryID: "tracking-category-id",
+            trackingOptionID: "tracking-option-id",
+          }],
           lineAmount: 0,
         }],
       }],
@@ -52,6 +57,8 @@ describe("list-quotes tool", () => {
     expect(quoteText).toContain("Tax Amount: 0");
     expect(quoteText).toContain("Discount Rate: 0");
     expect(quoteText).toContain("Tracking: Region=West");
+    expect(quoteText).toContain("Tracking Category ID: tracking-category-id");
+    expect(quoteText).toContain("Tracking Option ID: tracking-option-id");
     expect(quoteText).not.toContain("[object Object]");
   });
 

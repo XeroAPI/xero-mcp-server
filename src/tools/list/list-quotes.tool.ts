@@ -5,12 +5,11 @@ import { LineItem } from "xero-node";
 
 const formatQuoteLineItem = (lineItem: LineItem, index: number): string => {
   const tracking = lineItem.tracking
-    ?.map((entry) => {
-      const category = entry.name ?? entry.trackingCategoryID;
-      const option = entry.option ?? entry.trackingOptionID;
-      return category && option ? `${category}=${option}` : null;
-    })
-    .filter((entry): entry is string => entry !== null);
+    ?.flatMap((entry) => [
+      entry.name && entry.option ? `${entry.name}=${entry.option}` : null,
+      entry.trackingCategoryID ? `Tracking Category ID: ${entry.trackingCategoryID}` : null,
+      entry.trackingOptionID ? `Tracking Option ID: ${entry.trackingOptionID}` : null,
+    ].filter((value): value is string => value !== null));
 
   return [
     `Line ${index + 1}:`,

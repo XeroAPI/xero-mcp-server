@@ -44,7 +44,7 @@ describe("updateXeroQuote", () => {
       itemCode: "CONSULT",
       accountCode: "200",
       taxType: "OUTPUT",
-      tracking: [{ name: "Region", option: "West" }],
+      tracking: [{ trackingOptionID: "tracking-option-id" }],
       discountRate: 10,
       discountAmount: 5,
     }]);
@@ -54,7 +54,7 @@ describe("updateXeroQuote", () => {
       expect.objectContaining({
         lineItemID: "line-item-id",
         itemCode: "CONSULT",
-        tracking: [{ name: "Region", option: "West" }],
+        tracking: [{ trackingOptionID: "tracking-option-id" }],
         discountRate: 10,
         discountAmount: 5,
       }),

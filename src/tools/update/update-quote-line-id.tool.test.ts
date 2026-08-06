@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -17,6 +18,27 @@ vi.mock("../../helpers/get-deeplink.js", () => ({
 import UpdateQuoteTool from "./update-quote.tool.js";
 
 describe("update-quote line item IDs", () => {
+  const tool = UpdateQuoteTool();
+
+  it("requires Xero tracking option IDs for quote lines", () => {
+    const schema = z.object(tool.schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      quoteId: "quote-id",
+      lineItems: [{
+        description: "Consulting services",
+        tracking: [{ name: "Region", option: "West" }],
+      }],
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      quoteId: "quote-id",
+      lineItems: [{
+        description: "Consulting services",
+        tracking: [{ trackingOptionID: "tracking-option-id" }],
+      }],
+    }).success).toBe(true);
+  });
+
   it("maps the tool's lineItemId to Xero's lineItemID", async () => {
     mocks.updateXeroQuote.mockResolvedValue({
       result: { quoteID: "quote-id" },
@@ -25,7 +47,7 @@ describe("update-quote line item IDs", () => {
     });
     mocks.getDeepLink.mockResolvedValue(null);
 
-    await UpdateQuoteTool().handler({
+    await tool.handler({
       quoteId: "quote-id",
       lineItems: [{
         lineItemId: "line-item-id",
@@ -35,7 +57,7 @@ describe("update-quote line item IDs", () => {
         itemCode: "CONSULT",
         accountCode: "200",
         taxType: "OUTPUT",
-        tracking: [{ name: "Region", option: "West" }],
+        tracking: [{ trackingOptionID: "tracking-option-id" }],
         discountRate: 10,
         discountAmount: 5,
       }],
@@ -47,7 +69,7 @@ describe("update-quote line item IDs", () => {
         lineItemID: "line-item-id",
         description: "Consulting services",
         itemCode: "CONSULT",
-        tracking: [{ name: "Region", option: "West" }],
+        tracking: [{ trackingOptionID: "tracking-option-id" }],
         discountRate: 10,
         discountAmount: 5,
       })],

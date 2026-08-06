@@ -4,17 +4,11 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const trackingSchema = z.object({
-  name: z.string().optional(),
-  option: z.string().optional(),
   trackingCategoryID: z.string().optional(),
-  trackingOptionID: z.string().optional(),
-}).refine(
-  (tracking) => (
-    (tracking.name !== undefined && tracking.option !== undefined)
-    || (tracking.trackingCategoryID !== undefined && tracking.trackingOptionID !== undefined)
+  trackingOptionID: z.string().min(1).describe(
+    "Xero tracking option ID. Quotes require this ID rather than a tracking option name.",
   ),
-  "Tracking requires a category and option name, or both Xero IDs.",
-);
+});
 
 const lineItemSchema = z.object({
   lineItemId: z.string().min(1).optional().describe(
