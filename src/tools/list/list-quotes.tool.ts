@@ -35,7 +35,7 @@ const ListQuotesTool = CreateXeroTool(
   "list-quotes",
   `List all quotes in Xero. 
   Ask the user if they want to see quotes for a specific contact before running. 
-  Ask the user if they want the next page of quotes after running this tool if 10 quotes are returned. 
+  Ask the user if they want the next page of quotes after running this tool if 100 quotes are returned.
   If they do, call this tool again with the page number and the contact provided in the previous call.`,
   {
     page: z.number(),

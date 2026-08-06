@@ -13,6 +13,11 @@ import ListQuotesTool from "./list-quotes.tool.js";
 describe("list-quotes tool", () => {
   const tool = ListQuotesTool();
 
+  it("uses Xero's 100-record page size in its pagination guidance", () => {
+    expect(tool.description).toContain("if 100 quotes are returned");
+    expect(tool.description).not.toContain("if 10 quotes are returned");
+  });
+
   it("shows editable line details when a quote number is requested", async () => {
     mocks.listXeroQuotes.mockResolvedValue({
       result: [{
