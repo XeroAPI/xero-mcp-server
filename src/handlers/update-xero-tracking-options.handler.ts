@@ -3,6 +3,7 @@ import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
+import { TrackingOptionBatchResult } from "../types/tracking-option-batch.js";
 
 type TrackingOptionStatus = "ACTIVE" | "ARCHIVED";
 
@@ -33,11 +34,13 @@ async function updateTrackingOption(
 ): Promise<TrackingOption | undefined> {
   const trackingOption: TrackingOption = {
     trackingOptionID: trackingOptionId,
-    name: name ? name : existingTrackingOption.name,
-    status: status ? TrackingOption.StatusEnum[status] : existingTrackingOption.status
+    name: name ?? existingTrackingOption.name,
+    status: status !== undefined
+      ? TrackingOption.StatusEnum[status]
+      : existingTrackingOption.status,
   };
 
-  await xeroClient.accountingApi.updateTrackingOptions(
+  const response = await xeroClient.accountingApi.updateTrackingOptions(
     xeroClient.tenantId,
     trackingCategoryId,
     trackingOptionId,
@@ -46,13 +49,13 @@ async function updateTrackingOption(
     getClientHeaders()
   );
 
-  return trackingOption;
+  return response.body.options?.[0] ?? trackingOption;
 }
 
 export async function updateXeroTrackingOption(
   trackingCategoryId: string,
   options: TrackingOptionItem[]
-): Promise<XeroClientResponse<TrackingOption[]>> {
+): Promise<XeroClientResponse<TrackingOptionBatchResult>> {
   try {
 
     const existingTrackingOptions = await getTrackingOptions(trackingCategoryId);
@@ -74,26 +77,39 @@ export async function updateXeroTrackingOption(
       );
     }
 
-    const updatedTrackingOptions = await Promise.all(
-      options.map((option) =>
-        updateTrackingOption(
+    const trackingOptions: TrackingOption[] = [];
+    const failures: TrackingOptionBatchResult["failures"] = [];
+
+    // Xero permits at most five concurrent calls per tenant. Serial execution
+    // prevents this batch from consuming all concurrent calls for the tenant.
+    for (const option of options) {
+      try {
+        const trackingOption = await updateTrackingOption(
           trackingCategoryId,
           option.trackingOptionId,
           optionsById.get(option.trackingOptionId)!,
           option.name,
           option.status,
-        ),
-      ),
-    );
+        );
 
-    if (!updatedTrackingOptions) {
-      throw new Error("Failed to update tracking options.");
+        if (trackingOption) {
+          trackingOptions.push(trackingOption);
+        } else {
+          failures.push({
+            input: option.trackingOptionId,
+            error: "Xero did not return the updated tracking option.",
+          });
+        }
+      } catch (error) {
+        failures.push({
+          input: option.trackingOptionId,
+          error: formatError(error),
+        });
+      }
     }
 
     return {
-      result: updatedTrackingOptions
-        .filter(Boolean)
-        .map(option => option as TrackingOption),
+      result: { trackingOptions, failures },
       isError: false,
       error: null
     };

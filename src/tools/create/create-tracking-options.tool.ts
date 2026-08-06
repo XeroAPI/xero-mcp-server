@@ -7,8 +7,8 @@ const CreateTrackingOptionsTool = CreateXeroTool(
   "create-tracking-options",
   `Create tracking options for a tracking category in Xero.`,
   {
-    trackingCategoryId: z.string(),
-    optionNames: z.array(z.string()).max(10)
+    trackingCategoryId: z.string().min(1),
+    optionNames: z.array(z.string().min(1)).min(1).max(10),
   },
   async ({ trackingCategoryId, optionNames }) => {
     const response = await createXeroTrackingOptions(trackingCategoryId, optionNames);
@@ -24,13 +24,19 @@ const CreateTrackingOptionsTool = CreateXeroTool(
       };
     }
 
-    const trackingOptions = response.result;
+    const { trackingOptions, failures } = response.result;
     
     return {
       content: [
         {
           type: "text" as const,
-          text: `${trackingOptions.length || 0} out of ${optionNames.length} tracking options created:\n${trackingOptions.map(formatTrackingOption)}`
+          text: [
+            `${trackingOptions.length} out of ${optionNames.length} tracking options created:`,
+            trackingOptions.length ? trackingOptions.map(formatTrackingOption).join("\n\n") : null,
+            failures.length
+              ? `Failed:\n${failures.map((failure) => `- ${failure.input}: ${failure.error}`).join("\n")}`
+              : null,
+          ].filter(Boolean).join("\n")
         },
       ]
     };
