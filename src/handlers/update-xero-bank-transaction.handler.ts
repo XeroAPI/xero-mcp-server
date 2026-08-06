@@ -22,7 +22,7 @@ async function getBankTransaction(bankTransactionId: string): Promise<BankTransa
   const response = await xeroClient.accountingApi.getBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
-    undefined, // unitdp
+    4, // unitdp
     getClientHeaders() // options
   );
 
@@ -54,7 +54,7 @@ async function updateBankTransaction(
     xeroClient.tenantId, // xeroTenantId
     bankTransactionId, // bankTransactionID
     { bankTransactions: [bankTransaction] }, // bankTransactions
-    undefined, // unitdp
+    4, // unitdp
     undefined, // idempotencyKey
     getClientHeaders() // options
   );

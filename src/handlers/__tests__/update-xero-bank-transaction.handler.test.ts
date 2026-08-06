@@ -56,6 +56,8 @@ describe("updateXeroBankTransaction", () => {
     expect(result.isError).toBe(false);
     const bankTransaction = mocks.updateBankTransaction.mock.calls[0]?.[2].bankTransactions[0];
     expect(bankTransaction).toHaveProperty("isReconciled", false);
+    expect(mocks.getBankTransaction.mock.calls[0][2]).toBe(4);
+    expect(mocks.updateBankTransaction.mock.calls[0][3]).toBe(4);
   });
 
   it("returns a resolved Xero validation error instead of reporting a successful update", async () => {

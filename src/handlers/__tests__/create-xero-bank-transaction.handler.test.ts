@@ -124,6 +124,22 @@ describe("createXeroBankTransaction", () => {
     expect(bankTransaction).toHaveProperty("lineAmountTypes", LineAmountTypes.Exclusive);
   });
 
+  it("requests four decimal places for bank-transaction line prices", async () => {
+    mocks.createBankTransactions.mockResolvedValue({
+      body: { bankTransactions: [{ bankTransactionID: "bank-transaction-id" }] },
+    });
+
+    const result = await createXeroBankTransaction(
+      "SPEND",
+      "bank-account-id",
+      undefined,
+      [{ description: "Bank fee", unitAmount: 10.1234 }],
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createBankTransactions.mock.calls[0][3]).toBe(4);
+  });
+
   it("returns a resolved Xero validation error instead of reporting a successful creation", async () => {
     mocks.createBankTransactions.mockResolvedValue({
       body: {

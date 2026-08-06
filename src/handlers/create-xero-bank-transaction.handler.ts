@@ -49,7 +49,7 @@ async function createBankTransaction(
       bankTransactions: [bankTransaction]
     }, // bankTransactions
     true, // summarizeErrors
-    undefined, // unitdp
+    4, // unitdp
     idempotencyKey,
     getClientHeaders()
   );
