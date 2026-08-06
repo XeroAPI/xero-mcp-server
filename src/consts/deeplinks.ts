@@ -1,9 +1,9 @@
 export const invoiceDeepLink = (orgShortCode: string, invoiceId: string) => {
-  return ` https://go.xero.com/app/${orgShortCode}/invoicing/view/${invoiceId}`;
+  return `https://go.xero.com/app/${orgShortCode}/invoicing/view/${invoiceId}`;
 };
 
 export const contactDeepLink = (orgShortCode: string, contactId: string) => {
-  return ` https://go.xero.com/app/${orgShortCode}/contacts/contact/${contactId}`;
+  return `https://go.xero.com/app/${orgShortCode}/contacts/contact/${contactId}`;
 };
 
 export const creditNoteDeepLink = (

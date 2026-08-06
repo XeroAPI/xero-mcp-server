@@ -27,4 +27,21 @@ describe("getDeepLink", () => {
 
     expect(mocks.getShortCode).toHaveBeenCalledOnce();
   });
+
+  it.each([
+    [
+      "invoice",
+      DeepLinkType.INVOICE,
+      "invoice-id",
+      "https://go.xero.com/app/!short-code/invoicing/view/invoice-id",
+    ],
+    [
+      "contact",
+      DeepLinkType.CONTACT,
+      "contact-id",
+      "https://go.xero.com/app/!short-code/contacts/contact/contact-id",
+    ],
+  ])("creates a whitespace-free %s link", async (_name, type, id, expectedLink) => {
+    await expect(getDeepLink(type, id)).resolves.toBe(expectedLink);
+  });
 });
