@@ -28,7 +28,20 @@ describe("bank transaction validation", () => {
       isReconciled: false,
       idempotencyKey: "bank-transaction-retry-key",
       lineAmountTypes: "Inclusive",
+      currencyRate: 0.7456,
     }).success).toBe(true);
+    expect(schema.safeParse({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+      currencyRate: 0,
+    }).success).toBe(false);
+    expect(schema.safeParse({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+      currencyRate: Number.POSITIVE_INFINITY,
+    }).success).toBe(false);
     expect(schema.safeParse({
       type: "SPEND",
       bankAccountId: "bank-account-id",

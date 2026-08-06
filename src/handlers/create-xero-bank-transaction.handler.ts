@@ -26,6 +26,7 @@ async function createBankTransaction(
   isReconciled?: boolean,
   idempotencyKey?: string,
   lineAmountTypes?: LineAmountTypes,
+  currencyRate?: number,
 ): Promise<BankTransaction | undefined> {
   await xeroClient.authenticate();
 
@@ -40,6 +41,7 @@ async function createBankTransaction(
     reference: reference,
     ...(isReconciled !== undefined ? { isReconciled } : {}),
     ...(lineAmountTypes !== undefined ? { lineAmountTypes } : {}),
+    ...(currencyRate !== undefined ? { currencyRate } : {}),
     status: BankTransaction.StatusEnum.AUTHORISED
   };
 
@@ -69,6 +71,7 @@ export async function createXeroBankTransaction(
   isReconciled?: boolean,
   idempotencyKey?: string,
   lineAmountTypes?: LineAmountTypes,
+  currencyRate?: number,
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
     const createdTransaction = await createBankTransaction(
@@ -81,6 +84,7 @@ export async function createXeroBankTransaction(
       isReconciled,
       idempotencyKey,
       lineAmountTypes,
+      currencyRate,
     );
   
     const successfulBankTransaction = ensureBankTransactionSucceeded(

@@ -41,6 +41,7 @@ describe("create-bank-transaction", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -53,5 +54,16 @@ describe("create-bank-transaction", () => {
     }, {} as never);
 
     expect(createBankTransaction.mock.calls[0][8]).toBe(LineAmountTypes.Exclusive);
+  });
+
+  it("forwards an explicitly supplied currency rate", async () => {
+    await CreateBankTransactionTool().handler({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+      currencyRate: 0.7456,
+    }, {} as never);
+
+    expect(createBankTransaction.mock.calls[0][9]).toBe(0.7456);
   });
 });

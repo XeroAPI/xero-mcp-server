@@ -124,6 +124,29 @@ describe("createXeroBankTransaction", () => {
     expect(bankTransaction).toHaveProperty("lineAmountTypes", LineAmountTypes.Exclusive);
   });
 
+  it("sets the requested exchange rate for a non-base-currency account", async () => {
+    mocks.createBankTransactions.mockResolvedValue({
+      body: { bankTransactions: [{ bankTransactionID: "bank-transaction-id" }] },
+    });
+
+    const result = await createXeroBankTransaction(
+      "SPEND",
+      "bank-account-id",
+      undefined,
+      [{ description: "Bank fee" }],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      0.7456,
+    );
+
+    expect(result.isError).toBe(false);
+    const bankTransaction = mocks.createBankTransactions.mock.calls[0]?.[1].bankTransactions[0];
+    expect(bankTransaction).toHaveProperty("currencyRate", 0.7456);
+  });
+
   it("requests four decimal places for bank-transaction line prices", async () => {
     mocks.createBankTransactions.mockResolvedValue({
       body: { bankTransactions: [{ bankTransactionID: "bank-transaction-id" }] },

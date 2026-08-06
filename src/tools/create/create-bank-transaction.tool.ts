@@ -37,6 +37,9 @@ const CreateBankTransactionTool = CreateXeroTool(
     lineAmountTypes: z.enum(["Exclusive", "Inclusive", "NoTax"]).optional().describe(
       "Optional tax treatment for the supplied line amounts.",
     ),
+    currencyRate: z.number().finite().positive().optional().describe(
+      "Optional exchange rate to Xero's base currency for a non-base-currency bank account.",
+    ),
     idempotencyKey: z.string().min(1).max(128).optional().describe(
       "Optional retry key. Reuse the same key when retrying this exact transaction to prevent duplicates.",
     ),
@@ -51,6 +54,7 @@ const CreateBankTransactionTool = CreateXeroTool(
     isReconciled,
     idempotencyKey,
     lineAmountTypes,
+    currencyRate,
   }) => {
     const result = await createXeroBankTransaction(
       type,
@@ -62,6 +66,7 @@ const CreateBankTransactionTool = CreateXeroTool(
       isReconciled,
       idempotencyKey,
       lineAmountTypes ? LineAmountTypes[lineAmountTypes] : undefined,
+      currencyRate,
     );
 
     if (result.isError) {
@@ -94,6 +99,9 @@ const CreateBankTransactionTool = CreateXeroTool(
             `Status: ${bankTransaction?.status}`,
             bankTransaction?.isReconciled !== undefined
               ? `Reconciliation: ${bankTransaction.isReconciled ? "Reconciled" : "Unreconciled"}`
+              : null,
+            bankTransaction?.currencyRate !== undefined
+              ? `Currency Rate: ${bankTransaction.currencyRate}`
               : null,
             deepLink ? `Link to view: ${deepLink}` : null
           ].filter(Boolean).join("\n"),
