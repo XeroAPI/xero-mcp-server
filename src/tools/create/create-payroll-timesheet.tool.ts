@@ -5,6 +5,7 @@ import {
   createXeroPayrollTimesheet,
 } from "../../handlers/create-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPayrollTimesheetLine } from "../../helpers/format-payroll-timesheet-line.js";
 
 const CreatePayrollTimesheetTool = CreateXeroTool(
   "create-timesheet",
@@ -19,6 +20,10 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
       .array(
         z.object({
           earningsRateID: z.string().describe("The ID of the earnings rate."),
+          trackingItemID: z
+            .string()
+            .optional()
+            .describe("Optional ID of the payroll tracking item for this line."),
           numberOfUnits: z.number().describe("The number of units for the timesheet line."),
           date: z.string().describe("The date for the timesheet line (YYYY-MM-DD)."),
         })
@@ -46,7 +51,15 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
       content: [
         {
           type: "text" as const,
-          text: `Successfully created timesheet with ID: ${timesheet?.timesheetID}`,
+          text: [
+            `Successfully created timesheet with ID: ${timesheet?.timesheetID}`,
+            timesheet?.status ? `Status: ${timesheet.status}` : null,
+            timesheet?.timesheetLines?.length
+              ? `Timesheet lines:\n${timesheet.timesheetLines.map(formatPayrollTimesheetLine).join("\n\n")}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join("\n"),
         },
       ],
     };

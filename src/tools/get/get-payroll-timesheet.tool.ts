@@ -4,11 +4,12 @@ import {
   getXeroPayrollTimesheet,
 } from "../../handlers/get-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPayrollTimesheetLine } from "../../helpers/format-payroll-timesheet-line.js";
 
 const GetPayrollTimesheetTool = CreateXeroTool(
   "get-timesheet",
   `Retrieve a single payroll timesheet from Xero by its ID.
-This provides details such as the timesheet ID, employee ID, start and end dates, total hours, and the last updated date.`,
+This provides details such as the timesheet ID, employee ID, status, start and end dates, total hours, line IDs, and the last updated date.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to retrieve."),
   },
@@ -47,10 +48,14 @@ This provides details such as the timesheet ID, employee ID, start and end dates
           text: [
             `Timesheet ID: ${timesheet.timesheetID}`,
             `Employee ID: ${timesheet.employeeID}`,
+            timesheet.status ? `Status: ${timesheet.status}` : null,
             `Start Date: ${timesheet.startDate}`,
             `End Date: ${timesheet.endDate}`,
             `Total Hours: ${timesheet.totalHours}`,
             `Last Updated: ${timesheet.updatedDateUTC}`,
+            timesheet.timesheetLines?.length
+              ? `Timesheet lines:\n${timesheet.timesheetLines.map(formatPayrollTimesheetLine).join("\n\n")}`
+              : "No timesheet lines",
           ]
             .filter(Boolean)
             .join("\n"),

@@ -34,6 +34,9 @@ The response presents a complete overview of all staff currently registered in y
           type: "text" as const,
           text: [
             `Employee: ${employee.employeeID}`,
+            employee.payrollCalendarID
+              ? `Payroll Calendar ID: ${employee.payrollCalendarID}`
+              : null,
             employee.email ? `Email: ${employee.email}` : "No email",
             employee.gender ? `Gender: ${employee.gender}` : null,
             employee.phoneNumber ? `Phone: ${employee.phoneNumber}` : null,

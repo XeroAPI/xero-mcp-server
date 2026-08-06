@@ -47,6 +47,7 @@ describe("list-timesheets tool", () => {
         "Start Date: 2026-08-01",
         "End Date: 2026-08-07",
         "Total Hours: 0",
+        "Timesheet lines: Use get-timesheet for line details.",
       ].join("\n"),
     });
   });

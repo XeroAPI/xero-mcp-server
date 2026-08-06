@@ -4,12 +4,13 @@ import {
   listXeroPayrollTimesheets,
 } from "../../handlers/list-xero-timesheets.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPayrollTimesheetLine } from "../../helpers/format-payroll-timesheet-line.js";
 import { z } from "zod";
 
 const ListPayrollTimesheetsTool = CreateXeroTool(
   "list-timesheets",
   `List all payroll timesheets in Xero.
-This retrieves comprehensive timesheet details including timesheet IDs, employee IDs, start and end dates, total hours, and the last updated date.`,
+This retrieves comprehensive timesheet details including timesheet IDs, employee IDs, status, start and end dates, total hours, timesheet line IDs, and the last updated date.`,
   {
     page: z.number().int().positive().optional().describe("Optional page number for pagination."),
   },
@@ -40,10 +41,16 @@ This retrieves comprehensive timesheet details including timesheet IDs, employee
           text: [
             timesheet.timesheetID ? `Timesheet ID: ${timesheet.timesheetID}` : null,
             `Employee ID: ${timesheet.employeeID}`,
+            timesheet.status ? `Status: ${timesheet.status}` : null,
             `Start Date: ${timesheet.startDate}`,
             `End Date: ${timesheet.endDate}`,
             timesheet.totalHours !== undefined ? `Total Hours: ${timesheet.totalHours}` : null,
             timesheet.updatedDateUTC ? `Last Updated: ${timesheet.updatedDateUTC.toISOString()}` : null,
+            timesheet.timesheetLines === undefined
+              ? "Timesheet lines: Use get-timesheet for line details."
+              : timesheet.timesheetLines.length
+                ? `Timesheet lines:\n${timesheet.timesheetLines.map(formatPayrollTimesheetLine).join("\n\n")}`
+                : "No timesheet lines",
           ]
             .filter(Boolean)
             .join("\n"),
