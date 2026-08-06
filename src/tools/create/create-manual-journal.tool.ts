@@ -41,10 +41,10 @@ const CreateManualJournalTool = CreateXeroTool(
       ),
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
     lineAmountTypes: z
-      .enum(["EXCLUSIVE", "INCLUSIVE", "NO_TAX"])
+      .nativeEnum(LineAmountTypes)
       .optional()
       .describe(
-        "Optional line amount types (EXCLUSIVE, INCLUSIVE, NO_TAX), NO_TAX by default",
+        "Optional line amount types (Exclusive, Inclusive, NoTax), NoTax by default",
       ),
     status: z
       .enum(["DRAFT", "POSTED", "DELETED", "VOIDED", "ARCHIVED"])
@@ -69,7 +69,7 @@ const CreateManualJournalTool = CreateXeroTool(
         args.narration,
         args.manualJournalLines,
         args.date,
-        args.lineAmountTypes as LineAmountTypes | undefined,
+        args.lineAmountTypes,
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,
