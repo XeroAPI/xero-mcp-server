@@ -170,9 +170,9 @@ payroll.timesheets
 - `create-manual-journal`: Create a new manual journal
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
-- `create-payroll-timesheet`: Create a new Payroll Timesheet
+- `create-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
-- `create-tracking-option`: Create a new tracking option
+- `create-tracking-options`: Create a new tracking option
 - `update-bank-transaction`: Update an existing bank transaction
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
@@ -182,12 +182,12 @@ payroll.timesheets
 - `update-credit-note`: Update an existing draft credit note
 - `update-tracking-category`: Update an existing tracking category
 - `update-tracking-options`: Update tracking options
-- `update-payroll-timesheet-line`: Update a line on an existing Payroll Timesheet
-- `approve-payroll-timesheet`: Approve a Payroll Timesheet
-- `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
-- `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
-- `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
-- `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
+- `update-timesheet-line`: Update a line on an existing Payroll Timesheet
+- `approve-timesheet`: Approve a Payroll Timesheet
+- `revert-timesheet`: Revert an approved Payroll Timesheet
+- `add-timesheet-line`: Add new line on an existing Payroll Timesheet
+- `delete-timesheet`: Delete an existing Payroll Timesheet
+- `get-timesheet`: Retrieve an existing Payroll Timesheet
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
