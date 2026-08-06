@@ -90,4 +90,57 @@ describe("updateXeroInvoice", () => {
     });
     expect(mocks.updateInvoice).not.toHaveBeenCalled();
   });
+
+  it("sends the expected payment date for a sales invoice", async () => {
+    mocks.getInvoice.mockResolvedValue({
+      body: {
+        invoices: [{
+          status: Invoice.StatusEnum.DRAFT,
+          type: Invoice.TypeEnum.ACCREC,
+        }],
+      },
+    });
+
+    const result = await updateXeroInvoice(
+      "invoice-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-15",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateInvoice.mock.calls[0][2].invoices[0]).toMatchObject({
+      expectedPaymentDate: "2026-09-15",
+    });
+  });
+
+  it("rejects a sales-only expected payment date on a bill", async () => {
+    mocks.getInvoice.mockResolvedValue({
+      body: {
+        invoices: [{
+          status: Invoice.StatusEnum.DRAFT,
+          type: Invoice.TypeEnum.ACCPAY,
+        }],
+      },
+    });
+
+    const result = await updateXeroInvoice(
+      "invoice-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-15",
+    );
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "Expected payment dates are only supported on ACCREC sales invoices.",
+    });
+    expect(mocks.updateInvoice).not.toHaveBeenCalled();
+  });
 });

@@ -38,6 +38,8 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  expectedPaymentDate?: string,
+  plannedPaymentDate?: string,
   lineAmountTypes?: Invoice["lineAmountTypes"],
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
@@ -46,6 +48,8 @@ async function updateInvoice(
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    ...(expectedPaymentDate !== undefined ? { expectedPaymentDate } : {}),
+    ...(plannedPaymentDate !== undefined ? { plannedPaymentDate } : {}),
     ...(lineAmountTypes !== undefined ? { lineAmountTypes } : {}),
   };
 
@@ -73,6 +77,8 @@ export async function updateXeroInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  expectedPaymentDate?: string,
+  plannedPaymentDate?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
@@ -99,6 +105,27 @@ export async function updateXeroInvoice(
       };
     }
 
+    if (
+      expectedPaymentDate !== undefined
+      && existingInvoice?.type !== Invoice.TypeEnum.ACCREC
+    ) {
+      return {
+        result: null,
+        isError: true,
+        error: "Expected payment dates are only supported on ACCREC sales invoices.",
+      };
+    }
+    if (
+      plannedPaymentDate !== undefined
+      && existingInvoice?.type !== Invoice.TypeEnum.ACCPAY
+    ) {
+      return {
+        result: null,
+        isError: true,
+        error: "Planned payment dates are only supported on ACCPAY bills.",
+      };
+    }
+
     const updatedInvoice = await updateInvoice(
       invoiceId,
       lineItems,
@@ -106,6 +133,8 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      expectedPaymentDate,
+      plannedPaymentDate,
       existingInvoice?.lineAmountTypes,
     );
 

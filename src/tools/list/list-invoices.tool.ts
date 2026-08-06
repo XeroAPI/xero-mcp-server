@@ -55,6 +55,12 @@ const ListInvoicesTool = CreateXeroTool(
               : null,
             invoice.date ? `Date: ${invoice.date}` : null,
             invoice.dueDate ? `Due Date: ${invoice.dueDate}` : null,
+            invoice.expectedPaymentDate
+              ? `Expected Payment Date: ${invoice.expectedPaymentDate}`
+              : null,
+            invoice.plannedPaymentDate
+              ? `Planned Payment Date: ${invoice.plannedPaymentDate}`
+              : null,
             invoice.lineAmountTypes
               ? `Line Amount Types: ${invoice.lineAmountTypes}`
               : null,

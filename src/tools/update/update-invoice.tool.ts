@@ -49,6 +49,12 @@ const UpdateInvoiceTool = CreateXeroTool(
     reference: z.string().optional().describe("A reference number for the invoice."),
     dueDate: z.string().optional().describe("The due date of the invoice."),
     date: z.string().optional().describe("The date of the invoice."),
+    expectedPaymentDate: z.string().optional().describe(
+      "Expected payment date for an ACCREC sales invoice (YYYY-MM-DD).",
+    ),
+    plannedPaymentDate: z.string().optional().describe(
+      "Planned payment date for an ACCPAY bill (YYYY-MM-DD).",
+    ),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
       Can be obtained from the list-contacts tool."),
   },
@@ -59,6 +65,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       reference,
       dueDate,
       date,
+      expectedPaymentDate,
+      plannedPaymentDate,
       contactId,
     }: {
       invoiceId: string;
@@ -81,6 +89,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       reference?: string;
       dueDate?: string;
       date?: string;
+      expectedPaymentDate?: string;
+      plannedPaymentDate?: string;
       contactId?: string;
     },
     //_extra: { signal: AbortSignal },
@@ -97,6 +107,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      expectedPaymentDate,
+      plannedPaymentDate,
     );
     if (result.isError) {
       return {
@@ -127,10 +139,18 @@ const UpdateInvoiceTool = CreateXeroTool(
             `ID: ${invoice?.invoiceID}`,
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
+            invoice?.expectedPaymentDate
+              ? `Expected Payment Date: ${invoice.expectedPaymentDate}`
+              : null,
+            invoice?.plannedPaymentDate
+              ? `Planned Payment Date: ${invoice.plannedPaymentDate}`
+              : null,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,
-          ].join("\n"),
+          ]
+            .filter(Boolean)
+            .join("\n"),
         },
       ],
     };

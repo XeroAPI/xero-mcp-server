@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Invoice } from "xero-node";
 
 const mocks = vi.hoisted(() => ({
@@ -21,6 +21,10 @@ vi.mock("../../helpers/get-deeplink.js", () => ({
 import UpdateInvoiceTool from "./update-invoice.tool.js";
 
 describe("update-invoice line item IDs", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("maps the tool's lineItemId to Xero's lineItemID", async () => {
     mocks.updateXeroInvoice.mockResolvedValue({
       result: { invoiceID: "invoice-id", type: Invoice.TypeEnum.ACCREC },
@@ -55,7 +59,40 @@ describe("update-invoice line item IDs", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
+      undefined,
     );
     expect(mocks.updateXeroInvoice.mock.calls[0]?.[1][0]).not.toHaveProperty("lineItemId");
+  });
+
+  it("forwards and renders an expected payment date", async () => {
+    mocks.updateXeroInvoice.mockResolvedValue({
+      result: {
+        invoiceID: "invoice-id",
+        type: Invoice.TypeEnum.ACCREC,
+        expectedPaymentDate: "2026-09-15",
+      },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    const result = await UpdateInvoiceTool().handler({
+      invoiceId: "invoice-id",
+      expectedPaymentDate: "2026-09-15",
+    }, {} as never);
+
+    expect(mocks.updateXeroInvoice).toHaveBeenCalledWith(
+      "invoice-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-15",
+      undefined,
+    );
+    const responseText = result.content.find((content) => content.type === "text")?.text;
+    expect(responseText).toContain("Expected Payment Date: 2026-09-15");
   });
 });
