@@ -10,6 +10,9 @@ function paymentFormatter(payment: Payment): string {
     `Amount: ${payment.amount || 0}`,
     payment.bankAmount !== undefined ? `Bank Amount: ${payment.bankAmount}` : null,
     payment.currencyRate !== undefined ? `Currency Rate: ${payment.currencyRate}` : null,
+    payment.isReconciled !== undefined
+      ? `Reconciled: ${payment.isReconciled ? "Yes" : "No"}`
+      : null,
     payment.reference ? `Reference: ${payment.reference}` : null,
     payment.status ? `Status: ${payment.status}` : null,
     payment.paymentType ? `Payment Type: ${payment.paymentType}` : null,

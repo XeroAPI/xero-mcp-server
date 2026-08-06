@@ -12,6 +12,7 @@ type PaymentProps = {
   accountId: string;
   amount: number;
   bankAmount?: number;
+  isReconciled?: boolean;
   date?: string;
   reference?: string;
   idempotencyKey?: string;
@@ -25,6 +26,7 @@ async function createPayment({
   accountId,
   amount,
   bankAmount,
+  isReconciled,
   date,
   reference,
   idempotencyKey,
@@ -52,6 +54,7 @@ async function createPayment({
     },
     amount: amount,
     ...(bankAmount !== undefined ? { bankAmount } : {}),
+    ...(isReconciled !== undefined ? { isReconciled } : {}),
     date,
     reference: reference,
   };
@@ -77,6 +80,7 @@ export async function createXeroPayment({
   accountId,
   amount,
   bankAmount,
+  isReconciled,
   date,
   reference,
   idempotencyKey,
@@ -90,6 +94,7 @@ export async function createXeroPayment({
       accountId,
       amount,
       bankAmount,
+      isReconciled,
       date,
       reference,
       idempotencyKey,

@@ -32,6 +32,9 @@ const CreatePaymentTool = CreateXeroTool(
       .describe(
         "Optional payment amount in the bank account's currency. For foreign-currency payments, provide this with amount so Xero can derive the exchange rate.",
       ),
+    isReconciled: z.boolean().optional().describe(
+      "Whether to create the payment as reconciled. Omit unless the payment has already been reconciled externally.",
+    ),
     date: z
       .string()
       .optional()
@@ -52,6 +55,7 @@ const CreatePaymentTool = CreateXeroTool(
     accountId,
     amount,
     bankAmount,
+    isReconciled,
     date,
     reference,
     idempotencyKey,
@@ -64,6 +68,7 @@ const CreatePaymentTool = CreateXeroTool(
       accountId,
       amount,
       bankAmount,
+      isReconciled,
       date,
       reference,
       idempotencyKey,
@@ -100,6 +105,9 @@ const CreatePaymentTool = CreateXeroTool(
             `Amount: ${payment?.amount}`,
             payment.bankAmount !== undefined ? `Bank Amount: ${payment.bankAmount}` : null,
             payment.currencyRate !== undefined ? `Currency Rate: ${payment.currencyRate}` : null,
+            payment.isReconciled !== undefined
+              ? `Reconciled: ${payment.isReconciled ? "Yes" : "No"}`
+              : null,
             `Status: ${payment?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,
           ]

@@ -22,6 +22,7 @@ describe("list-payments tool", () => {
           amount: 50,
           bankAmount: 75,
           currencyRate: 1.5,
+          isReconciled: false,
           account: { code: "090", accountID: "bank-account-id" },
           creditNote: {
             creditNoteID: "credit-note-id",
@@ -59,6 +60,7 @@ describe("list-payments tool", () => {
       expect.objectContaining({ text: expect.stringContaining("Overpayment ID: overpayment-id") }),
       expect.objectContaining({ text: expect.stringContaining("Bank Amount: 75") }),
       expect.objectContaining({ text: expect.stringContaining("Currency Rate: 1.5") }),
+      expect.objectContaining({ text: expect.stringContaining("Reconciled: No") }),
     ]));
   });
 

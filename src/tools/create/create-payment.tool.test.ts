@@ -32,6 +32,7 @@ describe("create-payment tool", () => {
         amount: 10,
         bankAmount: 15,
         currencyRate: 1.5,
+        isReconciled: true,
         status: "AUTHORISED",
       },
     });
@@ -41,6 +42,7 @@ describe("create-payment tool", () => {
       accountId: "account-id",
       amount: 10,
       idempotencyKey: "payment-retry-key",
+      isReconciled: true,
     }, {} as never);
 
     expect(mocks.createPayment).toHaveBeenCalledWith({
@@ -51,6 +53,7 @@ describe("create-payment tool", () => {
       accountId: "account-id",
       amount: 10,
       bankAmount: undefined,
+      isReconciled: true,
       date: undefined,
       reference: undefined,
       idempotencyKey: "payment-retry-key",
@@ -64,6 +67,7 @@ describe("create-payment tool", () => {
         "Amount: 10",
         "Bank Amount: 15",
         "Currency Rate: 1.5",
+        "Reconciled: Yes",
         "Status: AUTHORISED",
         "Link to view: https://go.xero.com/payment",
       ].join("\n"),

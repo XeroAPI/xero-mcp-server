@@ -104,6 +104,20 @@ describe("createXeroPayment", () => {
     });
   });
 
+  it("preserves an explicit unreconciled state", async () => {
+    const result = await createXeroPayment({
+      invoiceId: "invoice-id",
+      accountId: "bank-account-id",
+      amount: 100,
+      isReconciled: false,
+    });
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createPayment.mock.calls[0][1]).toMatchObject({
+      isReconciled: false,
+    });
+  });
+
   it("rejects missing or ambiguous payment targets before calling Xero", async () => {
     const missingTarget = await createXeroPayment({ accountId: "account-id", amount: 10 });
     const multipleTargets = await createXeroPayment({
