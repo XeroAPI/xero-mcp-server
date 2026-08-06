@@ -1,10 +1,20 @@
-export const formatAgedReportFilter = (fromDate?: string, toDate?: string): string | undefined => {
+type AgedReportDocument = "bills" | "invoices";
+
+export const formatAgedReportFilter = (
+  fromDate?: string,
+  toDate?: string,
+  document: AgedReportDocument = "invoices",
+): string | undefined => {
   if (!fromDate && !toDate) {
     return undefined;
   }
 
-  const formattedFromDate = fromDate ? `from ${fromDate}` : ""
-  const formattedToDate = toDate ? `to ${toDate}` : ""
+  const dateRange = [
+    fromDate ? `from ${fromDate}` : null,
+    toDate ? `to ${toDate}` : null,
+  ]
+    .filter((value): value is string => value !== null)
+    .join(" ");
 
-  return `Showing invoices ${formattedFromDate} ${formattedToDate}`;
+  return `Showing ${document} ${dateRange}`;
 };

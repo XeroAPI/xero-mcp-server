@@ -12,9 +12,9 @@ const ListAgedPayablesByContact = CreateXeroTool(
     reportDate: z.string().optional()
       .describe("Optional date to retrieve aged payables in YYYY-MM-DD format. If none is provided, defaults to end of the current month."),
     invoicesFromDate: z.string().optional()
-      .describe("Optional from date in YYYY-MM-DD format. If provided, will only show payable invoices after this date for the contact."),
+      .describe("Optional from date in YYYY-MM-DD format. If provided, only payable bills from this date will be shown for the contact."),
     invoicesToDate: z.string().optional()
-      .describe("Optional to date in YYYY-MM-DD format. If provided, will only show payable invoices before this date for the contact."),
+      .describe("Optional to date in YYYY-MM-DD format. If provided, only payable bills up to this date will be shown for the contact."),
   },
   async ({ contactId, reportDate, invoicesFromDate, invoicesToDate }) => {
     const response = await listXeroAgedPayablesByContact(contactId, reportDate, invoicesFromDate, invoicesToDate);
@@ -31,7 +31,7 @@ const ListAgedPayablesByContact = CreateXeroTool(
     }
 
     const agedPayablesReport = response.result;
-    const filter = formatAgedReportFilter(invoicesFromDate, invoicesToDate);
+    const filter = formatAgedReportFilter(invoicesFromDate, invoicesToDate, "bills");
 
     return {
       content: [
@@ -45,7 +45,7 @@ const ListAgedPayablesByContact = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: filter ?? "Showing all relevant invoices"
+          text: filter ?? "Showing all relevant bills"
         },
         {
           type: "text" as const,

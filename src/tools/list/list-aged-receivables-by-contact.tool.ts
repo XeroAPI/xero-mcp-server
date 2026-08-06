@@ -12,9 +12,9 @@ const ListAgedReceivablesByContact = CreateXeroTool(
     reportDate: z.string().optional()
       .describe("Optional date to retrieve aged receivables in YYYY-MM-DD format. If none is provided, defaults to end of the current month."),
     invoicesFromDate: z.string().optional()
-      .describe("Optional from date in YYYY-MM-DD format. If provided, will only show payable invoices after this date for the contact."),
+      .describe("Optional from date in YYYY-MM-DD format. If provided, only customer invoices from this date will be shown for the contact."),
     invoicesToDate: z.string().optional()
-      .describe("Optional to date in YYYY-MM-DD format. If provided, will only show payable invoices before this date for the contact."),
+      .describe("Optional to date in YYYY-MM-DD format. If provided, only customer invoices up to this date will be shown for the contact."),
   },
   async ({ contactId, reportDate, invoicesFromDate, invoicesToDate }) => {
     const response = await listXeroAgedReceivablesByContact(contactId, reportDate, invoicesFromDate, invoicesToDate);
