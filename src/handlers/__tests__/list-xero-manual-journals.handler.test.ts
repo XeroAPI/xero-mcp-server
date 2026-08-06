@@ -41,6 +41,19 @@ describe("listXeroManualJournals", () => {
     expect(mocks.getManualJournals).not.toHaveBeenCalled();
   });
 
+  it("rejects a blank modified-after date instead of listing every journal", async () => {
+    const result = await listXeroManualJournals(1, undefined, "   ");
+
+    expect(result).toEqual({
+      result: null,
+      isError: true,
+      error: "Modified-after date must not be blank.",
+    });
+    expect(mocks.authenticate).not.toHaveBeenCalled();
+    expect(mocks.getManualJournal).not.toHaveBeenCalled();
+    expect(mocks.getManualJournals).not.toHaveBeenCalled();
+  });
+
   it("trims a supplied journal ID before retrieving that journal", async () => {
     mocks.getManualJournal.mockResolvedValue({
       body: { manualJournals: [{ narration: "Month end adjustment" }] },
@@ -55,5 +68,23 @@ describe("listXeroManualJournals", () => {
       { headers: {} },
     );
     expect(mocks.getManualJournals).not.toHaveBeenCalled();
+  });
+
+  it("trims a supplied modified-after date before listing journals", async () => {
+    mocks.getManualJournals.mockResolvedValue({ body: { manualJournals: [] } });
+
+    const result = await listXeroManualJournals(2, undefined, " 2026-01-31 ");
+
+    expect(result).toMatchObject({ isError: false, error: null });
+    expect(mocks.getManualJournals).toHaveBeenCalledWith(
+      "tenant-id",
+      new Date("2026-01-31"),
+      undefined,
+      "UpdatedDateUTC DESC",
+      2,
+      10,
+      { headers: {} },
+    );
+    expect(mocks.getManualJournal).not.toHaveBeenCalled();
   });
 });

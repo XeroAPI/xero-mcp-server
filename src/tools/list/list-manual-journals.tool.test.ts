@@ -60,10 +60,12 @@ describe("list-manual-journals", () => {
     expect(journalText).toContain("No journal lines");
   });
 
-  it("rejects a blank journal ID", () => {
+  it("rejects blank targeted filters", () => {
     const schema = z.object(ListManualJournalsTool().schema as z.ZodRawShape);
 
     expect(schema.safeParse({ manualJournalId: "   " }).success).toBe(false);
+    expect(schema.safeParse({ modifiedAfter: "   " }).success).toBe(false);
     expect(schema.safeParse({ manualJournalId: "journal-id" }).success).toBe(true);
+    expect(schema.safeParse({ modifiedAfter: "2026-01-31" }).success).toBe(true);
   });
 });

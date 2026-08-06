@@ -20,6 +20,8 @@ If they want the next page, call this tool again with the next page number, modi
       .describe("Optional ID of the manual journal to retrieve"),
     modifiedAfter: z
       .string()
+      .trim()
+      .min(1)
       .optional()
       .describe(
         "Optional date YYYY-MM-DD to filter journals modified after this date",

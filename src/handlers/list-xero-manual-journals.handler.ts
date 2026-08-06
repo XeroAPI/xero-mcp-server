@@ -50,11 +50,18 @@ export async function listXeroManualJournals(
         error: "Manual journal ID must not be blank.",
       };
     }
+    if (modifiedAfter !== undefined && !modifiedAfter.trim()) {
+      return {
+        result: null,
+        isError: true,
+        error: "Modified-after date must not be blank.",
+      };
+    }
 
     const manualJournals = await getManualJournals(
       page,
       manualJournalId?.trim(),
-      modifiedAfter,
+      modifiedAfter?.trim(),
     );
 
     return {
