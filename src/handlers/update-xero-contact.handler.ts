@@ -5,7 +5,7 @@ import { Contact, Phone, Address, Contacts } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function updateContact(
-  name: string,
+  name: string | undefined,
   firstName: string | undefined,
   lastName: string | undefined,
   email: string | undefined,
@@ -64,7 +64,7 @@ async function updateContact(
  */
 export async function updateXeroContact(
   contactId: string,
-  name: string,
+  name?: string,
   firstName?: string,
   lastName?: string,
   email?: string,

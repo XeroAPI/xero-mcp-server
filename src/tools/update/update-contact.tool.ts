@@ -12,7 +12,7 @@ const UpdateContactTool = CreateXeroTool(
  This link should be displayed to the user.",
   {
     contactId: z.string(),
-    name: z.string(),
+    name: z.string().optional(),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     email: z.string().email().optional(),
@@ -38,7 +38,7 @@ const UpdateContactTool = CreateXeroTool(
     address,
   }: {
     contactId: string;
-    name: string;
+    name?: string;
     email?: string;
     phone?: string;
     address?: {
@@ -52,6 +52,17 @@ const UpdateContactTool = CreateXeroTool(
     firstName?: string;
     lastName?: string;
   }) => {
+    if ([name, firstName, lastName, email, phone, address].every((value) => value === undefined)) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error updating contact: Provide at least one contact field to update.",
+          },
+        ],
+      };
+    }
+
     try {
       const response = await updateXeroContact(
         contactId,
@@ -99,7 +110,7 @@ const UpdateContactTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error creating contact: ${err.message}`,
+            text: `Error updating contact: ${err.message}`,
           },
         ],
       };
