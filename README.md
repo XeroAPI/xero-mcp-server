@@ -32,7 +32,7 @@ If you don't already have a Xero account and organisation already, can create on
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
 
-NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
+NOTE: Payroll-specific queries are currently supported for New Zealand organisations only.
 
 ### Authentication
 
