@@ -57,4 +57,35 @@ describe("updateXeroContact", () => {
       { headers: {} },
     );
   });
+
+  it("does not silently drop an explicitly supplied empty phone value", async () => {
+    const result = await updateXeroContact(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateContact).toHaveBeenCalledWith(
+      "tenant-id",
+      "contact-id",
+      {
+        contacts: [
+          expect.objectContaining({
+            phones: [
+              {
+                phoneNumber: "",
+                phoneType: "MOBILE",
+              },
+            ],
+          }),
+        ],
+      },
+      undefined,
+      { headers: {} },
+    );
+  });
 });

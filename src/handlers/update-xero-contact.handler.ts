@@ -22,7 +22,7 @@ async function updateContact(
     lastName,
     emailAddress: email,
     contactStatus,
-    phones: phone
+    phones: phone !== undefined
       ? [
           {
             phoneNumber: phone,
