@@ -34,4 +34,21 @@ describe("createXeroItem defaults", () => {
     expect(item).not.toHaveProperty("isSold");
     expect(item).not.toHaveProperty("isPurchased");
   });
+
+  it("sends explicitly selected sales and purchase availability", async () => {
+    mocks.createItems.mockResolvedValue({
+      body: { items: [{ itemID: "item-id" }] },
+    });
+
+    const result = await createXeroItem({
+      code: "SKU-001",
+      name: "Example item",
+      isSold: false,
+      isPurchased: true,
+    });
+
+    expect(result).toMatchObject({ isError: false, error: null });
+    const item = mocks.createItems.mock.calls[0]?.[1].items[0];
+    expect(item).toMatchObject({ isSold: false, isPurchased: true });
+  });
 });

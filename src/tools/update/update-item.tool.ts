@@ -25,6 +25,12 @@ const UpdateItemTool = CreateXeroTool(
     purchaseDescription: z.string().optional(),
     purchaseDetails: purchaseDetailsSchema.optional(),
     salesDetails: salesDetailsSchema.optional(),
+    isSold: z.boolean().optional().describe(
+      "Whether the item is available for sales transactions.",
+    ),
+    isPurchased: z.boolean().optional().describe(
+      "Whether the item is available for purchase transactions.",
+    ),
     isTrackedAsInventory: z.boolean().optional(),
     inventoryAssetAccountCode: z.string().optional(),
   },
@@ -36,6 +42,8 @@ const UpdateItemTool = CreateXeroTool(
     purchaseDescription,
     purchaseDetails,
     salesDetails,
+    isSold,
+    isPurchased,
     isTrackedAsInventory,
     inventoryAssetAccountCode,
   }) => {
@@ -48,6 +56,8 @@ const UpdateItemTool = CreateXeroTool(
         purchaseDescription,
         purchaseDetails,
         salesDetails,
+        isSold,
+        isPurchased,
         isTrackedAsInventory,
         inventoryAssetAccountCode,
       }
@@ -84,4 +94,4 @@ const UpdateItemTool = CreateXeroTool(
   },
 );
 
-export default UpdateItemTool; 
+export default UpdateItemTool;

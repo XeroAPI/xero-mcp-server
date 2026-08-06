@@ -24,6 +24,12 @@ const CreateItemTool = CreateXeroTool(
     purchaseDescription: z.string().optional(),
     purchaseDetails: purchaseDetailsSchema.optional(),
     salesDetails: salesDetailsSchema.optional(),
+    isSold: z.boolean().optional().describe(
+      "Whether the item is available for sales transactions. Omit to use Xero's default of true.",
+    ),
+    isPurchased: z.boolean().optional().describe(
+      "Whether the item is available for purchase transactions. Omit to use Xero's default of true.",
+    ),
     isTrackedAsInventory: z.boolean().optional(),
     inventoryAssetAccountCode: z.string().optional(),
   },
@@ -34,6 +40,8 @@ const CreateItemTool = CreateXeroTool(
     purchaseDescription,
     purchaseDetails,
     salesDetails,
+    isSold,
+    isPurchased,
     isTrackedAsInventory,
     inventoryAssetAccountCode,
   }) => {
@@ -44,6 +52,8 @@ const CreateItemTool = CreateXeroTool(
       purchaseDescription,
       purchaseDetails,
       salesDetails,
+      isSold,
+      isPurchased,
       isTrackedAsInventory,
       inventoryAssetAccountCode,
     });
@@ -79,4 +89,4 @@ const CreateItemTool = CreateXeroTool(
   },
 );
 
-export default CreateItemTool; 
+export default CreateItemTool;

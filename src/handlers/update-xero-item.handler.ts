@@ -19,6 +19,8 @@ interface ItemDetails {
     taxType?: string;
     accountCode?: string;
   };
+  isSold?: boolean;
+  isPurchased?: boolean;
   isTrackedAsInventory?: boolean;
   inventoryAssetAccountCode?: string;
 }
@@ -36,6 +38,10 @@ async function updateItem(
     purchaseDescription: itemDetails.purchaseDescription,
     purchaseDetails: itemDetails.purchaseDetails,
     salesDetails: itemDetails.salesDetails,
+    ...(itemDetails.isSold !== undefined ? { isSold: itemDetails.isSold } : {}),
+    ...(itemDetails.isPurchased !== undefined
+      ? { isPurchased: itemDetails.isPurchased }
+      : {}),
     isTrackedAsInventory: itemDetails.isTrackedAsInventory,
     inventoryAssetAccountCode: itemDetails.inventoryAssetAccountCode,
   };
@@ -81,4 +87,4 @@ export async function updateXeroItem(
       error: formatError(error),
     };
   }
-} 
+}

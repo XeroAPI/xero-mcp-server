@@ -19,6 +19,8 @@ interface ItemDetails {
     taxType?: string;
     accountCode?: string;
   };
+  isSold?: boolean;
+  isPurchased?: boolean;
   isTrackedAsInventory?: boolean;
   inventoryAssetAccountCode?: string;
 }
@@ -47,6 +49,10 @@ async function createItem(
           accountCode: itemDetails.salesDetails.accountCode,
         }
       : undefined,
+    ...(itemDetails.isSold !== undefined ? { isSold: itemDetails.isSold } : {}),
+    ...(itemDetails.isPurchased !== undefined
+      ? { isPurchased: itemDetails.isPurchased }
+      : {}),
     isTrackedAsInventory: itemDetails.isTrackedAsInventory,
     inventoryAssetAccountCode: itemDetails.inventoryAssetAccountCode,
   };
