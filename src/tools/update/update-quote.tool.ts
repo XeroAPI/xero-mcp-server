@@ -53,6 +53,9 @@ const UpdateQuoteTool = CreateXeroTool(
     contactId: z.string().optional(),
     date: z.string().optional(),
     expiryDate: z.string().optional(),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact quote update to prevent duplicate processing.",
+    ),
   },
   async (
     {
@@ -66,6 +69,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
+      idempotencyKey,
     }
   ) => {
     const xeroLineItems = lineItems?.map(({ lineItemId, ...lineItem }) => ({
@@ -84,6 +88,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
+      idempotencyKey,
     );
     if (result.isError) {
       return {

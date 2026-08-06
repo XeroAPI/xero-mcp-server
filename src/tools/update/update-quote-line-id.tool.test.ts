@@ -81,7 +81,39 @@ describe("update-quote line item IDs", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
     expect(mocks.updateXeroQuote.mock.calls[0]?.[1][0]).not.toHaveProperty("lineItemId");
+  });
+
+  it("forwards an idempotency key for safe retries", async () => {
+    vi.clearAllMocks();
+    mocks.updateXeroQuote.mockResolvedValue({
+      result: { quoteID: "quote-id" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      quoteId: "quote-id",
+      reference: "Updated reference",
+      idempotencyKey: "quote-update-retry-key",
+    }, {} as never);
+
+    expect(mocks.updateXeroQuote.mock.calls[0][10]).toBe("quote-update-retry-key");
+  });
+
+  it("limits idempotency keys to Xero's supported length", () => {
+    const schema = z.object(tool.schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      quoteId: "quote-id",
+      idempotencyKey: "x".repeat(128),
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      quoteId: "quote-id",
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 });

@@ -47,7 +47,8 @@ async function updateQuote(
   contactId?: string,
   date?: string,
   expiryDate?: string,
-  existingQuote?: Quote
+  existingQuote?: Quote,
+  idempotencyKey?: string,
 ): Promise<Quote | undefined> {
   // Create quote object with only the fields that are being updated
   const quote: Quote = {
@@ -83,7 +84,7 @@ async function updateQuote(
     {
       quotes: [quote],
     }, // quotes
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders(), // options
   );
 
@@ -104,6 +105,7 @@ export async function updateXeroQuote(
   contactId?: string,
   date?: string,
   expiryDate?: string,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     if (hasAccountCodeWithoutTaxType(lineItems)) {
@@ -138,7 +140,8 @@ export async function updateXeroQuote(
       contactId,
       date,
       expiryDate,
-      existingQuote
+      existingQuote,
+      idempotencyKey,
     );
 
     if (!updatedQuote) {

@@ -78,6 +78,25 @@ describe("updateXeroQuote", () => {
     expect(mocks.updateQuote.mock.calls[0][2].quotes[0]).not.toHaveProperty("lineAmountTypes");
   });
 
+  it("forwards an idempotency key for safe quote-update retries", async () => {
+    const result = await updateXeroQuote(
+      "quote-id",
+      undefined,
+      "Updated reference",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "quote-update-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateQuote.mock.calls[0][3]).toBe("quote-update-retry-key");
+  });
+
   it("rejects account-coded quote lines without a tax type", async () => {
     const result = await updateXeroQuote("quote-id", [{
       description: "Consulting services",
