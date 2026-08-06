@@ -8,6 +8,7 @@ import { xeroClient } from "../clients/xero-client.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { ensureManualJournalSucceeded } from "../helpers/ensure-manual-journal-succeeded.js";
 
 async function updateManualJournal(
   narration: string,
@@ -77,12 +78,13 @@ export async function updateXeroManualJournal(
       idempotencyKey,
     );
 
-    if (!updatedManualJournal) {
-      throw new Error("Manual journal update failed.");
-    }
+    const successfulManualJournal = ensureManualJournalSucceeded(
+      updatedManualJournal,
+      "update",
+    );
 
     return {
-      result: updatedManualJournal,
+      result: successfulManualJournal,
       isError: false,
       error: null,
     };

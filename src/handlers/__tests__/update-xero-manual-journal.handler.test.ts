@@ -70,4 +70,29 @@ describe("updateXeroManualJournal", () => {
       "manual-journal-update-retry-key",
     );
   });
+
+  it("returns Xero validation errors instead of reporting a successful update", async () => {
+    mocks.updateManualJournal.mockResolvedValue({
+      body: {
+        manualJournals: [{
+          validationErrors: [{ message: "Journal lines must balance." }],
+        }],
+      },
+    });
+
+    const result = await updateXeroManualJournal(
+      "Accrual",
+      "manual-journal-id",
+      [
+        { lineAmount: 100, accountCode: "200" },
+        { lineAmount: -100, accountCode: "300" },
+      ],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Journal lines must balance.",
+    });
+  });
 });

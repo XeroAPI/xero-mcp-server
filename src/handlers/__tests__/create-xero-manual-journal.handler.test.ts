@@ -69,4 +69,28 @@ describe("createXeroManualJournal", () => {
       mocks.createManualJournals.mock.calls[0][1].manualJournals[0].journalLines?.[0].tracking,
     ).toEqual(tracking);
   });
+
+  it("returns Xero validation errors instead of reporting a successful creation", async () => {
+    mocks.createManualJournals.mockResolvedValue({
+      body: {
+        manualJournals: [{
+          validationErrors: [{ message: "Account code is invalid." }],
+        }],
+      },
+    });
+
+    const result = await createXeroManualJournal(
+      "Accrual",
+      [
+        { lineAmount: 100, accountCode: "200" },
+        { lineAmount: -100, accountCode: "300" },
+      ],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Account code is invalid.",
+    });
+  });
 });
