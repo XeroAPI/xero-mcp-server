@@ -25,12 +25,12 @@ const CreateTrackingOptionsTool = CreateXeroTool(
     }
 
     const trackingOptions = response.result;
-    
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `${trackingOptions.length || 0} out of ${optionNames.length} tracking options created:\n${trackingOptions.map(formatTrackingOption)}`
+          text: `${trackingOptions.length || 0} out of ${optionNames.length} tracking options created:\n${trackingOptions.map(formatTrackingOption).join("\n\n")}`
         },
       ]
     };

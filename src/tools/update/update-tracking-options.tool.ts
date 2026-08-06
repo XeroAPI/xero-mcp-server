@@ -24,19 +24,19 @@ const UpdateTrackingOptionsTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error while creating tracking options: ${response.error}`
+            text: `Error while updating tracking options: ${response.error}`
           }
         ]
       };
     }
 
     const trackingOptions = response.result;
-    
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `${trackingOptions.length || 0} out of ${options.length} tracking options updated:\n${trackingOptions.map(formatTrackingOption)}`
+          text: `${trackingOptions.length || 0} out of ${options.length} tracking options updated:\n${trackingOptions.map(formatTrackingOption).join("\n\n")}`
         },
       ]
     };
