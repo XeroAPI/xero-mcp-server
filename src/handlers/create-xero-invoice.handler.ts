@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { ensureInvoiceSucceeded } from "../helpers/ensure-invoice-succeeded.js";
 
 interface InvoiceLineItem {
   description: string;
@@ -72,12 +73,10 @@ export async function createXeroInvoice(
       date,
     );
 
-    if (!createdInvoice) {
-      throw new Error("Invoice creation failed.");
-    }
+    const successfulInvoice = ensureInvoiceSucceeded(createdInvoice, "creation");
 
     return {
-      result: createdInvoice,
+      result: successfulInvoice,
       isError: false,
       error: null,
     };

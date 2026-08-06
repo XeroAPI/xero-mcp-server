@@ -143,6 +143,32 @@ describe("updateXeroInvoice", () => {
     expect(mocks.updateInvoice.mock.calls[0][4]).toBe("invoice-update-retry-key");
   });
 
+  it("returns a resolved Xero validation error instead of reporting a successful update", async () => {
+    mocks.getInvoice.mockResolvedValue({
+      body: {
+        invoices: [{
+          status: Invoice.StatusEnum.DRAFT,
+          type: Invoice.TypeEnum.ACCREC,
+        }],
+      },
+    });
+    mocks.updateInvoice.mockResolvedValue({
+      body: { invoices: [{ hasErrors: true }] },
+    });
+
+    const result = await updateXeroInvoice(
+      "invoice-id",
+      undefined,
+      "Updated reference",
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
+
   it("rejects a sales-only expected payment date on a bill", async () => {
     mocks.getInvoice.mockResolvedValue({
       body: {
