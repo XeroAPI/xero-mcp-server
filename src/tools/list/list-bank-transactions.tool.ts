@@ -13,7 +13,7 @@ const ListBankTransactionsTool = CreateXeroTool(
   If they do, call this tool again with the next page number and the bank account
   if one was provided in the provided in the previous call.`,
   {
-    page: z.number(),
+    page: z.number().default(1),
     bankAccountId: z.string().optional()
   },
   async ({ bankAccountId, page }) => {

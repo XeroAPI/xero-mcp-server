@@ -9,7 +9,7 @@ const ListQuotesTool = CreateXeroTool(
   Ask the user if they want the next page of quotes after running this tool if 10 quotes are returned. 
   If they do, call this tool again with the page number and the contact provided in the previous call.`,
   {
-    page: z.number(),
+    page: z.number().default(1),
     contactId: z.string().optional(),
     quoteNumber: z.string().optional(),
   },

@@ -12,7 +12,7 @@ const ListCreditNotesTool = CreateXeroTool(
   If they want the next page, call this tool again with the next page number 
   and the contact if one was provided in the previous call.`,
   {
-    page: z.number(),
+    page: z.number().default(1),
     contactId: z.string().optional(),
   },
   async ({ page, contactId }) => {
