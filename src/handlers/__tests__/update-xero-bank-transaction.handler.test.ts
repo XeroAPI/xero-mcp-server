@@ -60,6 +60,24 @@ describe("updateXeroBankTransaction", () => {
     expect(mocks.updateBankTransaction.mock.calls[0][3]).toBe(4);
   });
 
+  it("forwards an idempotency key for safe update retries", async () => {
+    const result = await updateXeroBankTransaction(
+      "bank-transaction-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "bank-transaction-update-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateBankTransaction.mock.calls[0][4]).toBe(
+      "bank-transaction-update-retry-key",
+    );
+  });
+
   it("returns a resolved Xero validation error instead of reporting a successful update", async () => {
     mocks.updateBankTransaction.mockResolvedValue({
       body: {

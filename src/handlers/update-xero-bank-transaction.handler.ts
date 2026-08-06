@@ -38,6 +38,7 @@ async function updateBankTransaction(
   reference?: string,
   date?: string,
   isReconciled?: boolean,
+  idempotencyKey?: string,
 ): Promise<BankTransaction | undefined> {
   const bankTransaction: BankTransaction = {
     ...existingBankTransaction,
@@ -55,7 +56,7 @@ async function updateBankTransaction(
     bankTransactionId, // bankTransactionID
     { bankTransactions: [bankTransaction] }, // bankTransactions
     4, // unitdp
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders() // options
   );
 
@@ -70,6 +71,7 @@ export async function updateXeroBankTransaction(
   reference?: string,
   date?: string,
   isReconciled?: boolean,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
     const existingBankTransaction = await getBankTransaction(bankTransactionId);
@@ -87,6 +89,7 @@ export async function updateXeroBankTransaction(
       reference,
       date,
       isReconciled,
+      idempotencyKey,
     );
 
     const successfulBankTransaction = ensureBankTransactionSucceeded(

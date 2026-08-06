@@ -63,6 +63,11 @@ describe("bank transaction validation", () => {
       bankTransactionId: "bank-transaction-id",
       lineItems: [{ itemCode: "FEE" }],
       isReconciled: false,
+      idempotencyKey: "bank-transaction-update-retry-key",
     }).success).toBe(true);
+    expect(schema.safeParse({
+      bankTransactionId: "bank-transaction-id",
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 });
