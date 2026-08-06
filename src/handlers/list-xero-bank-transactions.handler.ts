@@ -4,6 +4,8 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function getBankTransactions(
   page: number,
   bankAccountId?: string,
@@ -28,6 +30,14 @@ export async function listXeroBankTransactions(
   bankAccountId?: string
 ): Promise<XeroClientResponse<BankTransaction[]>> {
   try {
+    if (bankAccountId !== undefined && !UUID_PATTERN.test(bankAccountId)) {
+      return {
+        result: null,
+        isError: true,
+        error: "Bank account ID must be a valid UUID.",
+      };
+    }
+
     const bankTransactions = await getBankTransactions(page, bankAccountId);
 
     return {
