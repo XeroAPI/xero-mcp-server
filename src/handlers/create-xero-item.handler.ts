@@ -69,6 +69,22 @@ async function createItem(
   return response.body.items?.[0] ?? null;
 }
 
+function ensureItemCreated(item: Item | null): Item {
+  if (!item) {
+    throw new Error("Item creation failed.");
+  }
+
+  const validationErrors = item.validationErrors
+    ?.map((validationError) => validationError.message)
+    .filter((message): message is string => Boolean(message));
+
+  if (validationErrors?.length) {
+    throw new Error(validationErrors.join("; "));
+  }
+
+  return item;
+}
+
 /**
  * Create an item in Xero
  */
@@ -76,7 +92,7 @@ export async function createXeroItem(
   itemDetails: ItemDetails
 ): Promise<XeroClientResponse<Item | null>> {
   try {
-    const item = await createItem(itemDetails);
+    const item = ensureItemCreated(await createItem(itemDetails));
 
     return {
       result: item,
@@ -90,4 +106,4 @@ export async function createXeroItem(
       error: formatError(error),
     };
   }
-} 
+}

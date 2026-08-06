@@ -56,6 +56,22 @@ async function updateItem(
   return response.body.items?.[0] ?? null;
 }
 
+function ensureItemUpdated(item: Item | null): Item {
+  if (!item) {
+    throw new Error("Item update failed.");
+  }
+
+  const validationErrors = item.validationErrors
+    ?.map((validationError) => validationError.message)
+    .filter((message): message is string => Boolean(message));
+
+  if (validationErrors?.length) {
+    throw new Error(validationErrors.join("; "));
+  }
+
+  return item;
+}
+
 /**
  * Update an item in Xero
  * @param itemId - The ID of the item to update
@@ -67,7 +83,7 @@ export async function updateXeroItem(
   itemDetails: ItemDetails
 ): Promise<XeroClientResponse<Item | null>> {
   try {
-    const item = await updateItem(itemId, itemDetails);
+    const item = ensureItemUpdated(await updateItem(itemId, itemDetails));
 
     return {
       result: item,
@@ -81,4 +97,4 @@ export async function updateXeroItem(
       error: formatError(error),
     };
   }
-} 
+}
