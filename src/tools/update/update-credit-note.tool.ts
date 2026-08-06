@@ -71,7 +71,9 @@ const UpdateCreditNoteTool = CreateXeroTool(
     const creditNote = result.result;
 
     const deepLink = creditNote.creditNoteID
-      ? await getDeepLink(DeepLinkType.CREDIT_NOTE, creditNote.creditNoteID)
+      ? await getDeepLink(DeepLinkType.CREDIT_NOTE, creditNote.creditNoteID, {
+          creditNoteType: creditNote.type,
+        })
       : null;
 
     return {
@@ -92,4 +94,4 @@ const UpdateCreditNoteTool = CreateXeroTool(
   },
 );
 
-export default UpdateCreditNoteTool; 
+export default UpdateCreditNoteTool;

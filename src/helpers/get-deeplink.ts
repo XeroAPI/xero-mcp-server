@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import type { CreditNote } from "xero-node";
 import {
   contactDeepLink,
   creditNoteDeepLink,
@@ -24,9 +25,14 @@ export enum DeepLinkType {
  * This will also fetch the org short code from the Xero client.
  * @param type
  * @param itemId
+ * @param options
  * @returns
  */
-export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
+export const getDeepLink = async (
+  type: DeepLinkType,
+  itemId: string,
+  options: { creditNoteType?: CreditNote.TypeEnum } = {},
+) => {
   const orgShortCode = await xeroClient.getShortCode();
 
   if (!orgShortCode) {
@@ -37,7 +43,7 @@ export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
     case DeepLinkType.CONTACT:
       return contactDeepLink(orgShortCode, itemId);
     case DeepLinkType.CREDIT_NOTE:
-      return creditNoteDeepLink(orgShortCode, itemId);
+      return creditNoteDeepLink(orgShortCode, itemId, options.creditNoteType);
     case DeepLinkType.MANUAL_JOURNAL:
       return manualJournalDeepLink(itemId);
     case DeepLinkType.INVOICE:
