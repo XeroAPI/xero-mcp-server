@@ -96,12 +96,15 @@ export async function updateXeroQuote(
 
     const quoteStatus = existingQuote?.status;
 
-    // Only allow updates to DRAFT quotes
-    if (quoteStatus !== QuoteStatusCodes.DRAFT) {
+    // Xero allows all fields on DRAFT and SENT quotes.
+    if (
+      quoteStatus !== QuoteStatusCodes.DRAFT &&
+      quoteStatus !== QuoteStatusCodes.SENT
+    ) {
       return {
         result: null,
         isError: true,
-        error: `Cannot update quote because it is not a draft. Current status: ${quoteStatus}`,
+        error: `Cannot update quote because it is neither draft nor sent. Current status: ${quoteStatus}`,
       };
     }
 
@@ -135,4 +138,4 @@ export async function updateXeroQuote(
       error: formatError(error),
     };
   }
-} 
+}
