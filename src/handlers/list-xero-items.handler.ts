@@ -4,9 +4,7 @@ import { formatError } from "../helpers/format-error.js";
 import { Item } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
-async function getItems(
-  page: number,
-): Promise<Item[]> {
+async function getItems(): Promise<Item[]> {
   await xeroClient.authenticate();
 
   const items = await xeroClient.accountingApi.getItems(
@@ -14,7 +12,7 @@ async function getItems(
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order
-    page, // page
+    undefined, // unitdp
     getClientHeaders(),
   );
   return items.body.items ?? [];
@@ -23,11 +21,9 @@ async function getItems(
 /**
  * List all items from Xero
  */
-export async function listXeroItems(
-  page: number = 1,
-): Promise<XeroClientResponse<Item[]>> {
+export async function listXeroItems(): Promise<XeroClientResponse<Item[]>> {
   try {
-    const items = await getItems(page);
+    const items = await getItems();
 
     return {
       result: items,
@@ -41,4 +37,4 @@ export async function listXeroItems(
       error: formatError(error),
     };
   }
-} 
+}

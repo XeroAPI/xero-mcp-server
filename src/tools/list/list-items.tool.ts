@@ -1,15 +1,12 @@
-import { z } from "zod";
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListItemsTool = CreateXeroTool(
   "list-items",
   "Lists all items in Xero. Use this tool to get the item codes and descriptions to be used when creating invoices in Xero",
-  {
-    page: z.number(),
-  },
-  async ({ page }) => {
-    const response = await listXeroItems(page);
+  {},
+  async () => {
+    const response = await listXeroItems();
 
     if (response.isError) {
       return {
@@ -56,4 +53,4 @@ const ListItemsTool = CreateXeroTool(
   },
 );
 
-export default ListItemsTool; 
+export default ListItemsTool;
