@@ -26,7 +26,14 @@ describe("bank transaction validation", () => {
       bankAccountId: "bank-account-id",
       lineItems: [{ description: "Bank fee" }],
       isReconciled: false,
+      idempotencyKey: "bank-transaction-retry-key",
     }).success).toBe(true);
+    expect(schema.safeParse({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 
   it("accepts a minimal line item when updating a transaction", () => {

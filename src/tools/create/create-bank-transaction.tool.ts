@@ -33,8 +33,20 @@ const CreateBankTransactionTool = CreateXeroTool(
     isReconciled: z.boolean().optional().describe(
       "Optional reconciliation state. Use true only when the transaction should be marked reconciled.",
     ),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact transaction to prevent duplicates.",
+    ),
   },
-  async ({ type, bankAccountId, contactId, lineItems, reference, date, isReconciled }) => {
+  async ({
+    type,
+    bankAccountId,
+    contactId,
+    lineItems,
+    reference,
+    date,
+    isReconciled,
+    idempotencyKey,
+  }) => {
     const result = await createXeroBankTransaction(
       type,
       bankAccountId,
@@ -43,6 +55,7 @@ const CreateBankTransactionTool = CreateXeroTool(
       reference,
       date,
       isReconciled,
+      idempotencyKey,
     );
 
     if (result.isError) {

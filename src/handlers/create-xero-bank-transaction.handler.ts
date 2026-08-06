@@ -23,6 +23,7 @@ async function createBankTransaction(
   reference?: string,
   date?: string,
   isReconciled?: boolean,
+  idempotencyKey?: string,
 ): Promise<BankTransaction | undefined> {
   await xeroClient.authenticate();
 
@@ -46,7 +47,7 @@ async function createBankTransaction(
     }, // bankTransactions
     true, // summarizeErrors
     undefined, // unitdp
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders()
   );
 
@@ -63,6 +64,7 @@ export async function createXeroBankTransaction(
   reference?: string,
   date?: string,
   isReconciled?: boolean,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
     const createdTransaction = await createBankTransaction(
@@ -73,6 +75,7 @@ export async function createXeroBankTransaction(
       reference,
       date,
       isReconciled,
+      idempotencyKey,
     );
   
     if (!createdTransaction) {
