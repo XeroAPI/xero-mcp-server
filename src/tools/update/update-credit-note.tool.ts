@@ -3,12 +3,30 @@ import { updateXeroCreditNote } from "../../handlers/update-xero-credit-note.han
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
+const trackingSchema = z.object({
+  trackingCategoryID: z.string().optional(),
+  trackingOptionID: z.string().optional(),
+  name: z.string().optional(),
+  option: z.string().optional(),
+}).refine(
+  (tracking) => Boolean(tracking.trackingOptionID) || Boolean(tracking.name && tracking.option),
+  {
+    message: "Provide a tracking option ID, or both a tracking category name and option.",
+    path: ["trackingOptionID"],
+  },
+);
+
 const lineItemSchema = z.object({
+  lineItemId: z.string().min(1).optional().describe(
+    "Existing Xero line item ID. Include this to update a line without recreating it.",
+  ),
   description: z.string(),
   quantity: z.number(),
   unitAmount: z.number(),
+  itemCode: z.string().optional(),
   accountCode: z.string(),
   taxType: z.string(),
+  tracking: z.array(trackingSchema).max(2).optional(),
 });
 
 const UpdateCreditNoteTool = CreateXeroTool(
@@ -46,8 +64,16 @@ const UpdateCreditNoteTool = CreateXeroTool(
         description: string;
         quantity: number;
         unitAmount: number;
+        lineItemId?: string;
+        itemCode?: string;
         accountCode: string;
         taxType: string;
+        tracking?: Array<{
+          trackingCategoryID?: string;
+          trackingOptionID?: string;
+          name?: string;
+          option?: string;
+        }>;
       }>;
       reference?: string;
       date?: string;
@@ -55,9 +81,14 @@ const UpdateCreditNoteTool = CreateXeroTool(
       contactId?: string;
     },
   ) => {
+    const xeroLineItems = lineItems?.map(({ lineItemId, ...lineItem }) => ({
+      ...lineItem,
+      ...(lineItemId ? { lineItemID: lineItemId } : {}),
+    }));
+
     const result = await updateXeroCreditNote(
       creditNoteId,
-      lineItems,
+      xeroLineItems,
       reference,
       contactId,
       date,

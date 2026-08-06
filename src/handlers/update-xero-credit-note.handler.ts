@@ -1,15 +1,18 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { CreditNote } from "xero-node";
+import { CreditNote, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface CreditNoteLineItem {
+  lineItemID?: string;
   description: string;
   quantity: number;
   unitAmount: number;
+  itemCode?: string;
   accountCode: string;
   taxType: string;
+  tracking?: LineItemTracking[];
 }
 
 async function getCreditNote(creditNoteId: string): Promise<CreditNote | null> {
@@ -34,11 +37,13 @@ async function updateCreditNote(
   date?: string,
   dueDate?: string,
   type?: CreditNote.TypeEnum,
+  lineAmountTypes?: CreditNote["lineAmountTypes"],
 ): Promise<CreditNote | null> {
   const creditNote: CreditNote = {
     lineItems: lineItems,
     ...(date !== undefined ? { date } : {}),
     ...(dueDate !== undefined ? { dueDate } : {}),
+    ...(lineAmountTypes !== undefined ? { lineAmountTypes } : {}),
     contact: contactId ? { contactID: contactId } : undefined,
     ...(reference !== undefined
       ? type === CreditNote.TypeEnum.ACCPAYCREDIT
@@ -94,6 +99,7 @@ export async function updateXeroCreditNote(
       date,
       dueDate,
       existingCreditNote?.type,
+      existingCreditNote?.lineAmountTypes,
     );
 
     if (!updatedCreditNote) {

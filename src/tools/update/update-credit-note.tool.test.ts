@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -40,5 +41,66 @@ describe("update-credit-note tool", () => {
       "2026-07-31",
       "2026-08-30",
     );
+  });
+
+  it("maps existing line identities and preserves item tracking", async () => {
+    vi.clearAllMocks();
+    mocks.updateXeroCreditNote.mockResolvedValue({
+      result: { creditNoteID: "credit-note-id" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await UpdateCreditNoteTool().handler({
+      creditNoteId: "credit-note-id",
+      lineItems: [{
+        lineItemId: "line-item-id",
+        description: "Returned goods",
+        quantity: 1,
+        unitAmount: 100,
+        itemCode: "RETURN",
+        accountCode: "200",
+        taxType: "OUTPUT",
+        tracking: [{ trackingOptionID: "option-id" }],
+      }],
+    }, {} as never);
+
+    expect(mocks.updateXeroCreditNote).toHaveBeenCalledWith(
+      "credit-note-id",
+      [expect.objectContaining({
+        lineItemID: "line-item-id",
+        itemCode: "RETURN",
+        tracking: [{ trackingOptionID: "option-id" }],
+      })],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+    expect(mocks.updateXeroCreditNote.mock.calls[0][1][0]).not.toHaveProperty("lineItemId");
+  });
+
+  it("validates tracking allocations", () => {
+    const schema = z.object(UpdateCreditNoteTool().schema as z.ZodRawShape);
+    const base = {
+      creditNoteId: "credit-note-id",
+      lineItems: [{
+        description: "Returned goods",
+        quantity: 1,
+        unitAmount: 100,
+        accountCode: "200",
+        taxType: "OUTPUT",
+      }],
+    };
+
+    expect(schema.safeParse({
+      ...base,
+      lineItems: [{ ...base.lineItems[0], tracking: [{ trackingOptionID: "option-id" }] }],
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      ...base,
+      lineItems: [{ ...base.lineItems[0], tracking: [{}] }],
+    }).success).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CreditNote } from "xero-node";
+import { CreditNote, LineAmountTypes } from "xero-node";
 
 const mocks = vi.hoisted(() => ({
   authenticate: vi.fn(),
@@ -77,5 +77,45 @@ describe("updateXeroCreditNote", () => {
     const creditNote = mocks.updateCreditNote.mock.calls[0][2].creditNotes[0];
     expect(creditNote).toMatchObject({ reference: "CUST-001" });
     expect(creditNote).not.toHaveProperty("creditNoteNumber");
+  });
+
+  it("preserves line identities, tracking, item codes, and tax basis", async () => {
+    mocks.getCreditNote.mockResolvedValue({
+      body: {
+        creditNotes: [{
+          status: CreditNote.StatusEnum.DRAFT,
+          type: CreditNote.TypeEnum.ACCRECCREDIT,
+          lineAmountTypes: LineAmountTypes.Inclusive,
+        }],
+      },
+    });
+
+    const result = await updateXeroCreditNote("credit-note-id", [{
+      lineItemID: "line-item-id",
+      description: "Returned goods",
+      quantity: 1,
+      unitAmount: 100,
+      itemCode: "RETURN",
+      accountCode: "200",
+      taxType: "OUTPUT",
+      tracking: [{
+        trackingCategoryID: "category-id",
+        trackingOptionID: "option-id",
+      }],
+    }]);
+
+    expect(result.isError).toBe(false);
+    const creditNote = mocks.updateCreditNote.mock.calls[0][2].creditNotes[0];
+    expect(creditNote).toMatchObject({
+      lineAmountTypes: LineAmountTypes.Inclusive,
+      lineItems: [expect.objectContaining({
+        lineItemID: "line-item-id",
+        itemCode: "RETURN",
+        tracking: [{
+          trackingCategoryID: "category-id",
+          trackingOptionID: "option-id",
+        }],
+      })],
+    });
   });
 });
