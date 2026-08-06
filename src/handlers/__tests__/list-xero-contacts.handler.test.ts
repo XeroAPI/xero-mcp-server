@@ -22,10 +22,10 @@ describe("listXeroContacts", () => {
     vi.clearAllMocks();
   });
 
-  it("requests full contacts for the fields presented by the list tool", async () => {
+  it("requests full contacts and forwards the archived filter", async () => {
     mocks.getContacts.mockResolvedValue({ body: { contacts: [] } });
 
-    const result = await listXeroContacts(2, "Ada");
+    const result = await listXeroContacts(2, "Ada", true);
 
     expect(result).toMatchObject({ result: [], isError: false, error: null });
     expect(mocks.getContacts).toHaveBeenCalledWith(
@@ -35,7 +35,7 @@ describe("listXeroContacts", () => {
       undefined,
       undefined,
       2,
-      undefined,
+      true,
       false,
       "Ada",
       undefined,

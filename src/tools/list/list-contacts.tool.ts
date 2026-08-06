@@ -10,10 +10,11 @@ const ListContactsTool = CreateXeroTool(
       If not provided, the first page will be returned. If 100 contacts are returned, \
       call this tool again with the next page number."),
     searchTerm: z.string().optional().describe("Search parameter that performs a case-insensitive text search across the Name, FirstName, LastName, ContactNumber and EmailAddress fields"),
+    includeArchived: z.boolean().optional().describe("Whether to include archived contacts in the result."),
   },
   async (params) => {
-    const { page, searchTerm } = params;
-    const response = await listXeroContacts(page, searchTerm);
+    const { page, searchTerm, includeArchived } = params;
+    const response = await listXeroContacts(page, searchTerm, includeArchived);
 
     if (response.isError) {
       return {
