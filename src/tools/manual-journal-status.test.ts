@@ -22,12 +22,15 @@ describe("manual journal status validation", () => {
   it.each([
     ["create", CreateManualJournalTool],
     ["update", UpdateManualJournalTool],
-  ] as const)("rejects ARCHIVED for %s", (_operation, createTool) => {
+  ] as const)("accepts writable statuses only for %s", (_operation, createTool) => {
     const schema = createTool().schema as unknown as {
       status: { safeParse: (value: unknown) => { success: boolean } };
     };
 
+    expect(schema.status.safeParse("DRAFT").success).toBe(true);
+    expect(schema.status.safeParse("POSTED").success).toBe(true);
+    expect(schema.status.safeParse("DELETED").success).toBe(false);
+    expect(schema.status.safeParse("VOIDED").success).toBe(false);
     expect(schema.status.safeParse("ARCHIVED").success).toBe(false);
-    expect(schema.status.safeParse("VOIDED").success).toBe(true);
   });
 });

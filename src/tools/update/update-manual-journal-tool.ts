@@ -7,7 +7,7 @@ import { updateXeroManualJournal } from "../../handlers/update-xero-manual-journ
 
 const UpdateManualJournalTool = CreateXeroTool(
   "update-manual-journal",
-  "Update a manual journal in Xero. Only works on draft manual journals.\
+  "Update a manual journal in Xero. Works on draft or posted manual journals.\
   Do not modify line items or parameters that have not been specified by the user.",
   {
     narration: z
@@ -45,10 +45,10 @@ const UpdateManualJournalTool = CreateXeroTool(
         "Optional line amount types (EXCLUSIVE, INCLUSIVE, NO_TAX), NO_TAX by default",
       ),
     status: z
-      .enum(["DRAFT", "POSTED", "DELETED", "VOIDED"])
+      .enum(["DRAFT", "POSTED"])
       .optional()
       .describe(
-        "Optional status of the manual journal (DRAFT, POSTED, DELETED, VOIDED), DRAFT by default",
+        "Optional status of the manual journal (DRAFT or POSTED), DRAFT by default",
       ),
     url: z
       .string()

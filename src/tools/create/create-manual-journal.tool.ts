@@ -47,10 +47,10 @@ const CreateManualJournalTool = CreateXeroTool(
         "Optional line amount types (EXCLUSIVE, INCLUSIVE, NO_TAX), NO_TAX by default",
       ),
     status: z
-      .enum(["DRAFT", "POSTED", "DELETED", "VOIDED"])
+      .enum(["DRAFT", "POSTED"])
       .optional()
       .describe(
-        "Optional status of the manual journal (DRAFT, POSTED, DELETED, VOIDED), DRAFT by default",
+        "Optional status of the manual journal (DRAFT or POSTED), DRAFT by default",
       ),
     url: z
       .string()
@@ -62,6 +62,9 @@ const CreateManualJournalTool = CreateXeroTool(
       .describe(
         "Optional boolean to show on cash basis reports, default is true",
       ),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact journal to prevent duplicates.",
+    ),
   },
   async (args) => {
     try {
@@ -73,6 +76,7 @@ const CreateManualJournalTool = CreateXeroTool(
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,
+        args.idempotencyKey,
       );
 
       if (response.isError) {

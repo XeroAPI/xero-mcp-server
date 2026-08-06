@@ -17,6 +17,7 @@ async function createManualJournal(
   status?: ManualJournal.StatusEnum,
   url?: string,
   showOnCashBasisReports?: boolean,
+  idempotencyKey?: string,
 ): Promise<ManualJournal | undefined> {
   await xeroClient.authenticate();
 
@@ -44,7 +45,7 @@ async function createManualJournal(
     xeroClient.tenantId,
     manualJournals,
     true,
-    undefined,
+    idempotencyKey,
     getClientHeaders(),
   );
 
@@ -60,6 +61,7 @@ async function createManualJournal(
  * @param status - Optional: draft by default, see `ManualJournal.StatusEnum`.
  * @param url - Optional: URL link to a source document.
  * @param showOnCashBasisReports - Optional: default is true if not specified.
+ * @param idempotencyKey - Optional: reused on an identical retry to prevent duplicates.
  * @returns
  */
 export async function createXeroManualJournal(
@@ -70,6 +72,7 @@ export async function createXeroManualJournal(
   status?: ManualJournal.StatusEnum,
   url?: string,
   showOnCashBasisReports?: boolean,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<ManualJournal>> {
   try {
     const createdManualJournal = await createManualJournal(
@@ -80,6 +83,7 @@ export async function createXeroManualJournal(
       status,
       url,
       showOnCashBasisReports,
+      idempotencyKey,
     );
 
     if (!createdManualJournal) {
