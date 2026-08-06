@@ -28,6 +28,22 @@ describe("quote line item validation", () => {
       contactId: "contact-id",
       lineItems: [{ description: "Consulting services" }],
     }).success).toBe(true);
+    expect(createSchema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{
+        description: "Consulting services",
+        tracking: [{ trackingOptionID: "tracking-option-id" }],
+        discountRate: 10,
+        discountAmount: 5,
+      }],
+    }).success).toBe(true);
+    expect(createSchema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{
+        description: "Consulting services",
+        tracking: [{ name: "Region", option: "West" }],
+      }],
+    }).success).toBe(false);
     expect(updateSchema.safeParse({
       quoteId: "quote-id",
       lineItems: [{ description: "Consulting services", itemCode: "CONSULT" }],

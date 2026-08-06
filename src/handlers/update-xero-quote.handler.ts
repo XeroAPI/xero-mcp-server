@@ -52,6 +52,9 @@ async function updateQuote(
     summary: summary,
     quoteNumber: quoteNumber,
     expiryDate: expiryDate,
+    ...(existingQuote?.lineAmountTypes !== undefined
+      ? { lineAmountTypes: existingQuote.lineAmountTypes }
+      : {}),
   };
   
   // Only add contact if contactId is provided, otherwise use existing

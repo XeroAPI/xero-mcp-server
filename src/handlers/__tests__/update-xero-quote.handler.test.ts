@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { QuoteStatusCodes } from "xero-node";
+import { QuoteLineAmountTypes, QuoteStatusCodes } from "xero-node";
 
 const mocks = vi.hoisted(() => ({
   authenticate: vi.fn(),
@@ -28,7 +28,10 @@ describe("updateXeroQuote", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getQuote.mockResolvedValue({
-      body: { quotes: [{ status: QuoteStatusCodes.DRAFT }] },
+      body: { quotes: [{
+        status: QuoteStatusCodes.DRAFT,
+        lineAmountTypes: QuoteLineAmountTypes.INCLUSIVE,
+      }] },
     });
     mocks.updateQuote.mockResolvedValue({
       body: { quotes: [{ quoteID: "quote-id" }] },
@@ -59,5 +62,19 @@ describe("updateXeroQuote", () => {
         discountAmount: 5,
       }),
     ]);
+    expect(mocks.updateQuote.mock.calls[0][2].quotes[0]).toMatchObject({
+      lineAmountTypes: QuoteLineAmountTypes.INCLUSIVE,
+    });
+  });
+
+  it("does not invent a line amount type when the existing quote has none", async () => {
+    mocks.getQuote.mockResolvedValue({
+      body: { quotes: [{ status: QuoteStatusCodes.DRAFT }] },
+    });
+
+    const result = await updateXeroQuote("quote-id", undefined, "Updated reference");
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateQuote.mock.calls[0][2].quotes[0]).not.toHaveProperty("lineAmountTypes");
   });
 });

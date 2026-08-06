@@ -3,6 +3,13 @@ import { createXeroQuote } from "../../handlers/create-xero-quote.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
+const trackingSchema = z.object({
+  trackingCategoryID: z.string().optional(),
+  trackingOptionID: z.string().min(1).describe(
+    "Xero tracking option ID. Quotes require this ID rather than a tracking option name.",
+  ),
+});
+
 const lineItemSchema = z.object({
   description: z.string().min(1),
   quantity: z.number().optional(),
@@ -10,6 +17,9 @@ const lineItemSchema = z.object({
   itemCode: z.string().optional(),
   accountCode: z.string().optional(),
   taxType: z.string().optional(),
+  tracking: z.array(trackingSchema).max(2).optional(),
+  discountRate: z.number().optional(),
+  discountAmount: z.number().optional(),
 });
 
 const CreateQuoteTool = CreateXeroTool(
