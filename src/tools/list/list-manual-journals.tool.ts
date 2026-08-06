@@ -22,7 +22,7 @@ If they want the next page, call this tool again with the next page number, modi
       .describe(
         "Optional date YYYY-MM-DD to filter journals modified after this date",
       ),
-    page: z.number().optional().describe("Optional page number for pagination"),
+    page: z.number().int().positive().optional().describe("Optional page number for pagination"),
     // TODO: where, order
   },
   async (args) => {

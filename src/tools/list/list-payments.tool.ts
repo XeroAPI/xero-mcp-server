@@ -47,7 +47,7 @@ const ListPaymentsTool = CreateXeroTool(
   Ask the user if they want to see payments for a specific invoice, contact, payment or reference before running.
   If many payments are returned, ask the user if they want to see the next page.`,
   {
-    page: z.number().default(1),
+    page: z.number().int().positive().default(1),
     invoiceNumber: z.string().optional(),
     invoiceId: z.string().optional(),
     paymentId: z.string().optional(),
