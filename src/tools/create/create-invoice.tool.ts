@@ -12,16 +12,19 @@ const trackingSchema = z.object({
 });
 
 const lineItemSchema = z.object({
-  description: z.string().describe("The description of the line item"),
-  quantity: z.number().describe("The quantity of the line item"),
-  unitAmount: z.number().describe("The price per unit of the line item"),
-  accountCode: z.string().describe("The account code of the line item - can be obtained from the list-accounts tool"),
-  taxType: z.string().describe("The tax type of the line item - can be obtained from the list-tax-rates tool"),
+  description: z.string().min(1).describe("The description of the line item").optional(),
+  quantity: z.number().describe("The quantity of the line item").optional(),
+  unitAmount: z.number().describe("The price per unit of the line item").optional(),
+  accountCode: z.string().describe("The account code of the line item - can be obtained from the list-accounts tool").optional(),
+  taxType: z.string().describe("The tax type of the line item - can be obtained from the list-tax-rates tool").optional(),
   itemCode: z.string().describe("The item code of the line item - can be obtained from the list-items tool \
     If the item is not listed, add without an item code and ask the user if they would like to add an item code.").optional(),
   tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
     Can be obtained from the list-tracking-categories tool. \
     Only use if prompted by the user.").optional(),
+}).refine((lineItem) => lineItem.description || lineItem.itemCode, {
+  message: "A line item requires a description or item code.",
+  path: ["description"],
 });
 
 const CreateInvoiceTool = CreateXeroTool(
@@ -33,17 +36,16 @@ const CreateInvoiceTool = CreateXeroTool(
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
-      
-    lineItems: z.array(lineItemSchema),
+    lineItems: z.array(lineItemSchema).min(1),
     type: z.enum(["ACCREC", "ACCPAY"]).describe("The type of invoice to create. \
       ACCREC is for sales invoices, Accounts Receivable, or customer invoices. \
       ACCPAY is for purchase invoices, Accounts Payable invoices, supplier invoices, or bills. \
-      If the type is not specified, the default is ACCREC."),
+      If the type is not specified, the default is ACCREC.").optional(),
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
   },
   async ({ contactId, lineItems, type, reference, date }) => {
-    const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
+    const xeroInvoiceType = type === "ACCPAY" ? Invoice.TypeEnum.ACCPAY : Invoice.TypeEnum.ACCREC;
     const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
     if (result.isError) {
       return {
