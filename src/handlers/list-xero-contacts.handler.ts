@@ -15,7 +15,7 @@ async function getContacts(page?: number, searchTerm?: string): Promise<Contact[
     undefined, // iDs
     page, // page
     undefined, // includeArchived
-    true, // summaryOnly
+    false, // summaryOnly, so displayed customer, supplier, and group fields are returned
     searchTerm, // searchTerm
     undefined, // pageSize
     getClientHeaders(),
