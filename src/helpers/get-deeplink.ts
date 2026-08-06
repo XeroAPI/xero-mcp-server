@@ -26,11 +26,20 @@ export enum DeepLinkType {
  * @param itemId
  * @returns
  */
-export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
-  const orgShortCode = await xeroClient.getShortCode();
+export const getDeepLink = async (
+  type: DeepLinkType,
+  itemId: string,
+): Promise<string | null> => {
+  let orgShortCode: string | undefined;
+
+  try {
+    orgShortCode = await xeroClient.getShortCode();
+  } catch {
+    return null;
+  }
 
   if (!orgShortCode) {
-    throw new Error("Failed to retrieve organisation short code");
+    return null;
   }
 
   switch (type) {
@@ -49,4 +58,6 @@ export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
     case DeepLinkType.BILL:
       return billDeepLink(orgShortCode, itemId);
   }
+
+  return null;
 };
