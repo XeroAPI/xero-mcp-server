@@ -40,11 +40,11 @@ const ListTrialBalanceTool = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: JSON.stringify(trialBalanceReport.rows, null, 2),
+          text: JSON.stringify(trialBalanceReport.rows ?? [], null, 2),
         },
       ],
     };
   },
 );
 
-export default ListTrialBalanceTool; 
+export default ListTrialBalanceTool;

@@ -49,7 +49,7 @@ const ListAgedPayablesByContact = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: JSON.stringify(agedPayablesReport.rows, null, 2),
+          text: JSON.stringify(agedPayablesReport.rows ?? [], null, 2),
         }
       ],
     };

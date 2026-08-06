@@ -52,11 +52,11 @@ const ListProfitAndLossTool = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: JSON.stringify(profitAndLossReport.rows, null, 2),
+          text: JSON.stringify(profitAndLossReport.rows ?? [], null, 2),
         },
       ],
     };
   },
 );
 
-export default ListProfitAndLossTool; 
+export default ListProfitAndLossTool;

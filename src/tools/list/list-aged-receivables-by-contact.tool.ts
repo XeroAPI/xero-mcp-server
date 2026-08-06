@@ -49,7 +49,7 @@ const ListAgedReceivablesByContact = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: JSON.stringify(agedReceivablesReport.rows, null, 2),
+          text: JSON.stringify(agedReceivablesReport.rows ?? [], null, 2),
         }
       ],
     };
