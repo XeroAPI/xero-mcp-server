@@ -42,4 +42,23 @@ describe("createXeroBankTransaction", () => {
     });
     expect(bankTransaction).not.toHaveProperty("contact");
   });
+
+  it("sets the requested reconciliation state", async () => {
+    mocks.createBankTransactions.mockResolvedValue({
+      body: { bankTransactions: [{ bankTransactionID: "bank-transaction-id" }] },
+    });
+
+    await createXeroBankTransaction(
+      "SPEND",
+      "bank-account-id",
+      undefined,
+      [{ description: "Bank fee" }],
+      undefined,
+      undefined,
+      true,
+    );
+
+    const bankTransaction = mocks.createBankTransactions.mock.calls[0]?.[1].bankTransactions[0];
+    expect(bankTransaction).toHaveProperty("isReconciled", true);
+  });
 });

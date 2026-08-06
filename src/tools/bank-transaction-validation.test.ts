@@ -21,6 +21,12 @@ describe("bank transaction validation", () => {
       bankAccountId: "bank-account-id",
       lineItems: [{ description: "Bank fee" }],
     }).success).toBe(true);
+    expect(schema.safeParse({
+      type: "SPEND",
+      bankAccountId: "bank-account-id",
+      lineItems: [{ description: "Bank fee" }],
+      isReconciled: false,
+    }).success).toBe(true);
   });
 
   it("accepts a minimal line item when updating a transaction", () => {
@@ -29,6 +35,7 @@ describe("bank transaction validation", () => {
     expect(schema.safeParse({
       bankTransactionId: "bank-transaction-id",
       lineItems: [{ itemCode: "FEE" }],
+      isReconciled: false,
     }).success).toBe(true);
   });
 });
