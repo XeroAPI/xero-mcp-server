@@ -123,4 +123,46 @@ describe("createXeroBankTransaction", () => {
     const bankTransaction = mocks.createBankTransactions.mock.calls[0]?.[1].bankTransactions[0];
     expect(bankTransaction).toHaveProperty("lineAmountTypes", LineAmountTypes.Exclusive);
   });
+
+  it("returns a resolved Xero validation error instead of reporting a successful creation", async () => {
+    mocks.createBankTransactions.mockResolvedValue({
+      body: {
+        bankTransactions: [{
+          validationErrors: [{ message: "Account code is invalid." }],
+        }],
+      },
+    });
+
+    const result = await createXeroBankTransaction(
+      "SPEND",
+      "bank-account-id",
+      undefined,
+      [{ description: "Bank fee" }],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Account code is invalid.",
+    });
+  });
+
+  it("rejects a validation error without a message", async () => {
+    mocks.createBankTransactions.mockResolvedValue({
+      body: { bankTransactions: [{ validationErrors: [{}] }] },
+    });
+
+    const result = await createXeroBankTransaction(
+      "SPEND",
+      "bank-account-id",
+      undefined,
+      [{ description: "Bank fee" }],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
 });

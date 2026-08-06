@@ -3,6 +3,7 @@ import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction } from "xero-node";
+import { ensureBankTransactionSucceeded } from "../helpers/ensure-bank-transaction-succeeded.js";
 
 interface BankTransactionLineItem {
   description?: string;
@@ -88,12 +89,13 @@ export async function updateXeroBankTransaction(
       isReconciled,
     );
 
-    if (!updatedBankTransaction) {
-      throw new Error(`Failed to update bank transaction`);
-    }
+    const successfulBankTransaction = ensureBankTransactionSucceeded(
+      updatedBankTransaction,
+      "update",
+    );
 
     return {
-      result: updatedBankTransaction,
+      result: successfulBankTransaction,
       isError: false,
       error: null
     };

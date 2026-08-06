@@ -57,4 +57,28 @@ describe("updateXeroBankTransaction", () => {
     const bankTransaction = mocks.updateBankTransaction.mock.calls[0]?.[2].bankTransactions[0];
     expect(bankTransaction).toHaveProperty("isReconciled", false);
   });
+
+  it("returns a resolved Xero validation error instead of reporting a successful update", async () => {
+    mocks.updateBankTransaction.mockResolvedValue({
+      body: {
+        bankTransactions: [{
+          validationErrors: [{ message: "Bank account is required." }],
+        }],
+      },
+    });
+
+    const result = await updateXeroBankTransaction(
+      "bank-transaction-id",
+      undefined,
+      undefined,
+      undefined,
+      "Updated reference",
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Bank account is required.",
+    });
+  });
 });

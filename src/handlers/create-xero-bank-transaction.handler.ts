@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction, LineAmountTypes } from "xero-node";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { ensureBankTransactionSucceeded } from "../helpers/ensure-bank-transaction-succeeded.js";
 
 interface BankTransactionLineItem {
   description?: string;
@@ -82,12 +83,13 @@ export async function createXeroBankTransaction(
       lineAmountTypes,
     );
   
-    if (!createdTransaction) {
-      throw new Error("Bank transaction creation failed.");
-    }
+    const successfulBankTransaction = ensureBankTransactionSucceeded(
+      createdTransaction,
+      "creation",
+    );
 
     return {
-      result: createdTransaction,
+      result: successfulBankTransaction,
       isError: false,
       error: null
     };
