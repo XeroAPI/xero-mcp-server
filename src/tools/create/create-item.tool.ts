@@ -19,7 +19,7 @@ const CreateItemTool = CreateXeroTool(
   "Create an item in Xero.",
   {
     code: z.string(),
-    name: z.string(),
+    name: z.string().optional(),
     description: z.string().optional(),
     purchaseDescription: z.string().optional(),
     purchaseDetails: purchaseDetailsSchema.optional(),
@@ -69,7 +69,7 @@ const CreateItemTool = CreateXeroTool(
             "Item created successfully:",
             `ID: ${item?.itemID}`,
             `Code: ${item?.code}`,
-            `Name: ${item?.name}`,
+            item?.name ? `Name: ${item.name}` : null,
           ]
             .filter(Boolean)
             .join("\n"),
@@ -79,4 +79,4 @@ const CreateItemTool = CreateXeroTool(
   },
 );
 
-export default CreateItemTool; 
+export default CreateItemTool;

@@ -6,7 +6,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface ItemDetails {
   code: string;
-  name: string;
+  name?: string;
   description?: string;
   purchaseDescription?: string;
   purchaseDetails?: {
@@ -90,4 +90,4 @@ export async function createXeroItem(
       error: formatError(error),
     };
   }
-} 
+}

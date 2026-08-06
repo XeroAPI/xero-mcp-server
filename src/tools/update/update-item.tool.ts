@@ -20,7 +20,7 @@ const UpdateItemTool = CreateXeroTool(
   {
     itemId: z.string(),
     code: z.string(),
-    name: z.string(),
+    name: z.string().optional(),
     description: z.string().optional(),
     purchaseDescription: z.string().optional(),
     purchaseDetails: purchaseDetailsSchema.optional(),
@@ -74,7 +74,7 @@ const UpdateItemTool = CreateXeroTool(
             "Item updated successfully:",
             `ID: ${item?.itemID}`,
             `Code: ${item?.code}`,
-            `Name: ${item?.name}`,
+            item?.name ? `Name: ${item.name}` : null,
           ]
             .filter(Boolean)
             .join("\n"),
@@ -84,4 +84,4 @@ const UpdateItemTool = CreateXeroTool(
   },
 );
 
-export default UpdateItemTool; 
+export default UpdateItemTool;
