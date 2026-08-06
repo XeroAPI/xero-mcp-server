@@ -45,10 +45,10 @@ const UpdateManualJournalTool = CreateXeroTool(
         "Optional line amount types (EXCLUSIVE, INCLUSIVE, NO_TAX), NO_TAX by default",
       ),
     status: z
-      .enum(["DRAFT", "POSTED", "DELETED", "VOIDED", "ARCHIVED"])
+      .enum(["DRAFT", "POSTED", "DELETED", "VOIDED"])
       .optional()
       .describe(
-        "Optional status of the manual journal (DRAFT, POSTED, DELETED, VOIDED, ARCHIVED), DRAFT by default",
+        "Optional status of the manual journal (DRAFT, POSTED, DELETED, VOIDED), DRAFT by default",
       ),
     url: z
       .string()
