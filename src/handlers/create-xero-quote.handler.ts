@@ -20,6 +20,8 @@ async function createQuote(
   lineItems: QuoteLineItem[],
   title: string | undefined,
   summary: string | undefined,
+  date?: string,
+  expiryDate?: string,
 ): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
@@ -30,11 +32,9 @@ async function createQuote(
     contact: {
       contactID: contactId,
     },
-    date: new Date().toISOString().split("T")[0], // Today's date
     lineItems: lineItems,
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 7 days from now
+    ...(date ? { date } : {}),
+    ...(expiryDate ? { expiryDate } : {}),
     status: QuoteStatusCodes.DRAFT,
     title: title,
     summary: summary,
@@ -64,6 +64,8 @@ export async function createXeroQuote(
   terms?: string,
   title?: string,
   summary?: string,
+  date?: string,
+  expiryDate?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     const createdQuote = await createQuote(
@@ -74,6 +76,8 @@ export async function createXeroQuote(
       lineItems,
       title,
       summary,
+      date,
+      expiryDate,
     );
 
     if (!createdQuote) {

@@ -25,6 +25,8 @@ const CreateQuoteTool = CreateXeroTool(
     terms: z.string().optional(),
     title: z.string().optional(),
     summary: z.string().optional(),
+    date: z.string().optional().describe("Optional quote issue date in YYYY-MM-DD format."),
+    expiryDate: z.string().optional().describe("Optional quote expiry date in YYYY-MM-DD format."),
   },
   async ({
     contactId,
@@ -34,6 +36,8 @@ const CreateQuoteTool = CreateXeroTool(
     terms,
     title,
     summary,
+    date,
+    expiryDate,
   }) => {
     const result = await createXeroQuote(
       contactId,
@@ -43,6 +47,8 @@ const CreateQuoteTool = CreateXeroTool(
       terms,
       title,
       summary,
+      date,
+      expiryDate,
     );
     if (result.isError) {
       return {
