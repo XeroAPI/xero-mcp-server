@@ -2,14 +2,8 @@ import { z } from "zod";
 import { updateXeroInvoice } from "../../handlers/update-xero-invoice.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { trackingSchema } from "../../helpers/tracking-schema.js";
 import { Invoice } from "xero-node";
-
-const trackingSchema = z.object({
-  name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
-  option: z.string().describe("The name of the tracking option. Can be obtained from the list-tracking-categories tool"),
-  trackingCategoryID: z.string().describe("The ID of the tracking category. \
-    Can be obtained from the list-tracking-categories tool"),
-});
 
 const lineItemSchema = z.object({
   description: z.string().describe("The description of the line item"),

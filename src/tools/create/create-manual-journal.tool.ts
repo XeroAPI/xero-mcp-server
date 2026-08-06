@@ -3,6 +3,8 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroManualJournal } from "../../handlers/create-xero-manual-journal.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
+import { trackingSchema } from "../../helpers/tracking-schema.js";
+import { formatTracking } from "../../helpers/format-tracking.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
 
 const CreateManualJournalTool = CreateXeroTool(
@@ -33,7 +35,15 @@ const CreateManualJournalTool = CreateXeroTool(
             .string()
             .optional()
             .describe("Optional tax type for the manual journal line"),
-          // TODO: TODO: tracking can be added here
+          tracking: z
+            .array(trackingSchema)
+            .max(2)
+            .optional()
+            .describe(
+              "Up to 2 tracking categories and options can be added to the journal line. \
+              Can be obtained from the list-tracking-categories tool. \
+              Only use if prompted by the user.",
+            ),
         }),
       )
       .describe(
@@ -105,25 +115,29 @@ const CreateManualJournalTool = CreateXeroTool(
                 ? `Status: ${manualJournal.status}`
                 : "No status",
               manualJournal.journalLines
-                ? manualJournal.journalLines.map((line) => ({
-                    type: "text" as const,
-                    text: [
-                      `Line Amount: ${line.lineAmount}`,
-                      line.accountCode
-                        ? `Account Code: ${line.accountCode}`
-                        : "No account code",
-                      line.description
-                        ? `Description: ${line.description}`
-                        : "No description",
-                      line.taxType
-                        ? `Tax Type: ${line.taxType}`
-                        : "No tax type",
-                      `Tax Amount: ${line.taxAmount}`,
-                    ]
-                      .filter(Boolean)
-                      .join("\n"),
-                  }))
-                : [{ type: "text" as const, text: "No journal lines" }],
+                ? manualJournal.journalLines
+                    .map((line) =>
+                      [
+                        `Line Amount: ${line.lineAmount}`,
+                        line.accountCode
+                          ? `Account Code: ${line.accountCode}`
+                          : "No account code",
+                        line.description
+                          ? `Description: ${line.description}`
+                          : "No description",
+                        line.taxType
+                          ? `Tax Type: ${line.taxType}`
+                          : "No tax type",
+                        `Tax Amount: ${line.taxAmount}`,
+                        formatTracking(line.tracking)
+                          ? `Tracking: ${formatTracking(line.tracking)}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join("\n"),
+                    )
+                    .join("\n\n")
+                : "No journal lines",
               `Show on Cash Basis Reports: ${manualJournal.showOnCashBasisReports}`,
               deepLink ? `Link to view: ${deepLink}` : null,
             ]

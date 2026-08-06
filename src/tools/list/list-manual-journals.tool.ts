@@ -1,6 +1,7 @@
 import { ManualJournal } from "xero-node";
 import { listXeroManualJournals } from "../../handlers/list-xero-manual-journals.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatTracking } from "../../helpers/format-tracking.js";
 import { z } from "zod";
 
 const ListManualJournalsTool = CreateXeroTool(
@@ -71,6 +72,9 @@ If they want the next page, call this tool again with the next page number, modi
                       : "No description",
                     line.taxType ? `Tax Type: ${line.taxType}` : "No tax type",
                     `Tax Amount: ${line.taxAmount}`,
+                    formatTracking(line.tracking)
+                      ? `Tracking: ${formatTracking(line.tracking)}`
+                      : null,
                   ]
                     .filter(Boolean)
                     .join("\n")

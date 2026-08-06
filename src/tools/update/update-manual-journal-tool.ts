@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
+import { trackingSchema } from "../../helpers/tracking-schema.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
 import { updateXeroManualJournal } from "../../handlers/update-xero-manual-journal.handler.js";
 
@@ -31,7 +32,15 @@ const UpdateManualJournalTool = CreateXeroTool(
             .string()
             .optional()
             .describe("Optional tax type for the manual journal line"),
-          // TODO: TODO: tracking can be added here
+          tracking: z
+            .array(trackingSchema)
+            .max(2)
+            .optional()
+            .describe(
+              "Up to 2 tracking categories and options can be added to the journal line. \
+              Can be obtained from the list-tracking-categories tool. \
+              Only use if prompted by the user.",
+            ),
         }),
       )
       .describe(
