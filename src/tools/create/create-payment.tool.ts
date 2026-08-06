@@ -33,8 +33,21 @@ const CreatePaymentTool = CreateXeroTool(
       .string()
       .optional()
       .describe("Optional payment reference/description"),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact payment to prevent duplicates.",
+    ),
   },
-  async ({ invoiceId, creditNoteId, prepaymentId, overpaymentId, accountId, amount, date, reference }) => {
+  async ({
+    invoiceId,
+    creditNoteId,
+    prepaymentId,
+    overpaymentId,
+    accountId,
+    amount,
+    date,
+    reference,
+    idempotencyKey,
+  }) => {
     const result = await createXeroPayment({
       invoiceId,
       creditNoteId,
@@ -44,6 +57,7 @@ const CreatePaymentTool = CreateXeroTool(
       amount,
       date,
       reference,
+      idempotencyKey,
     });
     if (result.isError) {
       return {

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -37,6 +38,7 @@ describe("create-payment tool", () => {
       creditNoteId: "credit-note-id",
       accountId: "account-id",
       amount: 10,
+      idempotencyKey: "payment-retry-key",
     }, {} as never);
 
     expect(mocks.createPayment).toHaveBeenCalledWith({
@@ -48,6 +50,7 @@ describe("create-payment tool", () => {
       amount: 10,
       date: undefined,
       reference: undefined,
+      idempotencyKey: "payment-retry-key",
     });
     expect(result.content[0]).toEqual({
       type: "text",
@@ -60,5 +63,22 @@ describe("create-payment tool", () => {
         "Link to view: https://go.xero.com/payment",
       ].join("\n"),
     });
+  });
+
+  it("limits idempotency keys to Xero's supported length", () => {
+    const schema = z.object(CreatePaymentTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      invoiceId: "invoice-id",
+      accountId: "account-id",
+      amount: 10,
+      idempotencyKey: "x".repeat(128),
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      invoiceId: "invoice-id",
+      accountId: "account-id",
+      amount: 10,
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 });
