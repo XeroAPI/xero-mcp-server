@@ -11,7 +11,7 @@ async function getManualJournals(
 ): Promise<ManualJournal[]> {
   await xeroClient.authenticate();
 
-  if (manualJournalId) {
+  if (manualJournalId !== undefined) {
     const response = await xeroClient.accountingApi.getManualJournal(
       xeroClient.tenantId,
       manualJournalId,
@@ -43,9 +43,17 @@ export async function listXeroManualJournals(
   modifiedAfter?: string,
 ): Promise<XeroClientResponse<ManualJournal[]>> {
   try {
+    if (manualJournalId !== undefined && !manualJournalId.trim()) {
+      return {
+        result: null,
+        isError: true,
+        error: "Manual journal ID must not be blank.",
+      };
+    }
+
     const manualJournals = await getManualJournals(
       page,
-      manualJournalId,
+      manualJournalId?.trim(),
       modifiedAfter,
     );
 

@@ -14,6 +14,8 @@ If they want the next page, call this tool again with the next page number, modi
   {
     manualJournalId: z
       .string()
+      .trim()
+      .min(1)
       .optional()
       .describe("Optional ID of the manual journal to retrieve"),
     modifiedAfter: z
@@ -54,15 +56,19 @@ If they want the next page, call this tool again with the next page number, modi
         ...(manualJournals?.map((journal: ManualJournal) => ({
           type: "text" as const,
           text: [
-            `Manual Journal ID: ${journal.manualJournalID}`,
+            journal.manualJournalID
+              ? `Manual Journal ID: ${journal.manualJournalID}`
+              : "Manual Journal ID not returned",
             journal.narration
               ? `Description: ${journal.narration}`
               : "No description",
             journal.date ? `Date: ${journal.date}` : null,
-            journal.journalLines
+            journal.journalLines?.length
               ? journal.journalLines.map((line) =>
                   [
-                    `Line Amount: ${line.lineAmount}`,
+                    line.lineAmount !== undefined
+                      ? `Line Amount: ${line.lineAmount}`
+                      : null,
                     line.accountCode
                       ? `Account Code: ${line.accountCode}`
                       : "No account code",
@@ -70,7 +76,9 @@ If they want the next page, call this tool again with the next page number, modi
                       ? `Description: ${line.description}`
                       : "No description",
                     line.taxType ? `Tax Type: ${line.taxType}` : "No tax type",
-                    `Tax Amount: ${line.taxAmount}`,
+                    line.taxAmount !== undefined
+                      ? `Tax Amount: ${line.taxAmount}`
+                      : null,
                   ]
                     .filter(Boolean)
                     .join("\n")
@@ -81,8 +89,12 @@ If they want the next page, call this tool again with the next page number, modi
               : "No line amount types",
             journal.status ? `Status: ${journal.status}` : "No status",
             journal.url ? `URL: ${journal.url}` : "No URL",
-            `Show on Cash Basis Reports: ${journal.showOnCashBasisReports}`,
-            `Has Attachments: ${journal.hasAttachments}`,
+            journal.showOnCashBasisReports !== undefined
+              ? `Show on Cash Basis Reports: ${journal.showOnCashBasisReports ? "Yes" : "No"}`
+              : null,
+            journal.hasAttachments !== undefined
+              ? `Has Attachments: ${journal.hasAttachments ? "Yes" : "No"}`
+              : null,
             journal.updatedDateUTC
               ? `Last Updated: ${journal.updatedDateUTC.toLocaleDateString()}`
               : "No last updated date",
