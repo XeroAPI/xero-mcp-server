@@ -35,13 +35,16 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  type?: Invoice.TypeEnum,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
-    reference: reference,
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    ...(type === Invoice.TypeEnum.ACCPAY
+      ? { invoiceNumber: reference }
+      : { reference: reference }),
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -90,6 +93,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      existingInvoice?.type,
     );
 
     if (!updatedInvoice) {
