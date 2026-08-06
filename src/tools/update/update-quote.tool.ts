@@ -23,7 +23,13 @@ const lineItemSchema = z.object({
   tracking: z.array(trackingSchema).max(2).optional(),
   discountRate: z.number().optional(),
   discountAmount: z.number().optional(),
-});
+}).refine(
+  (lineItem) => lineItem.accountCode === undefined || Boolean(lineItem.taxType?.trim()),
+  {
+    message: "A quote line with an account code requires a tax type.",
+    path: ["taxType"],
+  },
+);
 
 const UpdateQuoteTool = CreateXeroTool(
   "update-quote",

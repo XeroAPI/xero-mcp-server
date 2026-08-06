@@ -77,4 +77,18 @@ describe("updateXeroQuote", () => {
     expect(result.isError).toBe(false);
     expect(mocks.updateQuote.mock.calls[0][2].quotes[0]).not.toHaveProperty("lineAmountTypes");
   });
+
+  it("rejects account-coded quote lines without a tax type", async () => {
+    const result = await updateXeroQuote("quote-id", [{
+      description: "Consulting services",
+      accountCode: "200",
+    }]);
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "A quote line with an account code requires a tax type.",
+    });
+    expect(mocks.getQuote).not.toHaveBeenCalled();
+    expect(mocks.updateQuote).not.toHaveBeenCalled();
+  });
 });

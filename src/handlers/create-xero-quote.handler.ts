@@ -16,6 +16,12 @@ interface QuoteLineItem {
   discountAmount?: number;
 }
 
+function hasAccountCodeWithoutTaxType(lineItems: QuoteLineItem[]): boolean {
+  return lineItems.some(
+    (lineItem) => lineItem.accountCode !== undefined && !lineItem.taxType?.trim(),
+  );
+}
+
 async function createQuote(
   quoteNumber: string | undefined,
   reference: string | undefined,
@@ -72,6 +78,14 @@ export async function createXeroQuote(
   idempotencyKey?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
+    if (hasAccountCodeWithoutTaxType(lineItems)) {
+      return {
+        result: null,
+        isError: true,
+        error: "A quote line with an account code requires a tax type.",
+      };
+    }
+
     const createdQuote = await createQuote(
       quoteNumber,
       reference,

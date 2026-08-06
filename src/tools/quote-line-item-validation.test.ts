@@ -48,6 +48,28 @@ describe("quote line item validation", () => {
       quoteId: "quote-id",
       lineItems: [{ description: "Consulting services", itemCode: "CONSULT" }],
     }).success).toBe(true);
+    expect(createSchema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{
+        description: "Consulting services",
+        accountCode: "200",
+        taxType: "OUTPUT",
+      }],
+    }).success).toBe(true);
+  });
+
+  it("requires a tax type whenever an account code is supplied", () => {
+    const createSchema = z.object(CreateQuoteTool().schema as z.ZodRawShape);
+    const updateSchema = z.object(UpdateQuoteTool().schema as z.ZodRawShape);
+
+    expect(createSchema.safeParse({
+      contactId: "contact-id",
+      lineItems: [{ description: "Consulting services", accountCode: "200" }],
+    }).success).toBe(false);
+    expect(updateSchema.safeParse({
+      quoteId: "quote-id",
+      lineItems: [{ description: "Consulting services", accountCode: "200" }],
+    }).success).toBe(false);
   });
 
   it("rejects empty and unidentified quote line items", () => {

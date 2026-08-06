@@ -62,4 +62,17 @@ describe("createXeroQuote", () => {
     expect(result.isError).toBe(false);
     expect(mocks.createQuotes.mock.calls[0][3]).toBe("quote-retry-key");
   });
+
+  it("rejects account-coded quote lines without a tax type", async () => {
+    const result = await createXeroQuote("contact-id", [{
+      description: "Consulting services",
+      accountCode: "200",
+    }]);
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "A quote line with an account code requires a tax type.",
+    });
+    expect(mocks.createQuotes).not.toHaveBeenCalled();
+  });
 });
