@@ -1,0 +1,60 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Contact } from "xero-node";
+
+const mocks = vi.hoisted(() => ({
+  authenticate: vi.fn(),
+  updateContact: vi.fn(),
+}));
+
+vi.mock("../../clients/xero-client.js", () => ({
+  xeroClient: {
+    tenantId: "tenant-id",
+    authenticate: mocks.authenticate,
+    accountingApi: {
+      updateContact: mocks.updateContact,
+    },
+  },
+}));
+
+vi.mock("../../helpers/get-client-headers.js", () => ({
+  getClientHeaders: () => ({ headers: {} }),
+}));
+
+import { updateXeroContact } from "../update-xero-contact.handler.js";
+
+describe("updateXeroContact", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.updateContact.mockResolvedValue({
+      body: { contacts: [{ contactID: "contact-id", name: "Example contact" }] },
+    });
+  });
+
+  it("sends a status-only contact update to Xero", async () => {
+    const result = await updateXeroContact(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      Contact.ContactStatusEnum.ARCHIVED,
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateContact).toHaveBeenCalledWith(
+      "tenant-id",
+      "contact-id",
+      {
+        contacts: [
+          expect.objectContaining({
+            contactStatus: Contact.ContactStatusEnum.ARCHIVED,
+          }),
+        ],
+      },
+      undefined,
+      { headers: {} },
+    );
+  });
+});

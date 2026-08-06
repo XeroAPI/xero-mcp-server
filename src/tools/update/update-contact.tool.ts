@@ -1,5 +1,6 @@
 import { updateXeroContact } from "../../handlers/update-xero-contact.handler.js";
 import { z } from "zod";
+import { Contact } from "xero-node";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
@@ -17,6 +18,10 @@ const UpdateContactTool = CreateXeroTool(
     lastName: z.string().optional(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    contactStatus: z
+      .enum(["ACTIVE", "ARCHIVED"])
+      .optional()
+      .describe("Optional lifecycle status. Archived contacts cannot be used in transactions."),
     address: z
       .object({
         addressLine1: z.string(),
@@ -35,12 +40,14 @@ const UpdateContactTool = CreateXeroTool(
     lastName,
     email,
     phone,
+    contactStatus,
     address,
   }: {
     contactId: string;
     name?: string;
     email?: string;
     phone?: string;
+    contactStatus?: "ACTIVE" | "ARCHIVED";
     address?: {
       addressLine1: string;
       addressLine2?: string;
@@ -52,7 +59,7 @@ const UpdateContactTool = CreateXeroTool(
     firstName?: string;
     lastName?: string;
   }) => {
-    if ([name, firstName, lastName, email, phone, address].every((value) => value === undefined)) {
+    if ([name, firstName, lastName, email, phone, contactStatus, address].every((value) => value === undefined)) {
       return {
         content: [
           {
@@ -72,6 +79,9 @@ const UpdateContactTool = CreateXeroTool(
         email,
         phone,
         address,
+        contactStatus
+          ? Contact.ContactStatusEnum[contactStatus]
+          : undefined,
       );
       if (response.isError) {
         return {
