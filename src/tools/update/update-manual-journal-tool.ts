@@ -73,6 +73,9 @@ const UpdateManualJournalTool = CreateXeroTool(
       .describe(
         "Optional boolean to show on cash basis reports, default is true",
       ),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact manual-journal update to prevent duplicate processing.",
+    ),
   },
   async (args) => {
     try {
@@ -85,6 +88,7 @@ const UpdateManualJournalTool = CreateXeroTool(
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,
+        args.idempotencyKey,
       );
 
       if (response.isError) {

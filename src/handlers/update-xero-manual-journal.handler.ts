@@ -18,6 +18,7 @@ async function updateManualJournal(
   status?: ManualJournal.StatusEnum,
   url?: string,
   showOnCashBasisReports?: boolean,
+  idempotencyKey?: string,
 ): Promise<ManualJournal | undefined> {
   await xeroClient.authenticate();
 
@@ -45,7 +46,7 @@ async function updateManualJournal(
     xeroClient.tenantId,
     manualJournalID,
     manualJournals,
-    undefined,
+    idempotencyKey,
     getClientHeaders(),
   );
 
@@ -61,6 +62,7 @@ export async function updateXeroManualJournal(
   status?: ManualJournal.StatusEnum,
   url?: string,
   showOnCashBasisReports?: boolean,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<ManualJournal>> {
   try {
     const updatedManualJournal = await updateManualJournal(
@@ -72,6 +74,7 @@ export async function updateXeroManualJournal(
       status,
       url,
       showOnCashBasisReports,
+      idempotencyKey,
     );
 
     if (!updatedManualJournal) {

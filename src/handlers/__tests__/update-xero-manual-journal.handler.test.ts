@@ -48,4 +48,26 @@ describe("updateXeroManualJournal", () => {
       mocks.updateManualJournal.mock.calls[0][2].manualJournals[0].journalLines?.[0].tracking,
     ).toEqual(tracking);
   });
+
+  it("forwards an idempotency key for safe journal-update retries", async () => {
+    const result = await updateXeroManualJournal(
+      "Accrual",
+      "manual-journal-id",
+      [
+        { lineAmount: 100, accountCode: "200" },
+        { lineAmount: -100, accountCode: "300" },
+      ],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "manual-journal-update-retry-key",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateManualJournal.mock.calls[0][3]).toBe(
+      "manual-journal-update-retry-key",
+    );
+  });
 });
