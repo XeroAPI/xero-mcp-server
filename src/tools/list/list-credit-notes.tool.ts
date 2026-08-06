@@ -1,6 +1,37 @@
 import { z } from "zod";
 import { listXeroCreditNotes } from "../../handlers/list-xero-credit-notes.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { LineItem } from "xero-node";
+
+const formatCreditNoteLineItem = (lineItem: LineItem, index: number): string => {
+  const tracking = lineItem.tracking
+    ?.flatMap((entry) => [
+      entry.name && entry.option ? `${entry.name}=${entry.option}` : null,
+      entry.trackingCategoryID
+        ? `Tracking Category ID: ${entry.trackingCategoryID}`
+        : null,
+      entry.trackingOptionID
+        ? `Tracking Option ID: ${entry.trackingOptionID}`
+        : null,
+    ].filter((value): value is string => value !== null));
+
+  return [
+    `Line ${index + 1}:`,
+    lineItem.lineItemID ? `Line Item ID: ${lineItem.lineItemID}` : null,
+    lineItem.item?.itemID ? `Item ID: ${lineItem.item.itemID}` : null,
+    lineItem.itemCode ? `Item Code: ${lineItem.itemCode}` : null,
+    lineItem.description ? `Description: ${lineItem.description}` : null,
+    lineItem.quantity !== undefined ? `Quantity: ${lineItem.quantity}` : null,
+    lineItem.unitAmount !== undefined ? `Unit Amount: ${lineItem.unitAmount}` : null,
+    lineItem.accountCode ? `Account Code: ${lineItem.accountCode}` : null,
+    lineItem.taxType ? `Tax Type: ${lineItem.taxType}` : null,
+    lineItem.taxAmount !== undefined ? `Tax Amount: ${lineItem.taxAmount}` : null,
+    tracking?.length ? `Tracking: ${tracking.join(", ")}` : null,
+    lineItem.lineAmount !== undefined ? `Line Amount: ${lineItem.lineAmount}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+};
 
 const ListCreditNotesTool = CreateXeroTool(
   "list-credit-notes",
@@ -62,6 +93,12 @@ const ListCreditNotesTool = CreateXeroTool(
               : null,
             creditNote.updatedDateUTC
               ? `Last Updated: ${creditNote.updatedDateUTC}`
+              : null,
+            creditNote.lineItems?.length
+              ? [
+                  "Line Items:",
+                  creditNote.lineItems.map(formatCreditNoteLineItem).join("\n\n"),
+                ].join("\n")
               : null,
           ]
             .filter(Boolean)
