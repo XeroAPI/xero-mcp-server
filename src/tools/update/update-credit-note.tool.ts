@@ -25,7 +25,9 @@ const UpdateCreditNoteTool = CreateXeroTool(
       "All line items must be provided. Any line items not provided will be removed. Including existing line items.\
       Do not modify line items that have not been specified by the user",
     ),
-    reference: z.string().optional(),
+    reference: z.string().optional().describe(
+      "Customer credit-note reference, or supplier credit-note number.",
+    ),
     date: z.string().optional(),
     contactId: z.string().optional(),
   },
@@ -92,4 +94,4 @@ const UpdateCreditNoteTool = CreateXeroTool(
   },
 );
 
-export default UpdateCreditNoteTool; 
+export default UpdateCreditNoteTool;

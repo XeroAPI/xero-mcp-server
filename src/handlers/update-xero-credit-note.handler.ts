@@ -32,12 +32,17 @@ async function updateCreditNote(
   reference?: string,
   contactId?: string,
   date?: string,
+  type?: CreditNote.TypeEnum,
 ): Promise<CreditNote | null> {
   const creditNote: CreditNote = {
     lineItems: lineItems,
-    reference: reference,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    ...(reference !== undefined
+      ? type === CreditNote.TypeEnum.ACCPAYCREDIT
+        ? { creditNoteNumber: reference }
+        : { reference }
+      : {}),
   };
 
   const response = await xeroClient.accountingApi.updateCreditNote(
@@ -84,6 +89,7 @@ export async function updateXeroCreditNote(
       reference,
       contactId,
       date,
+      existingCreditNote?.type,
     );
 
     if (!updatedCreditNote) {
@@ -102,4 +108,4 @@ export async function updateXeroCreditNote(
       error: formatError(error),
     };
   }
-} 
+}
