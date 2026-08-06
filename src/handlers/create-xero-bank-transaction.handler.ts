@@ -5,11 +5,12 @@ import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface BankTransactionLineItem {
-  description: string;
-  quantity: number;
-  unitAmount: number;
-  accountCode: string;
-  taxType: string;
+  description?: string;
+  quantity?: number;
+  unitAmount?: number;
+  itemCode?: string;
+  accountCode?: string;
+  taxType?: string;
 }
 
 type BankTransactionType = "RECEIVE" | "SPEND";
@@ -17,7 +18,7 @@ type BankTransactionType = "RECEIVE" | "SPEND";
 async function createBankTransaction(
   type: BankTransactionType,
   bankAccountId: string,
-  contactId: string,
+  contactId: string | undefined,
   lineItems: BankTransactionLineItem[],
   reference?: string,
   date?: string
@@ -29,9 +30,7 @@ async function createBankTransaction(
     bankAccount: {
       accountID: bankAccountId
     },
-    contact: {
-      contactID: contactId
-    },
+    ...(contactId ? { contact: { contactID: contactId } } : {}),
     lineItems: lineItems,
     date: date ?? new Date().toISOString().split("T")[0],
     reference: reference,
@@ -57,7 +56,7 @@ async function createBankTransaction(
 export async function createXeroBankTransaction(
   type: BankTransactionType,
   bankAccountId: string,
-  contactId: string,
+  contactId: string | undefined,
   lineItems: BankTransactionLineItem[],
   reference?: string,
   date?: string

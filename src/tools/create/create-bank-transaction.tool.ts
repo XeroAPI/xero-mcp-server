@@ -4,11 +4,15 @@ import { createXeroBankTransaction } from "../../handlers/create-xero-bank-trans
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
 
 const lineItemSchema = z.object({
-  description: z.string(),
-  quantity: z.number(),
-  unitAmount: z.number(),
-  accountCode: z.string(),
-  taxType: z.string(),
+  description: z.string().min(1).optional(),
+  quantity: z.number().optional(),
+  unitAmount: z.number().optional(),
+  itemCode: z.string().optional(),
+  accountCode: z.string().optional(),
+  taxType: z.string().optional(),
+}).refine((lineItem) => lineItem.description || lineItem.itemCode, {
+  message: "A line item requires a description or item code.",
+  path: ["description"],
 });
 
 const CreateBankTransactionTool = CreateXeroTool(
@@ -20,8 +24,8 @@ const CreateBankTransactionTool = CreateXeroTool(
   {
     type: z.enum(["RECEIVE", "SPEND"]),
     bankAccountId: z.string(),
-    contactId: z.string(),
-    lineItems: z.array(lineItemSchema),
+    contactId: z.string().optional(),
+    lineItems: z.array(lineItemSchema).min(1),
     reference: z.string().optional(),
     date: z.string()
       .optional()

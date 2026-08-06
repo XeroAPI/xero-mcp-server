@@ -4,11 +4,15 @@ import { updateXeroBankTransaction } from "../../handlers/update-xero-bank-trans
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
 
 const lineItemSchema = z.object({
-  description: z.string(),
-  quantity: z.number(),
-  unitAmount: z.number(),
-  accountCode: z.string(),
-  taxType: z.string(),
+  description: z.string().min(1).optional(),
+  quantity: z.number().optional(),
+  unitAmount: z.number().optional(),
+  itemCode: z.string().optional(),
+  accountCode: z.string().optional(),
+  taxType: z.string().optional(),
+}).refine((lineItem) => lineItem.description || lineItem.itemCode, {
+  message: "A line item requires a description or item code.",
+  path: ["description"],
 });
 
 const UpdateBankTransactionTool = CreateXeroTool(
@@ -21,7 +25,7 @@ const UpdateBankTransactionTool = CreateXeroTool(
     bankTransactionId: z.string(),
     type: z.enum(["RECEIVE", "SPEND"]).optional(),
     contactId: z.string().optional(),
-    lineItems: z.array(lineItemSchema).optional().describe(
+    lineItems: z.array(lineItemSchema).min(1).optional().describe(
       "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
       Do not modify line items that have not been specified by the user",
     ),

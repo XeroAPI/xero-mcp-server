@@ -5,11 +5,12 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction } from "xero-node";
 
 interface BankTransactionLineItem {
-  description: string;
-  quantity: number;
-  unitAmount: number;
-  accountCode: string;
-  taxType: string;
+  description?: string;
+  quantity?: number;
+  unitAmount?: number;
+  itemCode?: string;
+  accountCode?: string;
+  taxType?: string;
 }
 
 type BankTransactionType = "RECEIVE" | "SPEND";
