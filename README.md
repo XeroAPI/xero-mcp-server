@@ -82,7 +82,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
 
 The `XERO_SCOPES` variable is optional. If omitted, the default scopes listed above will be used.
 
-NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"command": "npx"` section change it to be the full path to the executable, ie: `your_home_directory/.nvm/versions/node/v22.14.0/bin/npx` on Mac / Linux or `"your_home_directory\\.nvm\\versions\\node\\v22.14.0\\bin\\npx"` on Windows
+NOTE: If `npx` is not on the process PATH (for example, when the MCP client is launched outside your version-manager shell), set `command` to the absolute path reported by `which npx` on macOS/Linux or `where.exe npx` on Windows.
 
 #### 2. Bearer Token
 
