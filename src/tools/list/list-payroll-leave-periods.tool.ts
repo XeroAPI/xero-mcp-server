@@ -5,7 +5,7 @@ import { LeavePeriod } from "../../types/payroll-nz-types.js";
 
 const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
   "list-payroll-leave-periods",
-  "List all leave periods for a specific employee in Xero. This shows detailed time off periods including start and end dates, period status, payment dates, and leave types. Provide an employee ID to see their leave periods.",
+  "List all leave periods for a specific employee in Xero. This shows detailed time off periods including start and end dates, period status, and the number and types of units taken. Provide an employee ID to see their leave periods.",
   {
     employeeId: z.string().describe("The Xero employee ID to fetch leave periods for"),
     startDate: z.string().optional().describe("Optional start date in YYYY-MM-DD format"),
@@ -38,11 +38,10 @@ const ListPayrollLeavePeriodsToolTool = CreateXeroTool(
             `Period Status: ${period.periodStatus || "Unknown"}`,
             period.periodStartDate ? `Start Date: ${period.periodStartDate}` : null,
             period.periodEndDate ? `End Date: ${period.periodEndDate}` : null,
-            period.numberOfUnits ? `Number of Units: ${period.numberOfUnits}` : null,
-            period.numberOfUnitsTaken ? `Payment Date: ${period.numberOfUnitsTaken}` : null,
-            period.typeOfUnits ? `Payment Date: ${period.typeOfUnits}` : null,
-            period.typeOfUnitsTaken ? `Payment Date: ${period.typeOfUnitsTaken}` : null,
-            period.periodStatus ? `Period Status: ${period.periodStatus}` : null,
+            period.numberOfUnits !== undefined ? `Number of Units: ${period.numberOfUnits}` : null,
+            period.numberOfUnitsTaken !== undefined ? `Number of Units Taken: ${period.numberOfUnitsTaken}` : null,
+            period.typeOfUnits ? `Type of Units: ${period.typeOfUnits}` : null,
+            period.typeOfUnitsTaken ? `Type of Units Taken: ${period.typeOfUnitsTaken}` : null,
           ]
             .filter(Boolean)
             .join("\n"),

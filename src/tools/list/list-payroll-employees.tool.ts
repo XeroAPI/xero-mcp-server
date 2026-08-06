@@ -5,7 +5,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 const ListPayrollEmployeesTool = CreateXeroTool(
   "list-payroll-employees",
   `List all payroll employees in Xero.
-This retrieves comprehensive employee details including names, User IDs, dates of birth, email addresses, gender, phone numbers, start dates, engagement types (Permanent, FixedTerm, or Casual), titles, and when records were last updated.
+This retrieves comprehensive employee details including names, employee IDs, dates of birth, email addresses, gender, phone numbers, start dates, engagement types (Permanent, FixedTerm, or Casual), titles, and when records were last updated.
 The response presents a complete overview of all staff currently registered in your Xero payroll, with their personal and employment information. If there are many employees, ask the user if they would like to see more detailed information about specific employees before proceeding.`,
   {},
   async () => {
@@ -33,7 +33,8 @@ The response presents a complete overview of all staff currently registered in y
         ...(employees?.map((employee: Employee) => ({
           type: "text" as const,
           text: [
-            `Employee: ${employee.employeeID}`,
+            `Employee ID: ${employee.employeeID}`,
+            employee.dateOfBirth ? `Date of Birth: ${employee.dateOfBirth}` : null,
             employee.email ? `Email: ${employee.email}` : "No email",
             employee.gender ? `Gender: ${employee.gender}` : null,
             employee.phoneNumber ? `Phone: ${employee.phoneNumber}` : null,
