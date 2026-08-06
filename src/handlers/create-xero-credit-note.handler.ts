@@ -25,7 +25,6 @@ async function createCreditNote(
       contactID: contactId,
     },
     lineItems: lineItems,
-    date: new Date().toISOString().split("T")[0], // Today's date
     reference: reference,
     status: CreditNote.StatusEnum.DRAFT,
   };
