@@ -4,6 +4,8 @@ import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function getCreditNotes(
   contactId: string | undefined,
   page: number,
@@ -32,6 +34,14 @@ export async function listXeroCreditNotes(
   contactId?: string,
 ): Promise<XeroClientResponse<CreditNote[]>> {
   try {
+    if (contactId !== undefined && !UUID_PATTERN.test(contactId)) {
+      return {
+        result: null,
+        isError: true,
+        error: "Contact ID must be a valid UUID.",
+      };
+    }
+
     const creditNotes = await getCreditNotes(contactId, page);
 
     return {

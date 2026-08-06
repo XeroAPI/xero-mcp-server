@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -59,5 +60,18 @@ describe("list-credit-notes", () => {
     expect(creditNoteText).toContain("Tracking Category ID: tracking-category-id");
     expect(creditNoteText).toContain("Tracking Option ID: tracking-option-id");
     expect(creditNoteText).not.toContain("[object Object]");
+  });
+
+  it("requires a UUID contact filter", () => {
+    const schema = z.object(ListCreditNotesTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      page: 1,
+      contactId: "123e4567-e89b-12d3-a456-426614174000",
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      page: 1,
+      contactId: 'contact-id") OR Status=="AUTHORISED',
+    }).success).toBe(false);
   });
 });

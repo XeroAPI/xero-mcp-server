@@ -44,7 +44,9 @@ const ListCreditNotesTool = CreateXeroTool(
   and the contact if one was provided in the previous call.`,
   {
     page: z.number(),
-    contactId: z.string().optional(),
+    contactId: z.string().uuid().optional().describe(
+      "Optional Xero contact UUID to filter the results.",
+    ),
   },
   async ({ page, contactId }) => {
     const response = await listXeroCreditNotes(page, contactId);
