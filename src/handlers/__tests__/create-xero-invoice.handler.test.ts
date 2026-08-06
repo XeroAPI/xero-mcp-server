@@ -54,6 +54,8 @@ describe("createXeroInvoice", () => {
     const invoice = mocks.createInvoices.mock.calls[0][1].invoices[0];
     expect(invoice).not.toHaveProperty("date");
     expect(invoice).not.toHaveProperty("dueDate");
+    expect(invoice).not.toHaveProperty("expectedPaymentDate");
+    expect(invoice).not.toHaveProperty("plannedPaymentDate");
     expect(invoice).not.toHaveProperty("status");
   });
 
@@ -91,6 +93,59 @@ describe("createXeroInvoice", () => {
     expect(mocks.createInvoices.mock.calls[0][1].invoices[0].lineItems).toEqual([
       expect.objectContaining({ discountRate: 10, discountAmount: 5 }),
     ]);
+  });
+
+  it("sends the correct cash-forecast date for each invoice type", async () => {
+    await createXeroInvoice(
+      "contact-id",
+      [{ description: "Consulting services" }],
+      Invoice.TypeEnum.ACCREC,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-15",
+    );
+    expect(mocks.createInvoices.mock.calls[0][1].invoices[0]).toMatchObject({
+      expectedPaymentDate: "2026-09-15",
+    });
+
+    await createXeroInvoice(
+      "contact-id",
+      [{ description: "Office supplies" }],
+      Invoice.TypeEnum.ACCPAY,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-20",
+    );
+    expect(mocks.createInvoices.mock.calls[1][1].invoices[0]).toMatchObject({
+      plannedPaymentDate: "2026-09-20",
+    });
+  });
+
+  it("rejects cash-forecast dates for the wrong invoice type", async () => {
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{ description: "Office supplies" }],
+      Invoice.TypeEnum.ACCPAY,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-15",
+    );
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "Expected payment dates are only supported on ACCREC sales invoices.",
+    });
+    expect(mocks.createInvoices).not.toHaveBeenCalled();
   });
 
   it("rejects line discounts on ACCPAY bills", async () => {

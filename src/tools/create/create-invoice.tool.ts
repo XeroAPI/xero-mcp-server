@@ -50,6 +50,12 @@ const CreateInvoiceTool = CreateXeroTool(
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("Optional issue date (YYYY-MM-DD). When omitted, Xero uses the current date in the organisation's timezone.").optional(),
     dueDate: z.string().describe("Optional due date for the invoice (YYYY-MM-DD format). When omitted, no due date is sent to Xero.").optional(),
+    expectedPaymentDate: z.string().optional().describe(
+      "Expected payment date for an ACCREC sales invoice (YYYY-MM-DD).",
+    ),
+    plannedPaymentDate: z.string().optional().describe(
+      "Planned payment date for an ACCPAY bill (YYYY-MM-DD).",
+    ),
     status: z.enum(["DRAFT", "SUBMITTED", "AUTHORISED"]).describe(
       "Optional initial invoice status. Use AUTHORISED only when the invoice is ready to be approved.",
     ).optional(),
@@ -57,8 +63,36 @@ const CreateInvoiceTool = CreateXeroTool(
       "Optional retry key. Reuse the same key when retrying this exact invoice to prevent duplicates.",
     ),
   },
-  async ({ contactId, lineItems, type, reference, date, dueDate, status, idempotencyKey }) => {
+  async ({
+    contactId,
+    lineItems,
+    type,
+    reference,
+    date,
+    dueDate,
+    expectedPaymentDate,
+    plannedPaymentDate,
+    status,
+    idempotencyKey,
+  }) => {
     const xeroInvoiceType = type === "ACCPAY" ? Invoice.TypeEnum.ACCPAY : Invoice.TypeEnum.ACCREC;
+    if (expectedPaymentDate !== undefined && xeroInvoiceType !== Invoice.TypeEnum.ACCREC) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: "Error creating invoice: Expected payment dates are only supported on ACCREC sales invoices.",
+        }],
+      };
+    }
+    if (plannedPaymentDate !== undefined && xeroInvoiceType !== Invoice.TypeEnum.ACCPAY) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: "Error creating invoice: Planned payment dates are only supported on ACCPAY bills.",
+        }],
+      };
+    }
+
     const result = await createXeroInvoice(
       contactId,
       lineItems,
@@ -68,6 +102,8 @@ const CreateInvoiceTool = CreateXeroTool(
       idempotencyKey,
       dueDate,
       status ? Invoice.StatusEnum[status] : undefined,
+      expectedPaymentDate,
+      plannedPaymentDate,
     );
     if (result.isError) {
       return {
@@ -100,6 +136,12 @@ const CreateInvoiceTool = CreateXeroTool(
             `Type: ${invoice?.type}`,
             `Date: ${invoice?.date}`,
             invoice?.dueDate ? `Due Date: ${invoice.dueDate}` : null,
+            invoice?.expectedPaymentDate
+              ? `Expected Payment Date: ${invoice.expectedPaymentDate}`
+              : null,
+            invoice?.plannedPaymentDate
+              ? `Planned Payment Date: ${invoice.plannedPaymentDate}`
+              : null,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

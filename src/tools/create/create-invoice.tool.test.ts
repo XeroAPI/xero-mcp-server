@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Invoice } from "xero-node";
 
 const mocks = vi.hoisted(() => ({
@@ -24,6 +24,10 @@ import CreateInvoiceTool from "./create-invoice.tool.js";
 describe("create-invoice tool", () => {
   const tool = CreateInvoiceTool();
   const schema = z.object(tool.schema as z.ZodRawShape);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it("accepts description-only and item-code-only line items", () => {
     expect(schema.safeParse({
@@ -81,6 +85,8 @@ describe("create-invoice tool", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
+      undefined,
     );
   });
 
@@ -114,6 +120,8 @@ describe("create-invoice tool", () => {
       undefined,
       "2026-08-31",
       Invoice.StatusEnum.AUTHORISED,
+      undefined,
+      undefined,
     );
     const responseText = result.content.find((content) => content.type === "text")?.text;
     expect(responseText).toContain("Due Date: 2026-08-31");
@@ -145,6 +153,56 @@ describe("create-invoice tool", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
+      undefined,
     );
+  });
+
+  it("forwards and renders the expected payment date for a sales invoice", async () => {
+    mocks.createXeroInvoice.mockResolvedValue({
+      result: {
+        invoiceID: "invoice-id",
+        type: Invoice.TypeEnum.ACCREC,
+        expectedPaymentDate: "2026-09-15",
+      },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    const result = await tool.handler({
+      contactId: "contact-id",
+      lineItems: [{ description: "Consulting services" }],
+      expectedPaymentDate: "2026-09-15",
+    }, {} as never);
+
+    expect(mocks.createXeroInvoice).toHaveBeenCalledWith(
+      "contact-id",
+      [{ description: "Consulting services" }],
+      Invoice.TypeEnum.ACCREC,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "2026-09-15",
+      undefined,
+    );
+    const responseText = result.content.find((content) => content.type === "text")?.text;
+    expect(responseText).toContain("Expected Payment Date: 2026-09-15");
+  });
+
+  it("rejects a bill-only planned payment date on a sales invoice", async () => {
+    const result = await tool.handler({
+      contactId: "contact-id",
+      lineItems: [{ description: "Consulting services" }],
+      plannedPaymentDate: "2026-09-15",
+    }, {} as never);
+
+    expect(mocks.createXeroInvoice).not.toHaveBeenCalled();
+    expect(result.content[0]).toMatchObject({
+      type: "text",
+      text: expect.stringContaining("only supported on ACCPAY bills"),
+    });
   });
 });

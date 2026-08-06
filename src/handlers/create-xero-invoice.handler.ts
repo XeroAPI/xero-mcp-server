@@ -25,6 +25,8 @@ async function createInvoice(
   idempotencyKey?: string,
   dueDate?: string,
   status?: Invoice.StatusEnum,
+  expectedPaymentDate?: string,
+  plannedPaymentDate?: string,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
@@ -36,6 +38,8 @@ async function createInvoice(
     lineItems: lineItems,
     ...(date !== undefined ? { date } : {}),
     ...(dueDate !== undefined ? { dueDate } : {}),
+    ...(expectedPaymentDate !== undefined ? { expectedPaymentDate } : {}),
+    ...(plannedPaymentDate !== undefined ? { plannedPaymentDate } : {}),
     ...(type === Invoice.TypeEnum.ACCPAY
       ? { invoiceNumber: reference }
       : { reference: reference }),
@@ -68,6 +72,8 @@ export async function createXeroInvoice(
   idempotencyKey?: string,
   dueDate?: string,
   status?: Invoice.StatusEnum,
+  expectedPaymentDate?: string,
+  plannedPaymentDate?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const hasDiscount = lineItems.some(
@@ -81,6 +87,21 @@ export async function createXeroInvoice(
       };
     }
 
+    if (expectedPaymentDate !== undefined && type !== Invoice.TypeEnum.ACCREC) {
+      return {
+        result: null,
+        isError: true,
+        error: "Expected payment dates are only supported on ACCREC sales invoices.",
+      };
+    }
+    if (plannedPaymentDate !== undefined && type !== Invoice.TypeEnum.ACCPAY) {
+      return {
+        result: null,
+        isError: true,
+        error: "Planned payment dates are only supported on ACCPAY bills.",
+      };
+    }
+
     const createdInvoice = await createInvoice(
       contactId,
       lineItems,
@@ -90,6 +111,8 @@ export async function createXeroInvoice(
       idempotencyKey,
       dueDate,
       status,
+      expectedPaymentDate,
+      plannedPaymentDate,
     );
 
     if (!createdInvoice) {
