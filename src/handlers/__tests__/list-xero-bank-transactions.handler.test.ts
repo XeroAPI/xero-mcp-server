@@ -42,7 +42,7 @@ describe("listXeroBankTransactions", () => {
       'BankAccount.AccountID=guid("123e4567-e89b-12d3-a456-426614174000")',
       "Date DESC",
       2,
-      undefined,
+      4,
       10,
       { headers: {} },
     );

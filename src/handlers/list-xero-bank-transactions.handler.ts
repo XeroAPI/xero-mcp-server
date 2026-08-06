@@ -17,7 +17,7 @@ async function getBankTransactions(
       bankAccountId ? `BankAccount.AccountID=guid("${bankAccountId}")` : undefined, // where
       "Date DESC", // order
       page, // page
-      undefined, // unitdp
+      4, // unitdp
       10, // pagesize
       getClientHeaders()
   );
