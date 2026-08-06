@@ -42,6 +42,37 @@ describe("createXeroPayment", () => {
       creditNote: { creditNoteID: "credit-note-id" },
       account: { accountID: "account-id" },
       amount: 10,
+      date: undefined,
+    });
+    expect(payment).not.toHaveProperty("invoice");
+  });
+
+  it("uses the prepayment identifier when refunding a prepayment", async () => {
+    const result = await createXeroPayment({
+      prepaymentId: "prepayment-id",
+      accountId: "account-id",
+      amount: 10,
+    });
+
+    expect(result.isError).toBe(false);
+    const payment = mocks.createPayment.mock.calls[0][1];
+    expect(payment).toMatchObject({
+      prepayment: { prepaymentID: "prepayment-id" },
+    });
+    expect(payment).not.toHaveProperty("invoice");
+  });
+
+  it("uses the overpayment identifier when refunding an overpayment", async () => {
+    const result = await createXeroPayment({
+      overpaymentId: "overpayment-id",
+      accountId: "account-id",
+      amount: 10,
+    });
+
+    expect(result.isError).toBe(false);
+    const payment = mocks.createPayment.mock.calls[0][1];
+    expect(payment).toMatchObject({
+      overpayment: { overpaymentID: "overpayment-id" },
     });
     expect(payment).not.toHaveProperty("invoice");
   });
@@ -58,12 +89,12 @@ describe("createXeroPayment", () => {
     expect(missingTarget).toMatchObject({
       result: null,
       isError: true,
-      error: "Provide exactly one invoice ID or credit note ID.",
+      error: "Provide exactly one invoice, credit note, prepayment, or overpayment ID.",
     });
     expect(multipleTargets).toMatchObject({
       result: null,
       isError: true,
-      error: "Provide exactly one invoice ID or credit note ID.",
+      error: "Provide exactly one invoice, credit note, prepayment, or overpayment ID.",
     });
     expect(mocks.createPayment).not.toHaveBeenCalled();
   });

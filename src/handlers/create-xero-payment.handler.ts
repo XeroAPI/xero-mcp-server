@@ -7,6 +7,8 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 type PaymentProps = {
   invoiceId?: string;
   creditNoteId?: string;
+  prepaymentId?: string;
+  overpaymentId?: string;
   accountId: string;
   amount: number;
   date?: string;
@@ -16,13 +18,19 @@ type PaymentProps = {
 async function createPayment({
   invoiceId,
   creditNoteId,
+  prepaymentId,
+  overpaymentId,
   accountId,
   amount,
   date,
   reference,
 }: PaymentProps): Promise<Payment | undefined> {
-  if (Boolean(invoiceId) === Boolean(creditNoteId)) {
-    throw new Error("Provide exactly one invoice ID or credit note ID.");
+  const targetCount = [invoiceId, creditNoteId, prepaymentId, overpaymentId]
+    .filter(Boolean)
+    .length;
+
+  if (targetCount !== 1) {
+    throw new Error("Provide exactly one invoice, credit note, prepayment, or overpayment ID.");
   }
 
   await xeroClient.authenticate();
@@ -30,12 +38,16 @@ async function createPayment({
   const payment: Payment = {
     ...(invoiceId
       ? { invoice: { invoiceID: invoiceId } }
-      : { creditNote: { creditNoteID: creditNoteId! } }),
+      : creditNoteId
+        ? { creditNote: { creditNoteID: creditNoteId } }
+        : prepaymentId
+          ? { prepayment: { prepaymentID: prepaymentId } }
+          : { overpayment: { overpaymentID: overpaymentId! } }),
     account: {
       accountID: accountId,
     },
     amount: amount,
-    date: date || new Date().toISOString().split("T")[0], // Today's date if not specified
+    date,
     reference: reference,
   };
 
@@ -55,6 +67,8 @@ async function createPayment({
 export async function createXeroPayment({
   invoiceId,
   creditNoteId,
+  prepaymentId,
+  overpaymentId,
   accountId,
   amount,
   date,
@@ -64,6 +78,8 @@ export async function createXeroPayment({
     const createdPayment = await createPayment({
       invoiceId,
       creditNoteId,
+      prepaymentId,
+      overpaymentId,
       accountId,
       amount,
       date,

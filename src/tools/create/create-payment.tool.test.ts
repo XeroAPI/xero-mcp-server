@@ -42,6 +42,8 @@ describe("create-payment tool", () => {
     expect(mocks.createPayment).toHaveBeenCalledWith({
       creditNoteId: "credit-note-id",
       invoiceId: undefined,
+      prepaymentId: undefined,
+      overpaymentId: undefined,
       accountId: "account-id",
       amount: 10,
       date: undefined,

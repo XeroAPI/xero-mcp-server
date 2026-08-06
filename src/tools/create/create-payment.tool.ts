@@ -7,15 +7,17 @@ const CreatePaymentTool = CreateXeroTool(
   "create-payment",
   "Create a payment against an invoice or refund a credit note in Xero.\
  This tool records a payment transaction against an invoice or credit note. \
- Provide exactly one invoice ID or credit note ID, plus an account ID and amount. \
+ Provide exactly one invoice ID, credit note ID, prepayment ID, or overpayment ID, plus an account ID and amount. \
  The amount must be positive and should not exceed the target document's remaining balance. \
  Invoice payments can only be created for authorised, unpaid invoices. \
  When a payment is created, a deep link to the payment in Xero is returned. \
  This deep link can be used to view the payment in Xero directly. \
  This link should be displayed to the user.",
   {
-    invoiceId: z.string().optional().describe("The ID of the invoice to pay. Provide exactly one of invoiceId or creditNoteId."),
-    creditNoteId: z.string().optional().describe("The ID of the credit note to refund. Provide exactly one of invoiceId or creditNoteId."),
+    invoiceId: z.string().optional().describe("The ID of the invoice to pay. Provide exactly one payment target ID."),
+    creditNoteId: z.string().optional().describe("The ID of the credit note to refund. Provide exactly one payment target ID."),
+    prepaymentId: z.string().optional().describe("The ID of the prepayment to refund. Provide exactly one payment target ID."),
+    overpaymentId: z.string().optional().describe("The ID of the overpayment to refund. Provide exactly one payment target ID."),
     accountId: z
       .string()
       .describe("The ID of the account the payment is made from"),
@@ -32,10 +34,12 @@ const CreatePaymentTool = CreateXeroTool(
       .optional()
       .describe("Optional payment reference/description"),
   },
-  async ({ invoiceId, creditNoteId, accountId, amount, date, reference }) => {
+  async ({ invoiceId, creditNoteId, prepaymentId, overpaymentId, accountId, amount, date, reference }) => {
     const result = await createXeroPayment({
       invoiceId,
       creditNoteId,
+      prepaymentId,
+      overpaymentId,
       accountId,
       amount,
       date,
@@ -68,6 +72,8 @@ const CreatePaymentTool = CreateXeroTool(
             payment.reference ? `Reference: ${payment.reference}` : null,
             payment.invoiceNumber ? `Invoice Number: ${payment.invoiceNumber}` : null,
             payment.creditNoteNumber ? `Credit Note Number: ${payment.creditNoteNumber}` : null,
+            payment.prepayment?.prepaymentID ? `Prepayment ID: ${payment.prepayment.prepaymentID}` : null,
+            payment.overpayment?.overpaymentID ? `Overpayment ID: ${payment.overpayment.overpaymentID}` : null,
             `Amount: ${payment?.amount}`,
             `Status: ${payment?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,
