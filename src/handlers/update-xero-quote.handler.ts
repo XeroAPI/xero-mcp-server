@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { LineItemTracking, Quote, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { ensureQuoteSucceeded } from "../helpers/ensure-quote-succeeded.js";
 
 interface QuoteLineItem {
   lineItemID?: string;
@@ -144,12 +145,10 @@ export async function updateXeroQuote(
       idempotencyKey,
     );
 
-    if (!updatedQuote) {
-      throw new Error("Quote update failed.");
-    }
+    const successfulQuote = ensureQuoteSucceeded(updatedQuote, "update");
 
     return {
-      result: updatedQuote,
+      result: successfulQuote,
       isError: false,
       error: null,
     };

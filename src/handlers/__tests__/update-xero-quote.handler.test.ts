@@ -110,4 +110,18 @@ describe("updateXeroQuote", () => {
     expect(mocks.getQuote).not.toHaveBeenCalled();
     expect(mocks.updateQuote).not.toHaveBeenCalled();
   });
+
+  it("reports a message-less validation error returned with an HTTP-successful update", async () => {
+    mocks.updateQuote.mockResolvedValue({
+      body: { quotes: [{ validationErrors: [{}] }] },
+    });
+
+    const result = await updateXeroQuote("quote-id");
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
 });

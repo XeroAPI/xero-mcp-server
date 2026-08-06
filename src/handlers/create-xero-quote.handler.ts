@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { LineItemTracking, Quote, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { ensureQuoteSucceeded } from "../helpers/ensure-quote-succeeded.js";
 
 interface QuoteLineItem {
   description: string;
@@ -97,12 +98,10 @@ export async function createXeroQuote(
       idempotencyKey,
     );
 
-    if (!createdQuote) {
-      throw new Error("Quote creation failed.");
-    }
+    const successfulQuote = ensureQuoteSucceeded(createdQuote, "creation");
 
     return {
-      result: createdQuote,
+      result: successfulQuote,
       isError: false,
       error: null,
     };

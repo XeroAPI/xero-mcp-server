@@ -75,4 +75,25 @@ describe("createXeroQuote", () => {
     });
     expect(mocks.createQuotes).not.toHaveBeenCalled();
   });
+
+  it("reports Xero validation errors instead of claiming creation succeeded", async () => {
+    mocks.createQuotes.mockResolvedValue({
+      body: {
+        quotes: [{
+          validationErrors: [{ message: "The selected contact is archived." }],
+        }],
+      },
+    });
+
+    const result = await createXeroQuote(
+      "contact-id",
+      [{ description: "Consulting services" }],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "The selected contact is archived.",
+    });
+  });
 });
