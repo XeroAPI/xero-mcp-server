@@ -19,10 +19,16 @@ const UpdatePayrollTimesheetLineTool = CreateXeroTool(
       numberOfUnits: z.number().describe("The number of units for the timesheet line."),
       date: z.string().describe("The date for the timesheet line (YYYY-MM-DD)."),
     }).describe("The details of the timesheet line to update."),
+    idempotencyKey: z
+      .string()
+      .min(1)
+      .max(128)
+      .optional()
+      .describe("Optional retry key. Reuse it for the same request to prevent duplicate updates."),
   },
-  async (params: { timesheetID: string; timesheetLineID: string; timesheetLine: TimesheetLine }) => {
-    const { timesheetID, timesheetLineID, timesheetLine } = params;
-    const response = await updateXeroPayrollTimesheetUpdateLine(timesheetID, timesheetLineID, timesheetLine);
+  async (params: { timesheetID: string; timesheetLineID: string; timesheetLine: TimesheetLine; idempotencyKey?: string }) => {
+    const { timesheetID, timesheetLineID, timesheetLine, idempotencyKey } = params;
+    const response = await updateXeroPayrollTimesheetUpdateLine(timesheetID, timesheetLineID, timesheetLine, idempotencyKey);
 
     if (response.isError) {
       return {

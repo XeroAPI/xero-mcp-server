@@ -9,7 +9,8 @@ import { XeroClientResponse } from "../types/tool-response.js";
 async function updateTimesheetLine(
   timesheetID: string,
   timesheetLineID: string,
-  timesheetLine: TimesheetLine
+  timesheetLine: TimesheetLine,
+  idempotencyKey?: string,
 ): Promise<TimesheetLine | null> {
   await xeroClient.authenticate();
 
@@ -19,6 +20,7 @@ async function updateTimesheetLine(
     timesheetID,
     timesheetLineID,
     timesheetLine,
+    idempotencyKey,
   );
 
   return updatedLine.body.timesheetLine ?? null;
@@ -30,10 +32,16 @@ async function updateTimesheetLine(
 export async function updateXeroPayrollTimesheetUpdateLine(
   timesheetID: string,
   timesheetLineID: string,
-  timesheetLine: TimesheetLine
+  timesheetLine: TimesheetLine,
+  idempotencyKey?: string,
 ): Promise<XeroClientResponse<TimesheetLine | null>> {
   try {
-    const updatedLine = await updateTimesheetLine(timesheetID, timesheetLineID, timesheetLine);
+    const updatedLine = await updateTimesheetLine(
+      timesheetID,
+      timesheetLineID,
+      timesheetLine,
+      idempotencyKey,
+    );
 
     return {
       result: updatedLine,

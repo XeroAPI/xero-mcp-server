@@ -18,10 +18,16 @@ const AddTimesheetLineTool = CreateXeroTool(
       numberOfUnits: z.number().describe("The number of units for the timesheet line."),
       date: z.string().describe("The date for the timesheet line (YYYY-MM-DD)."),
     }).describe("The details of the timesheet line to add."),
+    idempotencyKey: z
+      .string()
+      .min(1)
+      .max(128)
+      .optional()
+      .describe("Optional retry key. Reuse it for the same request to prevent duplicate lines."),
   },
-  async (params: { timesheetID: string; timesheetLine: TimesheetLine }) => {
-    const { timesheetID, timesheetLine } = params;
-    const response = await updateXeroPayrollTimesheetAddLine(timesheetID, timesheetLine);
+  async (params: { timesheetID: string; timesheetLine: TimesheetLine; idempotencyKey?: string }) => {
+    const { timesheetID, timesheetLine, idempotencyKey } = params;
+    const response = await updateXeroPayrollTimesheetAddLine(timesheetID, timesheetLine, idempotencyKey);
 
     if (response.isError) {
       return {

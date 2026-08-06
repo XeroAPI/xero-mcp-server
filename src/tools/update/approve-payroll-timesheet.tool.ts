@@ -10,10 +10,16 @@ const ApprovePayrollTimesheetTool = CreateXeroTool(
   `Approve a payroll timesheet in Xero by its ID.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to approve."),
+    idempotencyKey: z
+      .string()
+      .min(1)
+      .max(128)
+      .optional()
+      .describe("Optional retry key. Reuse it for the same approval request."),
   },
-  async (params: { timesheetID: string }) => {
-    const { timesheetID } = params;
-    const response = await approveXeroPayrollTimesheet(timesheetID);
+  async (params: { timesheetID: string; idempotencyKey?: string }) => {
+    const { timesheetID, idempotencyKey } = params;
+    const response = await approveXeroPayrollTimesheet(timesheetID, idempotencyKey);
 
     if (response.isError) {
       return {

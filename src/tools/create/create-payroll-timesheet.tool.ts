@@ -25,9 +25,15 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
       )
       .optional()
       .describe("The lines of the timesheet."),
+    idempotencyKey: z
+      .string()
+      .min(1)
+      .max(128)
+      .optional()
+      .describe("Optional retry key. Reuse it for the same request to prevent duplicate timesheets."),
   },
-  async (params: Timesheet) => {
-    const response = await createXeroPayrollTimesheet(params);
+  async ({ idempotencyKey, ...timesheet }: Timesheet & { idempotencyKey?: string }) => {
+    const response = await createXeroPayrollTimesheet(timesheet, idempotencyKey);
 
     if (response.isError) {
       return {
@@ -40,13 +46,13 @@ This allows you to specify details such as the employee ID, payroll calendar ID,
       };
     }
 
-    const timesheet = response.result;
+    const createdTimesheet = response.result;
 
     return {
       content: [
         {
           type: "text" as const,
-          text: `Successfully created timesheet with ID: ${timesheet?.timesheetID}`,
+          text: `Successfully created timesheet with ID: ${createdTimesheet?.timesheetID}`,
         },
       ],
     };

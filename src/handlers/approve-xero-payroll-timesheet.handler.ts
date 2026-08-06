@@ -4,13 +4,17 @@ import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
-async function approveTimesheet(timesheetID: string): Promise<Timesheet | null> {
+async function approveTimesheet(
+  timesheetID: string,
+  idempotencyKey?: string,
+): Promise<Timesheet | null> {
   await xeroClient.authenticate();
 
   // Call the approveTimesheet endpoint from the PayrollNZApi
   const approvedTimesheet = await xeroClient.payrollNZApi.approveTimesheet(
     xeroClient.tenantId,
     timesheetID,
+    idempotencyKey,
   );
 
   return approvedTimesheet.body.timesheet ?? null;
@@ -19,11 +23,14 @@ async function approveTimesheet(timesheetID: string): Promise<Timesheet | null> 
 /**
  * Approve a payroll timesheet in Xero
  */
-export async function approveXeroPayrollTimesheet(timesheetID: string): Promise<
+export async function approveXeroPayrollTimesheet(
+  timesheetID: string,
+  idempotencyKey?: string,
+): Promise<
   XeroClientResponse<Timesheet | null>
 > {
   try {
-    const approvedTimesheet = await approveTimesheet(timesheetID);
+    const approvedTimesheet = await approveTimesheet(timesheetID, idempotencyKey);
 
     return {
       result: approvedTimesheet,
