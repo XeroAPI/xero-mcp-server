@@ -31,12 +31,24 @@ const CreateCreditNoteTool = CreateXeroTool(
     reference: z.string().optional().describe(
       "Reference for an ACCRECCREDIT note or the credit note number for an ACCPAYCREDIT note.",
     ),
+    status: z.enum(["DRAFT", "AUTHORISED"]).optional().describe(
+      "Credit note status. Defaults to DRAFT; use AUTHORISED to create an approved credit note.",
+    ),
   },
-  async ({ contactId, lineItems, type, reference }) => {
+  async ({ contactId, lineItems, type, reference, status }) => {
     const creditNoteType = type === "ACCPAYCREDIT"
       ? CreditNote.TypeEnum.ACCPAYCREDIT
       : CreditNote.TypeEnum.ACCRECCREDIT;
-    const result = await createXeroCreditNote(contactId, lineItems, creditNoteType, reference);
+    const creditNoteStatus = status === "AUTHORISED"
+      ? CreditNote.StatusEnum.AUTHORISED
+      : undefined;
+    const result = await createXeroCreditNote(
+      contactId,
+      lineItems,
+      creditNoteType,
+      reference,
+      creditNoteStatus,
+    );
     if (result.isError) {
       return {
         content: [

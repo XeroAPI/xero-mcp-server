@@ -34,9 +34,17 @@ describe("create-credit-note tool", () => {
       contactId: "contact-id",
       lineItems: [{}],
     }).success).toBe(false);
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      status: "AUTHORISED",
+    }).success).toBe(true);
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      status: "SUBMITTED",
+    }).success).toBe(false);
   });
 
-  it("forwards supplier credit note types", async () => {
+  it("forwards supplier credit note types and statuses", async () => {
     mocks.createXeroCreditNote.mockResolvedValue({
       result: {
         creditNoteID: "credit-note-id",
@@ -51,6 +59,7 @@ describe("create-credit-note tool", () => {
     await tool.handler({
       contactId: "contact-id",
       type: "ACCPAYCREDIT",
+      status: "AUTHORISED",
     }, {} as never);
 
     expect(mocks.createXeroCreditNote).toHaveBeenCalledWith(
@@ -58,6 +67,7 @@ describe("create-credit-note tool", () => {
       undefined,
       CreditNote.TypeEnum.ACCPAYCREDIT,
       undefined,
+      CreditNote.StatusEnum.AUTHORISED,
     );
   });
 });

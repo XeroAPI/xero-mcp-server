@@ -51,4 +51,31 @@ describe("createXeroCreditNote", () => {
       expect.objectContaining({ headers: expect.any(Object) }),
     );
   });
+
+  it("creates an approved credit note when requested", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
+    });
+
+    await createXeroCreditNote(
+      "contact-id",
+      [{ description: "Returned goods" }],
+      CreditNote.TypeEnum.ACCPAYCREDIT,
+      undefined,
+      CreditNote.StatusEnum.AUTHORISED,
+    );
+
+    expect(mocks.createCreditNotes).toHaveBeenCalledWith(
+      "tenant-id",
+      {
+        creditNotes: [expect.objectContaining({
+          status: CreditNote.StatusEnum.AUTHORISED,
+        })],
+      },
+      true,
+      undefined,
+      undefined,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
 });
