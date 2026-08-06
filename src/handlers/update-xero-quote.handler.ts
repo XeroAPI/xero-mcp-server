@@ -12,6 +12,24 @@ interface QuoteLineItem {
   taxType: string;
 }
 
+type QuoteStatus = "SENT" | "ACCEPTED" | "DECLINED" | "INVOICED" | "DELETED";
+
+const validStatusTransitions: Partial<Record<QuoteStatusCodes, QuoteStatusCodes[]>> = {
+  [QuoteStatusCodes.DRAFT]: [QuoteStatusCodes.SENT, QuoteStatusCodes.DELETED],
+  [QuoteStatusCodes.SENT]: [
+    QuoteStatusCodes.ACCEPTED,
+    QuoteStatusCodes.DECLINED,
+    QuoteStatusCodes.DELETED,
+  ],
+  [QuoteStatusCodes.DECLINED]: [QuoteStatusCodes.SENT, QuoteStatusCodes.DELETED],
+  [QuoteStatusCodes.ACCEPTED]: [
+    QuoteStatusCodes.INVOICED,
+    QuoteStatusCodes.SENT,
+    QuoteStatusCodes.DELETED,
+  ],
+  [QuoteStatusCodes.INVOICED]: [QuoteStatusCodes.SENT, QuoteStatusCodes.DELETED],
+};
+
 async function getQuote(quoteId: string): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
@@ -36,31 +54,25 @@ async function updateQuote(
   contactId?: string,
   date?: string,
   expiryDate?: string,
-  existingQuote?: Quote
+  status?: QuoteStatusCodes,
 ): Promise<Quote | undefined> {
-  // Create quote object with only the fields that are being updated
-  const quote: Quote = {
-    lineItems: lineItems,
-    reference: reference,
-    terms: terms,
-    title: title,
-    summary: summary,
-    quoteNumber: quoteNumber,
-    expiryDate: expiryDate,
-  };
-  
-  // Only add contact if contactId is provided, otherwise use existing
-  if (contactId) {
+  const quote: Quote = {};
+
+  if (lineItems !== undefined) quote.lineItems = lineItems;
+  if (reference !== undefined) quote.reference = reference;
+  if (terms !== undefined) quote.terms = terms;
+  if (title !== undefined) quote.title = title;
+  if (summary !== undefined) quote.summary = summary;
+  if (quoteNumber !== undefined) quote.quoteNumber = quoteNumber;
+  if (expiryDate !== undefined) quote.expiryDate = expiryDate;
+  if (status !== undefined) quote.status = status;
+
+  if (contactId !== undefined) {
     quote.contact = { contactID: contactId };
-  } else if (existingQuote?.contact) {
-    quote.contact = existingQuote.contact;
   }
-  
-  // Only add date if provided, otherwise use existing
-  if (date) {
+
+  if (date !== undefined) {
     quote.date = date;
-  } else if (existingQuote?.date) {
-    quote.date = existingQuote.date;
   }
 
   const response = await xeroClient.accountingApi.updateQuote(
@@ -90,21 +102,45 @@ export async function updateXeroQuote(
   contactId?: string,
   date?: string,
   expiryDate?: string,
+  status?: QuoteStatus,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     const existingQuote = await getQuote(quoteId);
 
     const quoteStatus = existingQuote?.status;
+    const nextStatus = status ? QuoteStatusCodes[status] : undefined;
+    const isEditable =
+      quoteStatus === QuoteStatusCodes.DRAFT ||
+      quoteStatus === QuoteStatusCodes.SENT;
+    const isValidStatusTransition =
+      quoteStatus !== undefined &&
+      nextStatus !== undefined &&
+      validStatusTransitions[quoteStatus]?.includes(nextStatus);
+    const hasChangesOutsideStatus = [
+      lineItems,
+      reference,
+      terms,
+      title,
+      summary,
+      quoteNumber,
+      contactId,
+      date,
+      expiryDate,
+    ].some((value) => value !== undefined);
 
-    // Xero allows all fields on DRAFT and SENT quotes.
-    if (
-      quoteStatus !== QuoteStatusCodes.DRAFT &&
-      quoteStatus !== QuoteStatusCodes.SENT
-    ) {
+    if (nextStatus !== undefined ? !isValidStatusTransition : !isEditable) {
       return {
         result: null,
         isError: true,
-        error: `Cannot update quote because it is neither draft nor sent. Current status: ${quoteStatus}`,
+        error: `Cannot update quote because it is neither editable nor eligible for the requested status transition. Current status: ${quoteStatus}`,
+      };
+    }
+
+    if (!isEditable && hasChangesOutsideStatus) {
+      return {
+        result: null,
+        isError: true,
+        error: `Cannot update quote fields alongside a status transition. Current status: ${quoteStatus}`,
       };
     }
 
@@ -119,7 +155,7 @@ export async function updateXeroQuote(
       contactId,
       date,
       expiryDate,
-      existingQuote
+      nextStatus,
     );
 
     if (!updatedQuote) {

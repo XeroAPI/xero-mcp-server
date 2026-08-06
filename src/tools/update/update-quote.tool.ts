@@ -13,7 +13,7 @@ const lineItemSchema = z.object({
 
 const UpdateQuoteTool = CreateXeroTool(
   "update-quote",
-  "Update a quote in Xero. Works on draft or sent quotes.\
+  "Update a quote in Xero. Draft and sent quotes can be edited; Xero status transitions are also supported.\
   All line items must be provided. Any line items not provided will be removed. Including existing line items.\
   Do not modify line items that have not been specified by the user. \
  When a quote is updated, a deep link to the quote in Xero is returned. \
@@ -33,6 +33,8 @@ const UpdateQuoteTool = CreateXeroTool(
     contactId: z.string().optional(),
     date: z.string().optional(),
     expiryDate: z.string().optional(),
+    status: z.enum(["SENT", "ACCEPTED", "DECLINED", "INVOICED", "DELETED"]).optional()
+      .describe("Optional quote status. Xero only permits valid transitions from the quote's current status."),
   },
   async (
     {
@@ -46,6 +48,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
+      status,
     }
   ) => {
     const result = await updateXeroQuote(
@@ -59,6 +62,7 @@ const UpdateQuoteTool = CreateXeroTool(
       contactId,
       date,
       expiryDate,
+      status,
     );
     if (result.isError) {
       return {
