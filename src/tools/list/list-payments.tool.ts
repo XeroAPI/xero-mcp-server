@@ -12,8 +12,12 @@ function paymentFormatter(payment: Payment): string {
     payment.status ? `Status: ${payment.status}` : null,
     payment.paymentType ? `Payment Type: ${payment.paymentType}` : null,
     payment.updatedDateUTC ? `Last Updated: ${payment.updatedDateUTC}` : null,
-    payment.account?.name
-      ? `Account: ${payment.account.name} (${payment.account.accountID || "Unknown ID"})`
+    payment.account && (payment.account.name || payment.account.code || payment.account.accountID)
+      ? `Account: ${[
+          payment.account.name,
+          payment.account.code,
+          payment.account.accountID,
+        ].filter(Boolean).join(" | ")}`
       : null,
     payment.invoice
       ? [
@@ -34,6 +38,49 @@ function paymentFormatter(payment: Payment): string {
           .filter(Boolean)
           .join("\n")
       : null,
+    payment.creditNote
+      ? [
+          "Credit Note:",
+          `  Credit Note Number: ${payment.creditNote.creditNoteNumber || payment.creditNoteNumber || "Unknown"}`,
+          `  Credit Note ID: ${payment.creditNote.creditNoteID || "Unknown"}`,
+          payment.creditNote.type ? `  Type: ${payment.creditNote.type}` : null,
+          payment.creditNote.total !== undefined
+            ? `  Total: ${payment.creditNote.total}`
+            : null,
+          payment.creditNote.remainingCredit !== undefined
+            ? `  Remaining Credit: ${payment.creditNote.remainingCredit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : null,
+    payment.prepayment
+      ? [
+          "Prepayment:",
+          `  Prepayment ID: ${payment.prepayment.prepaymentID || "Unknown"}`,
+          payment.invoiceNumber ? `  Invoice Number: ${payment.invoiceNumber}` : null,
+          payment.prepayment.reference ? `  Reference: ${payment.prepayment.reference}` : null,
+          payment.prepayment.type ? `  Type: ${payment.prepayment.type}` : null,
+          payment.prepayment.remainingCredit !== undefined
+            ? `  Remaining Credit: ${payment.prepayment.remainingCredit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : null,
+    payment.overpayment
+      ? [
+          "Overpayment:",
+          `  Overpayment ID: ${payment.overpayment.overpaymentID || "Unknown"}`,
+          payment.invoiceNumber ? `  Invoice Number: ${payment.invoiceNumber}` : null,
+          payment.overpayment.type ? `  Type: ${payment.overpayment.type}` : null,
+          payment.overpayment.remainingCredit !== undefined
+            ? `  Remaining Credit: ${payment.overpayment.remainingCredit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -42,7 +89,7 @@ function paymentFormatter(payment: Payment): string {
 const ListPaymentsTool = CreateXeroTool(
   "list-payments",
   `List payments in Xero. 
-  This tool shows all payments made against invoices, including payment date, amount, and payment method.
+  This tool shows payments and refunds against invoices, credit notes, prepayments, and overpayments, including payment date, amount, and payment method.
   You can filter payments by invoice number, invoice ID, payment ID, or invoice reference.
   Ask the user if they want to see payments for a specific invoice, contact, payment or reference before running.
   If many payments are returned, ask the user if they want to see the next page.`,
