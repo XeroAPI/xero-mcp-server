@@ -118,6 +118,46 @@ describe("createXeroPayment", () => {
     });
   });
 
+  it("returns a resolved Xero validation error instead of reporting a successful payment", async () => {
+    mocks.createPayment.mockResolvedValue({
+      body: {
+        payments: [{
+          validationErrors: [{ message: "Payment amount exceeds the amount due." }],
+        }],
+      },
+    });
+
+    const result = await createXeroPayment({
+      invoiceId: "invoice-id",
+      accountId: "bank-account-id",
+      amount: 100,
+    });
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Payment amount exceeds the amount due.",
+    });
+  });
+
+  it("rejects a payment validation error without a message", async () => {
+    mocks.createPayment.mockResolvedValue({
+      body: { payments: [{ validationErrors: [{}] }] },
+    });
+
+    const result = await createXeroPayment({
+      invoiceId: "invoice-id",
+      accountId: "bank-account-id",
+      amount: 100,
+    });
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
+
   it("rejects missing or ambiguous payment targets before calling Xero", async () => {
     const missingTarget = await createXeroPayment({ accountId: "account-id", amount: 10 });
     const multipleTargets = await createXeroPayment({

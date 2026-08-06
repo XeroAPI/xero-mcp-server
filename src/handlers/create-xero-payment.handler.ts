@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { ensurePaymentSucceeded } from "../helpers/ensure-payment-succeeded.js";
 
 type PaymentProps = {
   invoiceId?: string;
@@ -100,12 +101,10 @@ export async function createXeroPayment({
       idempotencyKey,
     });
 
-    if (!createdPayment) {
-      throw new Error("Payment creation failed.");
-    }
+    const successfulPayment = ensurePaymentSucceeded(createdPayment);
 
     return {
-      result: createdPayment,
+      result: successfulPayment,
       isError: false,
       error: null,
     };
