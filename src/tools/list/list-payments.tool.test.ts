@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -55,5 +56,16 @@ describe("list-payments tool", () => {
       expect.objectContaining({ text: expect.stringContaining("Invoice Number: PP-001") }),
       expect.objectContaining({ text: expect.stringContaining("Overpayment ID: overpayment-id") }),
     ]));
+  });
+
+  it("requires UUIDs for payment and invoice ID filters", () => {
+    const schema = z.object(ListPaymentsTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({
+      invoiceId: "123e4567-e89b-12d3-a456-426614174000",
+      paymentId: "123e4567-e89b-12d3-a456-426614174001",
+    }).success).toBe(true);
+    expect(schema.safeParse({ invoiceId: "not-a-uuid" }).success).toBe(false);
+    expect(schema.safeParse({ paymentId: "not-a-uuid" }).success).toBe(false);
   });
 });

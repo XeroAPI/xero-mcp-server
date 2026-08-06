@@ -4,6 +4,10 @@ import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
+function escapeWhereStringLiteral(value: string): string {
+  return value.replace(/[\\"]/g, "\\$&");
+}
+
 async function getPayments(
   page: number = 1,
   {
@@ -27,13 +31,17 @@ async function getPayments(
     whereConditions.push(`Invoice.InvoiceID==guid("${invoiceId}")`);
   }
   if (invoiceNumber) {
-    whereConditions.push(`Invoice.InvoiceNumber=="${invoiceNumber}"`);
+    whereConditions.push(
+      `Invoice.InvoiceNumber=="${escapeWhereStringLiteral(invoiceNumber)}"`,
+    );
   }
   if (paymentId) {
     whereConditions.push(`PaymentID==guid("${paymentId}")`);
   }
   if (reference) {
-    whereConditions.push(`Reference=="${reference}"`);
+    whereConditions.push(
+      `Reference=="${escapeWhereStringLiteral(reference)}"`,
+    );
   }
 
   // Combine conditions

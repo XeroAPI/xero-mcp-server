@@ -96,8 +96,8 @@ const ListPaymentsTool = CreateXeroTool(
   {
     page: z.number().default(1),
     invoiceNumber: z.string().optional(),
-    invoiceId: z.string().optional(),
-    paymentId: z.string().optional(),
+    invoiceId: z.string().uuid().optional(),
+    paymentId: z.string().uuid().optional(),
     reference: z.string().optional(),
   },
   async ({ page, invoiceNumber, invoiceId, paymentId, reference }) => {
