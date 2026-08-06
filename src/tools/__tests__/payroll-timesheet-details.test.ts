@@ -72,6 +72,27 @@ describe("payroll timesheet details", () => {
     }).success).toBe(true);
   });
 
+  it.each([0, -1])("rejects an invalid timesheet unit count of %s", (numberOfUnits) => {
+    const createSchema = z.object(CreatePayrollTimesheetTool().schema as z.ZodRawShape);
+    const addSchema = z.object(AddTimesheetLineTool().schema as z.ZodRawShape);
+    const updateSchema = z.object(UpdatePayrollTimesheetLineTool().schema as z.ZodRawShape);
+    const invalidLine = { ...inputTimesheetLine, numberOfUnits };
+
+    expect(createSchema.safeParse({
+      payrollCalendarID: "calendar-id",
+      employeeID: "employee-id",
+      startDate: "2026-08-01",
+      endDate: "2026-08-07",
+      timesheetLines: [invalidLine],
+    }).success).toBe(false);
+    expect(addSchema.safeParse({ timesheetID: "timesheet-id", timesheetLine: invalidLine }).success).toBe(false);
+    expect(updateSchema.safeParse({
+      timesheetID: "timesheet-id",
+      timesheetLineID: "line-id",
+      timesheetLine: invalidLine,
+    }).success).toBe(false);
+  });
+
   it("returns line IDs and tracking allocations from a timesheet lookup", async () => {
     mocks.getTimesheet.mockResolvedValue({
       isError: false,

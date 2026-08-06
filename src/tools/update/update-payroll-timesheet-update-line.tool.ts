@@ -21,7 +21,7 @@ const UpdatePayrollTimesheetLineTool = CreateXeroTool(
         .string()
         .optional()
         .describe("Optional ID of the payroll tracking item for this line."),
-      numberOfUnits: z.number().describe("The number of units for the timesheet line."),
+      numberOfUnits: z.number().positive().describe("The positive number of units for the timesheet line."),
       date: z.string().describe("The date for the timesheet line (YYYY-MM-DD)."),
     }).describe("The details of the timesheet line to update."),
   },
