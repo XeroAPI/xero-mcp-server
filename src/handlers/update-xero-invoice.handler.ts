@@ -5,6 +5,7 @@ import { Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
+  lineItemID?: string;
   description: string;
   quantity: number;
   unitAmount: number;

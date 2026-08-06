@@ -2,6 +2,7 @@ import { LineItem } from "xero-node";
 
 export const formatLineItem = (lineItem: LineItem): string => {
   return [
+    lineItem.lineItemID ? `Line Item ID: ${lineItem.lineItemID}` : null,
     `Item ID: ${lineItem.item}`,
     `Item Code: ${lineItem.itemCode}`,
     `Description: ${lineItem.description}`,
@@ -11,5 +12,7 @@ export const formatLineItem = (lineItem: LineItem): string => {
     `Tax Type: ${lineItem.taxType}`,
     `Tracking: ${lineItem.tracking}`,
     `Line Amount: ${lineItem.lineAmount}`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 };

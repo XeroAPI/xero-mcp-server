@@ -12,6 +12,7 @@ const trackingSchema = z.object({
 });
 
 const lineItemSchema = z.object({
+  lineItemId: z.string().optional().describe("Existing Xero line item ID. Include this to update a line without recreating it."),
   description: z.string().describe("The description of the line item"),
   quantity: z.number().describe("The quantity of the line item"),
   unitAmount: z.number().describe("The price per unit of the line item"),
@@ -56,6 +57,7 @@ const UpdateInvoiceTool = CreateXeroTool(
     }: {
       invoiceId: string;
       lineItems?: Array<{
+        lineItemId?: string;
         description: string;
         quantity: number;
         unitAmount: number;
@@ -69,9 +71,14 @@ const UpdateInvoiceTool = CreateXeroTool(
     },
     //_extra: { signal: AbortSignal },
   ) => {
+    const xeroLineItems = lineItems?.map(({ lineItemId, ...lineItem }) => ({
+      ...lineItem,
+      ...(lineItemId ? { lineItemID: lineItemId } : {}),
+    }));
+
     const result = await updateXeroInvoice(
       invoiceId,
-      lineItems,
+      xeroLineItems,
       reference,
       dueDate,
       date,
