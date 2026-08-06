@@ -9,6 +9,8 @@ const ListContactGroupsTool = CreateXeroTool(
   {
     contactGroupId: z
       .string()
+      .trim()
+      .min(1)
       .optional()
       .describe("Optional ID of the contact group to retrieve"),
   },

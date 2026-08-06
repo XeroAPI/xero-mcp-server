@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -47,5 +48,12 @@ describe("list-contact-groups tool", () => {
     expect(result.content[1]).toMatchObject({
       text: expect.stringContaining("No contacts in this contact group"),
     });
+  });
+
+  it("rejects a blank contact group ID", () => {
+    const schema = z.object(ListContactGroupsTool().schema as z.ZodRawShape);
+
+    expect(schema.safeParse({ contactGroupId: "   " }).success).toBe(false);
+    expect(schema.safeParse({ contactGroupId: "group-id" }).success).toBe(true);
   });
 });

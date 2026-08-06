@@ -7,7 +7,7 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 async function getContactGroups(contactGroupId?: string): Promise<ContactGroup[]> {
   await xeroClient.authenticate();
 
-  if (contactGroupId) {
+  if (contactGroupId !== undefined) {
     const response = await xeroClient.accountingApi.getContactGroup(
       xeroClient.tenantId,
       contactGroupId,
@@ -32,7 +32,15 @@ export async function listXeroContactGroups(contactGroupId?: string): Promise<
   XeroClientResponse<ContactGroup[]>
 > {
   try {
-    const contactGroups = await getContactGroups(contactGroupId);
+    if (contactGroupId !== undefined && !contactGroupId.trim()) {
+      return {
+        result: null,
+        isError: true,
+        error: "Contact group ID must not be blank.",
+      };
+    }
+
+    const contactGroups = await getContactGroups(contactGroupId?.trim());
 
     return {
       result: contactGroups,
