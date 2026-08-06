@@ -35,6 +35,7 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  status?: Invoice.StatusEnum,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -42,6 +43,7 @@ async function updateInvoice(
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    status: status,
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -58,6 +60,36 @@ async function updateInvoice(
   return response.body.invoices?.[0];
 }
 
+function formatAppliedEntityLabels(invoice: Invoice): string[] {
+  return [
+    invoice.payments?.length ? "payments" : null,
+    invoice.creditNotes?.length ? "credit notes" : null,
+    invoice.prepayments?.length ? "prepayments" : null,
+    invoice.overpayments?.length ? "overpayments" : null,
+  ].filter((label) => label !== null);
+}
+
+function formatRejectionReason(invoice: Invoice): string | undefined {
+  const status = invoice.status;
+
+  const isUpdatableStatus =
+    status === Invoice.StatusEnum.DRAFT ||
+    status === Invoice.StatusEnum.SUBMITTED ||
+    status === Invoice.StatusEnum.AUTHORISED;
+
+  if (!isUpdatableStatus) {
+    return `Cannot update invoice because its status is ${status}. Only draft, submitted and authorised invoices can be updated.`;
+  }
+
+  const applied = formatAppliedEntityLabels(invoice);
+
+  if (applied.length > 0) {
+    return `Cannot update invoice because it has ${applied.join(" and ")} applied to it. Remove them before updating the invoice.`;
+  }
+
+  return undefined;
+}
+
 /**
  * Update an existing invoice in Xero
  */
@@ -68,18 +100,22 @@ export async function updateXeroInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  status?: Invoice.StatusEnum,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
 
-    const invoiceStatus = existingInvoice?.status;
+    if (!existingInvoice) {
+      throw new Error(`Could not find invoice ${invoiceId}`);
+    }
 
-    // Only allow updates to DRAFT invoices
-    if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {
+    const rejectionReason = formatRejectionReason(existingInvoice);
+
+    if (rejectionReason) {
       return {
         result: null,
         isError: true,
-        error: `Cannot update invoice because it is not a draft. Current status: ${invoiceStatus}`,
+        error: rejectionReason,
       };
     }
 
@@ -90,6 +126,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      status,
     );
 
     if (!updatedInvoice) {

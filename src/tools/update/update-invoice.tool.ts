@@ -27,16 +27,19 @@ const lineItemSchema = z.object({
 
 const UpdateInvoiceTool = CreateXeroTool(
   "update-invoice",
-  "Update an invoice in Xero. Only works on draft invoices.\
-  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
+  "Update an invoice in Xero. Draft, submitted and authorised invoices can be updated.\
+  Omit lineItems to leave the invoice's line items untouched.\
+  When changing line items, all line items must be provided. Any line items not provided will be removed. Including existing line items.\
   Do not modify line items that have not been specified by the user.\
+  An authorised invoice can only be updated while it has no payments, credit notes, prepayments or overpayments applied.\
  When an invoice is updated, a deep link to the invoice in Xero is returned. \
  This deep link can be used to view the contact in Xero directly. \
  This link should be displayed to the user.",
   {
     invoiceId: z.string().describe("The ID of the invoice to update."),
     lineItems: z.array(lineItemSchema).optional().describe(
-      "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
+      "Omit this argument to leave the invoice's line items untouched. \
+      When changing line items, all line items must be provided. Any line items not provided will be removed. Including existing line items. \
       Do not modify line items that have not been specified by the user",
     ),
     reference: z.string().optional().describe("A reference number for the invoice."),
@@ -44,6 +47,13 @@ const UpdateInvoiceTool = CreateXeroTool(
     date: z.string().optional().describe("The date of the invoice."),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
       Can be obtained from the list-contacts tool."),
+    status: z.enum(["DRAFT", "SUBMITTED", "AUTHORISED", "DELETED", "VOIDED"]).optional().describe(
+      "The status to set on the invoice. SUBMITTED submits a draft invoice for approval, DRAFT \
+      returns a submitted invoice to draft, AUTHORISED approves a draft or submitted invoice, \
+      DELETED removes a draft or submitted invoice, and VOIDED cancels an authorised invoice that \
+      has no payments, credit notes, prepayments or overpayments applied. Omit to leave the status unchanged. \
+      Xero ignores every other field sent alongside DELETED or VOIDED, so send those on their own.",
+    ),
   },
   async (
     {
@@ -53,21 +63,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
-    }: {
-      invoiceId: string;
-      lineItems?: Array<{
-        description: string;
-        quantity: number;
-        unitAmount: number;
-        accountCode: string;
-        taxType: string;
-      }>;
-      reference?: string;
-      dueDate?: string;
-      date?: string;
-      contactId?: string;
+      status,
     },
-    //_extra: { signal: AbortSignal },
   ) => {
     const result = await updateXeroInvoice(
       invoiceId,
@@ -76,6 +73,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      status as Invoice.StatusEnum | undefined,
     );
     if (result.isError) {
       return {
