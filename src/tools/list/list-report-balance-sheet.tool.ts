@@ -16,7 +16,7 @@ const ListReportBalanceSheetTool = CreateXeroTool(
     trackingOptionID1: z.string().optional().describe("Optional tracking option ID 1"),
     trackingOptionID2: z.string().optional().describe("Optional tracking option ID 2"),
     standardLayout: z.boolean().optional().describe("Optional flag to use standard layout"),
-    paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
+    paymentsOnly: z.boolean().optional().describe("Optional flag to return the report on a cash basis"),
   },
   async (args: ListReportBalanceSheetParams) => {
     const response = await listXeroReportBalanceSheet(args);
@@ -39,11 +39,19 @@ const ListReportBalanceSheetTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Balance sheet Report: ${balanceSheetReport?.reportName ?? "Unnamed"}`,
+          text: `Balance Sheet Report: ${balanceSheetReport?.reportName ?? "Unnamed"}`,
         },
         {
           type: "text" as const,
-          text: JSON.stringify(balanceSheetReport.rows, null, 2),
+          text: `Requested period: ${balanceSheetReport?.reportTitles?.at(-1) ?? "Not specified"}`,
+        },
+        {
+          type: "text" as const,
+          text: `Generated date: ${balanceSheetReport?.reportDate ?? "Unknown"}`,
+        },
+        {
+          type: "text" as const,
+          text: JSON.stringify(balanceSheetReport?.rows, null, 2),
         },
       ],
     };

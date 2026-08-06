@@ -7,7 +7,7 @@ const ListTrialBalanceTool = CreateXeroTool(
   "Lists trial balance in Xero. This provides a snapshot of the general ledger, showing debit and credit balances for each account.",
   {
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
-    paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
+    paymentsOnly: z.boolean().optional().describe("Optional flag to return the report on a cash basis"),
   },
   async (args) => {
     const response = await listXeroTrialBalance(args?.date, args?.paymentsOnly);

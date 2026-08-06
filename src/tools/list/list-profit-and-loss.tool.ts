@@ -14,7 +14,7 @@ const ListProfitAndLossTool = CreateXeroTool(
     ),
     timeframe: z.enum(["MONTH", "QUARTER", "YEAR"]).optional().describe("Optional timeframe for the report (MONTH, QUARTER, YEAR)"),
     standardLayout: z.boolean().optional().describe("Optional flag to use standard layout"),
-    paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
+    paymentsOnly: z.boolean().optional().describe("Optional flag to return the report on a cash basis"),
   },
   async (args) => {
     const response = await listXeroProfitAndLoss(
