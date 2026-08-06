@@ -78,4 +78,21 @@ describe("createXeroCreditNote", () => {
       expect.objectContaining({ headers: expect.any(Object) }),
     );
   });
+
+  it("forwards an idempotency key for safe retries", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
+    });
+
+    await createXeroCreditNote(
+      "contact-id",
+      undefined,
+      CreditNote.TypeEnum.ACCRECCREDIT,
+      undefined,
+      CreditNote.StatusEnum.DRAFT,
+      "credit-note-retry-key",
+    );
+
+    expect(mocks.createCreditNotes.mock.calls[0][4]).toBe("credit-note-retry-key");
+  });
 });

@@ -42,6 +42,10 @@ describe("create-credit-note tool", () => {
       contactId: "contact-id",
       status: "SUBMITTED",
     }).success).toBe(false);
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      idempotencyKey: "x".repeat(129),
+    }).success).toBe(false);
   });
 
   it("forwards supplier credit note types and statuses", async () => {
@@ -60,6 +64,7 @@ describe("create-credit-note tool", () => {
       contactId: "contact-id",
       type: "ACCPAYCREDIT",
       status: "AUTHORISED",
+      idempotencyKey: "credit-note-retry-key",
     }, {} as never);
 
     expect(mocks.createXeroCreditNote).toHaveBeenCalledWith(
@@ -68,6 +73,7 @@ describe("create-credit-note tool", () => {
       CreditNote.TypeEnum.ACCPAYCREDIT,
       undefined,
       CreditNote.StatusEnum.AUTHORISED,
+      "credit-note-retry-key",
     );
   });
 });

@@ -34,8 +34,11 @@ const CreateCreditNoteTool = CreateXeroTool(
     status: z.enum(["DRAFT", "AUTHORISED"]).optional().describe(
       "Credit note status. Defaults to DRAFT; use AUTHORISED to create an approved credit note.",
     ),
+    idempotencyKey: z.string().min(1).max(128).optional().describe(
+      "Optional retry key. Reuse the same key when retrying this exact credit note to prevent duplicates.",
+    ),
   },
-  async ({ contactId, lineItems, type, reference, status }) => {
+  async ({ contactId, lineItems, type, reference, status, idempotencyKey }) => {
     const creditNoteType = type === "ACCPAYCREDIT"
       ? CreditNote.TypeEnum.ACCPAYCREDIT
       : CreditNote.TypeEnum.ACCRECCREDIT;
@@ -48,6 +51,7 @@ const CreateCreditNoteTool = CreateXeroTool(
       creditNoteType,
       reference,
       creditNoteStatus,
+      idempotencyKey,
     );
     if (result.isError) {
       return {
