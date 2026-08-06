@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroBankTransaction } from "../../handlers/create-xero-bank-transaction.handler.js";
-import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
+import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -43,8 +43,8 @@ const CreateBankTransactionTool = CreateXeroTool(
 
     const bankTransaction = result.result;
 
-    const deepLink = bankTransaction.bankAccount.accountID && bankTransaction.bankTransactionID
-      ? bankTransactionDeepLink(bankTransaction.bankAccount.accountID, bankTransaction.bankTransactionID)
+    const deepLink = bankTransaction.bankTransactionID
+      ? await getDeepLink(DeepLinkType.BANK_TRANSACTION, bankTransaction.bankTransactionID)
       : null;
 
     return {

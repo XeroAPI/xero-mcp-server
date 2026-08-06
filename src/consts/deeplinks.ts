@@ -21,8 +21,8 @@ export const paymentDeepLink = (orgShortCode: string, paymentId: string) => {
   return `https://go.xero.com/organisationlogin/default.aspx?shortcode=${orgShortCode}&redirecturl=/Bank/ViewTransaction.aspx?bankTransactionID=${paymentId}`;
 };
 
-export const bankTransactionDeepLink = (accountId: string, bankTransactionId: string) => {
-  return `https://go.xero.com/Bank/ViewTransaction.aspx?bankTransactionID=${bankTransactionId}&accountID=${accountId}`
+export const bankTransactionDeepLink = (orgShortCode: string, bankTransactionId: string) => {
+  return `https://go.xero.com/organisationlogin/default.aspx?shortcode=${orgShortCode}&redirecturl=/Bank/ViewTransaction.aspx?bankTransactionID=${bankTransactionId}`;
 };
 
 export const manualJournalDeepLink = (journalId: string) => {

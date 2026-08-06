@@ -7,6 +7,7 @@ import {
   manualJournalDeepLink,
   quoteDeepLink,
   billDeepLink,
+  bankTransactionDeepLink,
 } from "../consts/deeplinks.js";
 
 export enum DeepLinkType {
@@ -17,6 +18,7 @@ export enum DeepLinkType {
   QUOTE,
   PAYMENT,
   BILL,
+  BANK_TRANSACTION,
 }
 
 /**
@@ -48,5 +50,7 @@ export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
       return paymentDeepLink(orgShortCode, itemId);
     case DeepLinkType.BILL:
       return billDeepLink(orgShortCode, itemId);
+    case DeepLinkType.BANK_TRANSACTION:
+      return bankTransactionDeepLink(orgShortCode, itemId);
   }
 };
