@@ -81,9 +81,57 @@ describe("create-credit-note tool", () => {
       "credit-note-retry-key",
       "2026-07-31",
       "2026-08-30",
+      undefined,
     );
     const text = result.content.find((content) => content.type === "text")?.text;
     expect(text).toContain("Due Date: 2026-08-30");
+  });
+
+  it("forwards and renders a customer credit note number", async () => {
+    mocks.createXeroCreditNote.mockResolvedValue({
+      result: {
+        creditNoteID: "credit-note-id",
+        creditNoteNumber: "CM-2026-001",
+        type: CreditNote.TypeEnum.ACCRECCREDIT,
+      },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    const result = await tool.handler({
+      contactId: "contact-id",
+      reference: "customer-reference",
+      creditNoteNumber: "CM-2026-001",
+    }, {} as never);
+
+    expect(mocks.createXeroCreditNote).toHaveBeenCalledWith(
+      "contact-id",
+      undefined,
+      CreditNote.TypeEnum.ACCRECCREDIT,
+      "customer-reference",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "CM-2026-001",
+    );
+    const text = result.content.find((content) => content.type === "text")?.text;
+    expect(text).toContain("Credit Note Number: CM-2026-001");
+  });
+
+  it("rejects a customer credit note number on a supplier credit note", async () => {
+    const result = await tool.handler({
+      contactId: "contact-id",
+      type: "ACCPAYCREDIT",
+      creditNoteNumber: "CM-2026-001",
+    }, {} as never);
+
+    expect(mocks.createXeroCreditNote).not.toHaveBeenCalled();
+    expect(result.content[0]).toMatchObject({
+      type: "text",
+      text: expect.stringContaining("only supported on ACCRECCREDIT"),
+    });
   });
 
   it("rejects an empty authorised credit note before calling the handler", async () => {

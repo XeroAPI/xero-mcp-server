@@ -88,6 +88,50 @@ describe("createXeroCreditNote", () => {
     });
   });
 
+  it("preserves a customer credit note number separately from its reference", async () => {
+    mocks.createCreditNotes.mockResolvedValue({
+      body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },
+    });
+
+    const result = await createXeroCreditNote(
+      "contact-id",
+      undefined,
+      CreditNote.TypeEnum.ACCRECCREDIT,
+      "customer-reference",
+      CreditNote.StatusEnum.DRAFT,
+      undefined,
+      undefined,
+      undefined,
+      "CM-2026-001",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.createCreditNotes.mock.calls[0][1].creditNotes[0]).toMatchObject({
+      reference: "customer-reference",
+      creditNoteNumber: "CM-2026-001",
+    });
+  });
+
+  it("rejects a customer credit note number on supplier credit notes", async () => {
+    const result = await createXeroCreditNote(
+      "contact-id",
+      undefined,
+      CreditNote.TypeEnum.ACCPAYCREDIT,
+      undefined,
+      CreditNote.StatusEnum.DRAFT,
+      undefined,
+      undefined,
+      undefined,
+      "CM-2026-001",
+    );
+
+    expect(result).toMatchObject({
+      isError: true,
+      error: "creditNoteNumber is only supported on ACCRECCREDIT customer credit notes. Use reference for supplier credit notes.",
+    });
+    expect(mocks.createCreditNotes).not.toHaveBeenCalled();
+  });
+
   it("creates an approved credit note when requested", async () => {
     mocks.createCreditNotes.mockResolvedValue({
       body: { creditNotes: [{ creditNoteID: "credit-note-id" }] },

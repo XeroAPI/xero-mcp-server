@@ -31,6 +31,9 @@ const CreateCreditNoteTool = CreateXeroTool(
     reference: z.string().optional().describe(
       "Reference for an ACCRECCREDIT note or the credit note number for an ACCPAYCREDIT note.",
     ),
+    creditNoteNumber: z.string().min(1).optional().describe(
+      "Unique credit note number for an ACCRECCREDIT customer credit note. For supplier credit notes, use reference.",
+    ),
     date: z.string().optional().describe(
       "Optional issue date (YYYY-MM-DD). When omitted, Xero uses the current date in the organisation's timezone.",
     ),
@@ -42,7 +45,17 @@ const CreateCreditNoteTool = CreateXeroTool(
       "Optional retry key. Reuse the same key when retrying this exact credit note to prevent duplicates.",
     ),
   },
-  async ({ contactId, lineItems, type, reference, date, dueDate, status, idempotencyKey }) => {
+  async ({
+    contactId,
+    lineItems,
+    type,
+    reference,
+    creditNoteNumber,
+    date,
+    dueDate,
+    status,
+    idempotencyKey,
+  }) => {
     if (status === "AUTHORISED" && (!lineItems || lineItems.length === 0)) {
       return {
         content: [{
@@ -55,6 +68,17 @@ const CreateCreditNoteTool = CreateXeroTool(
     const creditNoteType = type === "ACCPAYCREDIT"
       ? CreditNote.TypeEnum.ACCPAYCREDIT
       : CreditNote.TypeEnum.ACCRECCREDIT;
+    if (
+      creditNoteNumber !== undefined
+      && creditNoteType !== CreditNote.TypeEnum.ACCRECCREDIT
+    ) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: "Error creating credit note: creditNoteNumber is only supported on ACCRECCREDIT customer credit notes. Use reference for supplier credit notes.",
+        }],
+      };
+    }
     const creditNoteStatus = status === "AUTHORISED"
       ? CreditNote.StatusEnum.AUTHORISED
       : undefined;
@@ -67,6 +91,7 @@ const CreateCreditNoteTool = CreateXeroTool(
       idempotencyKey,
       date,
       dueDate,
+      creditNoteNumber,
     );
     if (result.isError) {
       return {
@@ -92,6 +117,9 @@ const CreateCreditNoteTool = CreateXeroTool(
           text: [
             "Credit note created successfully:",
             `ID: ${creditNote?.creditNoteID}`,
+            creditNote?.creditNoteNumber
+              ? `Credit Note Number: ${creditNote.creditNoteNumber}`
+              : null,
             `Contact: ${creditNote?.contact?.name}`,
             `Type: ${creditNote?.type}`,
             creditNote?.date ? `Date: ${creditNote.date}` : null,
