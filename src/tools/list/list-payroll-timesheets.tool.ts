@@ -4,14 +4,17 @@ import {
   listXeroPayrollTimesheets,
 } from "../../handlers/list-xero-timesheets.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { z } from "zod";
 
 const ListPayrollTimesheetsTool = CreateXeroTool(
   "list-timesheets",
   `List all payroll timesheets in Xero.
 This retrieves comprehensive timesheet details including timesheet IDs, employee IDs, start and end dates, total hours, and the last updated date.`,
-  {},
-  async () => {
-    const response = await listXeroPayrollTimesheets();
+  {
+    page: z.number().int().positive().optional().describe("Optional page number for pagination."),
+  },
+  async ({ page }) => {
+    const response = await listXeroPayrollTimesheets(page);
 
     if (response.isError) {
       return {
@@ -30,7 +33,7 @@ This retrieves comprehensive timesheet details including timesheet IDs, employee
       content: [
         {
           type: "text" as const,
-          text: `Found ${timesheets?.length || 0} timesheets:`,
+          text: `Found ${timesheets?.length || 0} timesheets${page ? ` (page ${page})` : ""}:`,
         },
         ...(timesheets?.map((timesheet: Timesheet) => ({
           type: "text" as const,
