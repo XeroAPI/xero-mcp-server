@@ -62,7 +62,7 @@ const CreatePaymentTool = CreateXeroTool(
         {
           type: "text" as const,
           text: [
-            "Invoice created successfully:",
+            "Payment created successfully:",
             `ID: ${payment?.paymentID}`,
             `Reference: ${payment?.reference}`,
             `Invoice Number: ${payment?.invoiceNumber}`,

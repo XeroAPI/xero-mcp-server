@@ -31,7 +31,7 @@ const UpdateInvoiceTool = CreateXeroTool(
   All line items must be provided. Any line items not provided will be removed. Including existing line items.\
   Do not modify line items that have not been specified by the user.\
  When an invoice is updated, a deep link to the invoice in Xero is returned. \
- This deep link can be used to view the contact in Xero directly. \
+ This deep link can be used to view the invoice in Xero directly. \
  This link should be displayed to the user.",
   {
     invoiceId: z.string().describe("The ID of the invoice to update."),

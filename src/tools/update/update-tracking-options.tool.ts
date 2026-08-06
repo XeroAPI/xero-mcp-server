@@ -24,7 +24,7 @@ const UpdateTrackingOptionsTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error while creating tracking options: ${response.error}`
+            text: `Error while updating tracking options: ${response.error}`
           }
         ]
       };

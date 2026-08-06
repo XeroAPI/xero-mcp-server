@@ -52,7 +52,7 @@ const CreateBankTransactionTool = CreateXeroTool(
         {
           type: "text" as const,
           text: [
-            "Bank transaction successfully:",
+            "Bank transaction created successfully:",
             `ID: ${bankTransaction?.bankTransactionID}`,
             `Date: ${bankTransaction?.date}`,
             `Contact: ${bankTransaction?.contact?.name}`,

@@ -60,7 +60,7 @@ async function updateContact(
 }
 
 /**
- * Create a new invoice in Xero
+ * Update an existing contact in Xero
  */
 export async function updateXeroContact(
   contactId: string,

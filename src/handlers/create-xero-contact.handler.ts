@@ -38,7 +38,7 @@ async function createContact(
 }
 
 /**
- * Create a new invoice in Xero
+ * Create a new contact in Xero
  */
 export async function createXeroContact(
   name: string,
