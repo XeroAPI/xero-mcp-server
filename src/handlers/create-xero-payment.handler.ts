@@ -11,6 +11,7 @@ type PaymentProps = {
   overpaymentId?: string;
   accountId: string;
   amount: number;
+  bankAmount?: number;
   date?: string;
   reference?: string;
   idempotencyKey?: string;
@@ -23,6 +24,7 @@ async function createPayment({
   overpaymentId,
   accountId,
   amount,
+  bankAmount,
   date,
   reference,
   idempotencyKey,
@@ -49,6 +51,7 @@ async function createPayment({
       accountID: accountId,
     },
     amount: amount,
+    ...(bankAmount !== undefined ? { bankAmount } : {}),
     date,
     reference: reference,
   };
@@ -73,6 +76,7 @@ export async function createXeroPayment({
   overpaymentId,
   accountId,
   amount,
+  bankAmount,
   date,
   reference,
   idempotencyKey,
@@ -85,6 +89,7 @@ export async function createXeroPayment({
       overpaymentId,
       accountId,
       amount,
+      bankAmount,
       date,
       reference,
       idempotencyKey,

@@ -25,6 +25,13 @@ const CreatePaymentTool = CreateXeroTool(
       .number()
       .positive()
       .describe("The amount of the payment (must be positive)"),
+    bankAmount: z
+      .number()
+      .positive()
+      .optional()
+      .describe(
+        "Optional payment amount in the bank account's currency. For foreign-currency payments, provide this with amount so Xero can derive the exchange rate.",
+      ),
     date: z
       .string()
       .optional()
@@ -44,6 +51,7 @@ const CreatePaymentTool = CreateXeroTool(
     overpaymentId,
     accountId,
     amount,
+    bankAmount,
     date,
     reference,
     idempotencyKey,
@@ -55,6 +63,7 @@ const CreatePaymentTool = CreateXeroTool(
       overpaymentId,
       accountId,
       amount,
+      bankAmount,
       date,
       reference,
       idempotencyKey,
@@ -89,6 +98,8 @@ const CreatePaymentTool = CreateXeroTool(
             payment.prepayment?.prepaymentID ? `Prepayment ID: ${payment.prepayment.prepaymentID}` : null,
             payment.overpayment?.overpaymentID ? `Overpayment ID: ${payment.overpayment.overpaymentID}` : null,
             `Amount: ${payment?.amount}`,
+            payment.bankAmount !== undefined ? `Bank Amount: ${payment.bankAmount}` : null,
+            payment.currencyRate !== undefined ? `Currency Rate: ${payment.currencyRate}` : null,
             `Status: ${payment?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,
           ]

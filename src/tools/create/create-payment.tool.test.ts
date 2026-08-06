@@ -30,6 +30,8 @@ describe("create-payment tool", () => {
         paymentID: "payment-id",
         creditNoteNumber: "CN-001",
         amount: 10,
+        bankAmount: 15,
+        currencyRate: 1.5,
         status: "AUTHORISED",
       },
     });
@@ -48,6 +50,7 @@ describe("create-payment tool", () => {
       overpaymentId: undefined,
       accountId: "account-id",
       amount: 10,
+      bankAmount: undefined,
       date: undefined,
       reference: undefined,
       idempotencyKey: "payment-retry-key",
@@ -59,6 +62,8 @@ describe("create-payment tool", () => {
         "ID: payment-id",
         "Credit Note Number: CN-001",
         "Amount: 10",
+        "Bank Amount: 15",
+        "Currency Rate: 1.5",
         "Status: AUTHORISED",
         "Link to view: https://go.xero.com/payment",
       ].join("\n"),
@@ -80,5 +85,38 @@ describe("create-payment tool", () => {
       amount: 10,
       idempotencyKey: "x".repeat(129),
     }).success).toBe(false);
+    expect(schema.safeParse({
+      invoiceId: "invoice-id",
+      accountId: "account-id",
+      amount: 10,
+      bankAmount: 0,
+    }).success).toBe(false);
+  });
+
+  it("forwards a bank-currency amount for foreign-currency payments", async () => {
+    mocks.createPayment.mockResolvedValue({
+      isError: false,
+      result: {
+        paymentID: "payment-id",
+        amount: 100,
+        bankAmount: 150,
+        currencyRate: 1.5,
+        status: "AUTHORISED",
+      },
+    });
+
+    await CreatePaymentTool().handler({
+      invoiceId: "invoice-id",
+      accountId: "bank-account-id",
+      amount: 100,
+      bankAmount: 150,
+    }, {} as never);
+
+    expect(mocks.createPayment).toHaveBeenCalledWith(expect.objectContaining({
+      invoiceId: "invoice-id",
+      accountId: "bank-account-id",
+      amount: 100,
+      bankAmount: 150,
+    }));
   });
 });

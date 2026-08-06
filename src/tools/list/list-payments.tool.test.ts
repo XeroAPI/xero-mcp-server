@@ -20,6 +20,8 @@ describe("list-payments tool", () => {
           paymentID: "credit-note-payment-id",
           date: "2026-08-06",
           amount: 50,
+          bankAmount: 75,
+          currencyRate: 1.5,
           account: { code: "090", accountID: "bank-account-id" },
           creditNote: {
             creditNoteID: "credit-note-id",
@@ -55,6 +57,8 @@ describe("list-payments tool", () => {
       expect.objectContaining({ text: expect.stringContaining("Prepayment ID: prepayment-id") }),
       expect.objectContaining({ text: expect.stringContaining("Invoice Number: PP-001") }),
       expect.objectContaining({ text: expect.stringContaining("Overpayment ID: overpayment-id") }),
+      expect.objectContaining({ text: expect.stringContaining("Bank Amount: 75") }),
+      expect.objectContaining({ text: expect.stringContaining("Currency Rate: 1.5") }),
     ]));
   });
 

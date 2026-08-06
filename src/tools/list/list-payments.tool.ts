@@ -8,6 +8,8 @@ function paymentFormatter(payment: Payment): string {
     `Payment ID: ${payment.paymentID || "Unknown"}`,
     `Date: ${payment.date || "Unknown date"}`,
     `Amount: ${payment.amount || 0}`,
+    payment.bankAmount !== undefined ? `Bank Amount: ${payment.bankAmount}` : null,
+    payment.currencyRate !== undefined ? `Currency Rate: ${payment.currencyRate}` : null,
     payment.reference ? `Reference: ${payment.reference}` : null,
     payment.status ? `Status: ${payment.status}` : null,
     payment.paymentType ? `Payment Type: ${payment.paymentType}` : null,
