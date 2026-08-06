@@ -33,7 +33,20 @@ const CreateManualJournalTool = CreateXeroTool(
             .string()
             .optional()
             .describe("Optional tax type for the manual journal line"),
-          // TODO: TODO: tracking can be added here
+          tracking: z
+            .array(
+              z.object({
+                trackingCategoryID: z
+                  .string()
+                  .describe("Tracking category ID from list-tracking-categories"),
+                trackingOptionID: z
+                  .string()
+                  .describe("Tracking option ID from list-tracking-categories"),
+              }),
+            )
+            .max(2)
+            .optional()
+            .describe("Optional tracking allocations. A journal line can use at most two categories."),
         }),
       )
       .describe(
@@ -109,9 +122,9 @@ const CreateManualJournalTool = CreateXeroTool(
                 ? `Status: ${manualJournal.status}`
                 : "No status",
               manualJournal.journalLines
-                ? manualJournal.journalLines.map((line) => ({
-                    type: "text" as const,
-                    text: [
+                ? manualJournal.journalLines
+                    .map((line) =>
+                      [
                       `Line Amount: ${line.lineAmount}`,
                       line.accountCode
                         ? `Account Code: ${line.accountCode}`
@@ -122,12 +135,18 @@ const CreateManualJournalTool = CreateXeroTool(
                       line.taxType
                         ? `Tax Type: ${line.taxType}`
                         : "No tax type",
+                      line.tracking?.length
+                        ? `Tracking: ${line.tracking
+                            .map((tracking) => tracking.option ?? tracking.trackingOptionID)
+                            .join(", ")}`
+                        : null,
                       `Tax Amount: ${line.taxAmount}`,
                     ]
                       .filter(Boolean)
                       .join("\n"),
-                  }))
-                : [{ type: "text" as const, text: "No journal lines" }],
+                    )
+                    .join("\n\n")
+                : "No journal lines",
               `Show on Cash Basis Reports: ${manualJournal.showOnCashBasisReports}`,
               deepLink ? `Link to view: ${deepLink}` : null,
             ]

@@ -31,7 +31,20 @@ const UpdateManualJournalTool = CreateXeroTool(
             .string()
             .optional()
             .describe("Optional tax type for the manual journal line"),
-          // TODO: TODO: tracking can be added here
+          tracking: z
+            .array(
+              z.object({
+                trackingCategoryID: z
+                  .string()
+                  .describe("Tracking category ID from list-tracking-categories"),
+                trackingOptionID: z
+                  .string()
+                  .describe("Tracking option ID from list-tracking-categories"),
+              }),
+            )
+            .max(2)
+            .optional()
+            .describe("Optional tracking allocations. A journal line can use at most two categories."),
         }),
       )
       .describe(

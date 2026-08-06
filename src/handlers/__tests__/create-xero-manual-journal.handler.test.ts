@@ -49,4 +49,24 @@ describe("createXeroManualJournal", () => {
       "manual-journal-retry-key",
     );
   });
+
+  it("preserves tracking allocations on journal lines", async () => {
+    const tracking = [{
+      trackingCategoryID: "category-id",
+      trackingOptionID: "option-id",
+    }];
+
+    const result = await createXeroManualJournal(
+      "Accrual",
+      [
+        { lineAmount: 100, accountCode: "200", tracking },
+        { lineAmount: -100, accountCode: "300" },
+      ],
+    );
+
+    expect(result.isError).toBe(false);
+    expect(
+      mocks.createManualJournals.mock.calls[0][1].manualJournals[0].journalLines?.[0].tracking,
+    ).toEqual(tracking);
+  });
 });

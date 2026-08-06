@@ -70,6 +70,11 @@ If they want the next page, call this tool again with the next page number, modi
                       ? `Description: ${line.description}`
                       : "No description",
                     line.taxType ? `Tax Type: ${line.taxType}` : "No tax type",
+                    line.tracking?.length
+                      ? `Tracking: ${line.tracking
+                          .map((tracking) => tracking.option ?? tracking.trackingOptionID)
+                          .join(", ")}`
+                      : null,
                     `Tax Amount: ${line.taxAmount}`,
                   ]
                     .filter(Boolean)
