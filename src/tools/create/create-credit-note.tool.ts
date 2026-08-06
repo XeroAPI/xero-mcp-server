@@ -2,13 +2,18 @@ import { z } from "zod";
 import { createXeroCreditNote } from "../../handlers/create-xero-credit-note.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { CreditNote } from "xero-node";
 
 const lineItemSchema = z.object({
-  description: z.string(),
-  quantity: z.number(),
-  unitAmount: z.number(),
-  accountCode: z.string(),
-  taxType: z.string(),
+  description: z.string().min(1).optional(),
+  quantity: z.number().optional(),
+  unitAmount: z.number().optional(),
+  itemCode: z.string().optional(),
+  accountCode: z.string().optional(),
+  taxType: z.string().optional(),
+}).refine((lineItem) => lineItem.description || lineItem.itemCode, {
+  message: "A line item requires a description or item code.",
+  path: ["description"],
 });
 
 const CreateCreditNoteTool = CreateXeroTool(
@@ -19,11 +24,19 @@ const CreateCreditNoteTool = CreateXeroTool(
  This link should be displayed to the user.",
   {
     contactId: z.string(),
-    lineItems: z.array(lineItemSchema),
-    reference: z.string().optional(),
+    lineItems: z.array(lineItemSchema).optional(),
+    type: z.enum(["ACCRECCREDIT", "ACCPAYCREDIT"]).optional().describe(
+      "The credit note type. ACCRECCREDIT is for customer credit notes and ACCPAYCREDIT is for supplier credit notes. Defaults to ACCRECCREDIT.",
+    ),
+    reference: z.string().optional().describe(
+      "Reference for an ACCRECCREDIT note or the credit note number for an ACCPAYCREDIT note.",
+    ),
   },
-  async ({ contactId, lineItems, reference }) => {
-    const result = await createXeroCreditNote(contactId, lineItems, reference);
+  async ({ contactId, lineItems, type, reference }) => {
+    const creditNoteType = type === "ACCPAYCREDIT"
+      ? CreditNote.TypeEnum.ACCPAYCREDIT
+      : CreditNote.TypeEnum.ACCRECCREDIT;
+    const result = await createXeroCreditNote(contactId, lineItems, creditNoteType, reference);
     if (result.isError) {
       return {
         content: [
@@ -49,6 +62,7 @@ const CreateCreditNoteTool = CreateXeroTool(
             "Credit note created successfully:",
             `ID: ${creditNote?.creditNoteID}`,
             `Contact: ${creditNote?.contact?.name}`,
+            `Type: ${creditNote?.type}`,
             `Total: ${creditNote?.total}`,
             `Status: ${creditNote?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

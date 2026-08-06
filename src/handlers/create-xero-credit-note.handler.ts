@@ -5,28 +5,34 @@ import { CreditNote } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface CreditNoteLineItem {
-  description: string;
-  quantity: number;
-  unitAmount: number;
-  accountCode: string;
-  taxType: string;
+  description?: string;
+  quantity?: number;
+  unitAmount?: number;
+  itemCode?: string;
+  accountCode?: string;
+  taxType?: string;
 }
 
 async function createCreditNote(
   contactId: string,
-  lineItems: CreditNoteLineItem[],
-  reference: string | undefined,
+  lineItems: CreditNoteLineItem[] | undefined,
+  type: CreditNote.TypeEnum,
+  reference?: string,
 ): Promise<CreditNote | undefined> {
   await xeroClient.authenticate();
 
   const creditNote: CreditNote = {
-    type: CreditNote.TypeEnum.ACCRECCREDIT,
+    type,
     contact: {
       contactID: contactId,
     },
-    lineItems: lineItems,
+    ...(lineItems ? { lineItems } : {}),
     date: new Date().toISOString().split("T")[0], // Today's date
-    reference: reference,
+    ...(reference !== undefined
+      ? type === CreditNote.TypeEnum.ACCPAYCREDIT
+        ? { creditNoteNumber: reference }
+        : { reference }
+      : {}),
     status: CreditNote.StatusEnum.DRAFT,
   };
 
@@ -49,13 +55,15 @@ async function createCreditNote(
  */
 export async function createXeroCreditNote(
   contactId: string,
-  lineItems: CreditNoteLineItem[],
+  lineItems?: CreditNoteLineItem[],
+  type: CreditNote.TypeEnum = CreditNote.TypeEnum.ACCRECCREDIT,
   reference?: string,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const createdCreditNote = await createCreditNote(
       contactId,
       lineItems,
+      type,
       reference,
     );
 
