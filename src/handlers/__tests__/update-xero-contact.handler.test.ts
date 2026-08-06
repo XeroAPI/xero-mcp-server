@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Address, Contact } from "xero-node";
+import { Address, Contact, Phone } from "xero-node";
 
 const mocks = vi.hoisted(() => ({
   authenticate: vi.fn(),
@@ -79,6 +79,44 @@ describe("updateXeroContact", () => {
               {
                 phoneNumber: "",
                 phoneType: "MOBILE",
+              },
+            ],
+          }),
+        ],
+      },
+      undefined,
+      { headers: {} },
+    );
+  });
+
+  it("preserves the supplied phone type and dialing codes", async () => {
+    const result = await updateXeroContact(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "5551234",
+      undefined,
+      undefined,
+      Phone.PhoneTypeEnum.OFFICE,
+      "64",
+      "04",
+    );
+
+    expect(result.isError).toBe(false);
+    expect(mocks.updateContact).toHaveBeenCalledWith(
+      "tenant-id",
+      "contact-id",
+      {
+        contacts: [
+          expect.objectContaining({
+            phones: [
+              {
+                phoneNumber: "5551234",
+                phoneType: Phone.PhoneTypeEnum.OFFICE,
+                phoneCountryCode: "64",
+                phoneAreaCode: "04",
               },
             ],
           }),

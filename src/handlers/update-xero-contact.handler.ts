@@ -12,6 +12,9 @@ async function updateContact(
   phone: string | undefined,
   address: Address | undefined,
   contactStatus: Contact.ContactStatusEnum | undefined,
+  phoneType: Phone.PhoneTypeEnum | undefined,
+  phoneCountryCode: string | undefined,
+  phoneAreaCode: string | undefined,
   contactId: string,
 ): Promise<Contact | undefined> {
   await xeroClient.authenticate();
@@ -26,7 +29,9 @@ async function updateContact(
       ? [
           {
             phoneNumber: phone,
-            phoneType: Phone.PhoneTypeEnum.MOBILE,
+            phoneType: phoneType ?? Phone.PhoneTypeEnum.MOBILE,
+            phoneCountryCode,
+            phoneAreaCode,
           },
         ]
       : undefined,
@@ -73,6 +78,9 @@ export async function updateXeroContact(
   phone?: string,
   address?: Address,
   contactStatus?: Contact.ContactStatusEnum,
+  phoneType?: Phone.PhoneTypeEnum,
+  phoneCountryCode?: string,
+  phoneAreaCode?: string,
 ): Promise<XeroClientResponse<Contact>> {
   try {
     const updatedContact = await updateContact(
@@ -83,6 +91,9 @@ export async function updateXeroContact(
       phone,
       address,
       contactStatus,
+      phoneType,
+      phoneCountryCode,
+      phoneAreaCode,
       contactId,
     );
 

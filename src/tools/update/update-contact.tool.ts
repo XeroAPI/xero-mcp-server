@@ -1,6 +1,6 @@
 import { updateXeroContact } from "../../handlers/update-xero-contact.handler.js";
 import { z } from "zod";
-import { Address, Contact } from "xero-node";
+import { Address, Contact, Phone } from "xero-node";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
@@ -18,6 +18,18 @@ const UpdateContactTool = CreateXeroTool(
     lastName: z.string().optional(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    phoneType: z
+      .enum(["DEFAULT", "DDI", "MOBILE", "FAX", "OFFICE"])
+      .optional()
+      .describe("Type of the supplied phone number. Defaults to MOBILE."),
+    phoneCountryCode: z
+      .string()
+      .optional()
+      .describe("Country calling code for the supplied phone number, without the leading +."),
+    phoneAreaCode: z
+      .string()
+      .optional()
+      .describe("Area code for the supplied phone number."),
     contactStatus: z
       .enum(["ACTIVE", "ARCHIVED"])
       .optional()
@@ -44,6 +56,9 @@ const UpdateContactTool = CreateXeroTool(
     lastName,
     email,
     phone,
+    phoneType,
+    phoneCountryCode,
+    phoneAreaCode,
     contactStatus,
     address,
   }: {
@@ -51,6 +66,9 @@ const UpdateContactTool = CreateXeroTool(
     name?: string;
     email?: string;
     phone?: string;
+    phoneType?: "DEFAULT" | "DDI" | "MOBILE" | "FAX" | "OFFICE";
+    phoneCountryCode?: string;
+    phoneAreaCode?: string;
     contactStatus?: "ACTIVE" | "ARCHIVED";
     address?: {
       addressLine1: string;
@@ -64,12 +82,40 @@ const UpdateContactTool = CreateXeroTool(
     firstName?: string;
     lastName?: string;
   }) => {
-    if ([name, firstName, lastName, email, phone, contactStatus, address].every((value) => value === undefined)) {
+    const hasPhoneDetails = [
+      phoneType,
+      phoneCountryCode,
+      phoneAreaCode,
+    ].some((value) => value !== undefined);
+
+    if ([
+      name,
+      firstName,
+      lastName,
+      email,
+      phone,
+      phoneType,
+      phoneCountryCode,
+      phoneAreaCode,
+      contactStatus,
+      address,
+    ].every((value) => value === undefined)) {
       return {
         content: [
           {
             type: "text" as const,
             text: "Error updating contact: Provide at least one contact field to update.",
+          },
+        ],
+      };
+    }
+
+    if (phone === undefined && hasPhoneDetails) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error updating contact: A phone number is required when setting phone details.",
           },
         ],
       };
@@ -95,6 +141,9 @@ const UpdateContactTool = CreateXeroTool(
         contactStatus
           ? Contact.ContactStatusEnum[contactStatus]
           : undefined,
+        phoneType ? Phone.PhoneTypeEnum[phoneType] : undefined,
+        phoneCountryCode,
+        phoneAreaCode,
       );
       if (response.isError) {
         return {

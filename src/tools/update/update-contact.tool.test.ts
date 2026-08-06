@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Address, Contact } from "xero-node";
+import { Address, Contact, Phone } from "xero-node";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -55,6 +55,9 @@ describe("update-contact tool", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
+      undefined,
+      undefined,
     );
   });
 
@@ -85,6 +88,9 @@ describe("update-contact tool", () => {
       undefined,
       undefined,
       Contact.ContactStatusEnum.ARCHIVED,
+      undefined,
+      undefined,
+      undefined,
     );
   });
 
@@ -118,7 +124,62 @@ describe("update-contact tool", () => {
         addressType: Address.AddressTypeEnum.POBOX,
       }),
       undefined,
+      undefined,
+      undefined,
+      undefined,
     );
+  });
+
+  it("accepts and forwards complete phone details", async () => {
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      phone: "5551234",
+      phoneType: "OFFICE",
+      phoneCountryCode: "64",
+      phoneAreaCode: "04",
+    }).success).toBe(true);
+
+    mocks.updateXeroContact.mockResolvedValue({
+      result: { contactID: "contact-id", name: "Example contact" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      contactId: "contact-id",
+      phone: "5551234",
+      phoneType: "OFFICE",
+      phoneCountryCode: "64",
+      phoneAreaCode: "04",
+    }, {} as never);
+
+    expect(mocks.updateXeroContact).toHaveBeenCalledWith(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "5551234",
+      undefined,
+      undefined,
+      Phone.PhoneTypeEnum.OFFICE,
+      "64",
+      "04",
+    );
+  });
+
+  it("does not send phone metadata without a phone number", async () => {
+    const result = await tool.handler({
+      contactId: "contact-id",
+      phoneType: "OFFICE",
+    }, {} as never);
+
+    expect(mocks.updateXeroContact).not.toHaveBeenCalled();
+    expect(result.content[0]).toMatchObject({
+      type: "text",
+      text: expect.stringContaining("A phone number is required"),
+    });
   });
 
   it("does not send an empty update to Xero", async () => {
