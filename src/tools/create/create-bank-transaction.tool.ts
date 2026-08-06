@@ -29,7 +29,7 @@ const CreateBankTransactionTool = CreateXeroTool(
     reference: z.string().optional(),
     date: z.string()
       .optional()
-      .describe("If no date is provided, the date will default to today's date"),
+      .describe("Optional transaction date (YYYY-MM-DD). When omitted, Xero applies the current date in the organisation's timezone."),
     isReconciled: z.boolean().optional().describe(
       "Optional reconciliation state. Use true only when the transaction should be marked reconciled.",
     ),

@@ -41,6 +41,25 @@ describe("createXeroBankTransaction", () => {
       lineItems: [{ description: "Bank fee" }],
     });
     expect(bankTransaction).not.toHaveProperty("contact");
+    expect(bankTransaction).not.toHaveProperty("date");
+  });
+
+  it("sends an explicitly supplied transaction date", async () => {
+    mocks.createBankTransactions.mockResolvedValue({
+      body: { bankTransactions: [{ bankTransactionID: "bank-transaction-id" }] },
+    });
+
+    await createXeroBankTransaction(
+      "SPEND",
+      "bank-account-id",
+      undefined,
+      [{ description: "Bank fee" }],
+      undefined,
+      "2026-08-06",
+    );
+
+    const bankTransaction = mocks.createBankTransactions.mock.calls[0]?.[1].bankTransactions[0];
+    expect(bankTransaction).toHaveProperty("date", "2026-08-06");
   });
 
   it("sets the requested reconciliation state", async () => {

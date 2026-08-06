@@ -34,7 +34,7 @@ async function createBankTransaction(
     },
     ...(contactId ? { contact: { contactID: contactId } } : {}),
     lineItems: lineItems,
-    date: date ?? new Date().toISOString().split("T")[0],
+    ...(date !== undefined ? { date } : {}),
     reference: reference,
     ...(isReconciled !== undefined ? { isReconciled } : {}),
     status: BankTransaction.StatusEnum.AUTHORISED
