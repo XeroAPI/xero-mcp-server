@@ -52,4 +52,32 @@ describe("item validation errors", () => {
       error: "Item is archived",
     });
   });
+
+  it("treats a message-less Xero create validation error as a failure", async () => {
+    mocks.createItems.mockResolvedValue({
+      body: { items: [{ validationErrors: [{}] }] },
+    });
+
+    const result = await createXeroItem({ code: "SKU-001", name: "Example item" });
+
+    expect(result).toEqual({
+      result: null,
+      isError: true,
+      error: "Item creation failed due to validation errors.",
+    });
+  });
+
+  it("treats Xero's hasErrors flag as an update failure without validation messages", async () => {
+    mocks.updateItem.mockResolvedValue({
+      body: { items: [{ hasErrors: true }] },
+    });
+
+    const result = await updateXeroItem("item-id", { code: "SKU-001", name: "Example item" });
+
+    expect(result).toEqual({
+      result: null,
+      isError: true,
+      error: "Item update failed due to validation errors.",
+    });
+  });
 });

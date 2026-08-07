@@ -74,12 +74,19 @@ function ensureItemCreated(item: Item | null): Item {
     throw new Error("Item creation failed.");
   }
 
-  const validationErrors = item.validationErrors
+  const validationErrors = item.validationErrors ?? [];
+  const validationErrorMessages = validationErrors
     ?.map((validationError) => validationError.message)
     .filter((message): message is string => Boolean(message));
 
-  if (validationErrors?.length) {
-    throw new Error(validationErrors.join("; "));
+  if (
+    validationErrors.length > 0 ||
+    (item as Item & { hasErrors?: boolean }).hasErrors === true
+  ) {
+    throw new Error(
+      validationErrorMessages?.join("; ") ||
+        "Item creation failed due to validation errors."
+    );
   }
 
   return item;
