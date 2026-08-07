@@ -96,6 +96,40 @@ describe("update-contact tool", () => {
     );
   });
 
+  it("accepts and forwards a GDPR erasure request status update", async () => {
+    expect(schema.safeParse({
+      contactId: "contact-id",
+      contactStatus: "GDPRREQUEST",
+    }).success).toBe(true);
+
+    mocks.updateXeroContact.mockResolvedValue({
+      result: { contactID: "contact-id", name: "Example contact" },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      contactId: "contact-id",
+      contactStatus: "GDPRREQUEST",
+    }, {} as never);
+
+    expect(mocks.updateXeroContact).toHaveBeenCalledWith(
+      "contact-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      Contact.ContactStatusEnum.GDPRREQUEST,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+  });
+
   it("accepts and forwards a PO Box address update", async () => {
     expect(schema.safeParse({
       contactId: "contact-id",

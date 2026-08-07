@@ -31,9 +31,11 @@ const UpdateContactTool = CreateXeroTool(
       .optional()
       .describe("Area code for the supplied phone number."),
     contactStatus: z
-      .enum(["ACTIVE", "ARCHIVED"])
+      .enum(["ACTIVE", "ARCHIVED", "GDPRREQUEST"])
       .optional()
-      .describe("Optional lifecycle status. Archived contacts cannot be used in transactions."),
+      .describe(
+        "Optional lifecycle status. Archived contacts cannot be used in transactions; GDPRREQUEST requests data erasure.",
+      ),
     address: z
       .object({
         addressLine1: z.string(),
@@ -73,7 +75,7 @@ const UpdateContactTool = CreateXeroTool(
     phoneType?: "DEFAULT" | "DDI" | "MOBILE" | "FAX" | "OFFICE";
     phoneCountryCode?: string;
     phoneAreaCode?: string;
-    contactStatus?: "ACTIVE" | "ARCHIVED";
+    contactStatus?: "ACTIVE" | "ARCHIVED" | "GDPRREQUEST";
     address?: {
       addressLine1: string;
       addressLine2?: string;
