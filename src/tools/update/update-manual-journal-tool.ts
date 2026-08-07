@@ -47,15 +47,19 @@ const UpdateManualJournalTool = CreateXeroTool(
             .describe("Optional tracking allocations. A journal line can use at most two categories."),
         }),
       )
+      .min(
+        2,
+        "The manualJournalLines element must contain at least two individual manualJournalLine sub-elements",
+      )
       .describe(
         "The manualJournalLines element must contain at least two individual manualJournalLine sub-elements",
       ),
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
     lineAmountTypes: z
-      .enum(["EXCLUSIVE", "INCLUSIVE", "NO_TAX"])
+      .nativeEnum(LineAmountTypes)
       .optional()
       .describe(
-        "Optional line amount types (EXCLUSIVE, INCLUSIVE, NO_TAX), NO_TAX by default",
+        "Optional line amount types (Exclusive, Inclusive, NoTax), NoTax by default",
       ),
     status: z
       .enum(["DRAFT", "POSTED"])
@@ -84,7 +88,7 @@ const UpdateManualJournalTool = CreateXeroTool(
         args.manualJournalID,
         args.manualJournalLines,
         args.date,
-        args.lineAmountTypes as LineAmountTypes | undefined,
+        args.lineAmountTypes,
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,

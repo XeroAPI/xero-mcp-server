@@ -53,4 +53,32 @@ describe("manual journal status validation", () => {
       { ...line, lineAmount: -100 },
     ]).success).toBe(false);
   });
+
+  it.each([
+    ["create", CreateManualJournalTool],
+    ["update", UpdateManualJournalTool],
+  ] as const)("requires at least two journal lines for %s", (_operation, createTool) => {
+    const schema = createTool().schema as unknown as {
+      manualJournalLines: { safeParse: (value: unknown) => { success: boolean } };
+    };
+    const line = { lineAmount: 100, accountCode: "200" };
+
+    expect(schema.manualJournalLines.safeParse([]).success).toBe(false);
+    expect(schema.manualJournalLines.safeParse([line]).success).toBe(false);
+    expect(schema.manualJournalLines.safeParse([line, { ...line, lineAmount: -100 }]).success).toBe(true);
+  });
+
+  it.each([
+    ["create", CreateManualJournalTool],
+    ["update", UpdateManualJournalTool],
+  ] as const)("uses Xero SDK line amount types for %s", (_operation, createTool) => {
+    const schema = createTool().schema as unknown as {
+      lineAmountTypes: { safeParse: (value: unknown) => { success: boolean } };
+    };
+
+    expect(schema.lineAmountTypes.safeParse("Exclusive").success).toBe(true);
+    expect(schema.lineAmountTypes.safeParse("Inclusive").success).toBe(true);
+    expect(schema.lineAmountTypes.safeParse("NoTax").success).toBe(true);
+    expect(schema.lineAmountTypes.safeParse("EXCLUSIVE").success).toBe(false);
+  });
 });
