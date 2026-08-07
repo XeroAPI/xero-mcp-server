@@ -70,4 +70,45 @@ describe("bank transaction tool deep links", () => {
       text: expect.stringContaining("Link to view: https://go.xero.com/bank-transaction"),
     });
   });
+
+  it("reports a successful creation when its optional deep link cannot be generated", async () => {
+    mocks.createBankTransaction.mockResolvedValue({
+      isError: false,
+      result: bankTransaction,
+    });
+    mocks.getDeepLink.mockRejectedValue(new Error("Short code unavailable"));
+
+    const result = await CreateBankTransactionTool().handler({
+      type: "RECEIVE",
+      bankAccountId: "account-id",
+      contactId: "contact-id",
+      lineItems: [],
+    }, {} as never);
+
+    expect(result.content[0]).toMatchObject({
+      text: expect.stringContaining("Bank transaction successfully:"),
+    });
+    expect(result.content[0]).not.toMatchObject({
+      text: expect.stringContaining("Link to view:"),
+    });
+  });
+
+  it("reports a successful update when its optional deep link cannot be generated", async () => {
+    mocks.updateBankTransaction.mockResolvedValue({
+      isError: false,
+      result: bankTransaction,
+    });
+    mocks.getDeepLink.mockRejectedValue(new Error("Short code unavailable"));
+
+    const result = await UpdateBankTransactionTool().handler({
+      bankTransactionId: "transaction-id",
+    }, {} as never);
+
+    expect(result.content[0]).toMatchObject({
+      text: expect.stringContaining("Bank transaction updated successfully:"),
+    });
+    expect(result.content[0]).not.toMatchObject({
+      text: expect.stringContaining("Link to view:"),
+    });
+  });
 });

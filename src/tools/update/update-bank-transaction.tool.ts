@@ -54,7 +54,10 @@ const UpdateBankTransactionTool = CreateXeroTool(
     const bankTransaction = result.result;
 
     const deepLink = bankTransaction.bankTransactionID
-      ? await getDeepLink(DeepLinkType.BANK_TRANSACTION, bankTransaction.bankTransactionID)
+      ? await getDeepLink(
+          DeepLinkType.BANK_TRANSACTION,
+          bankTransaction.bankTransactionID,
+        ).catch(() => null)
       : null;
 
     return {
