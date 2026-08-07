@@ -88,11 +88,13 @@ function formatXeroSdkError(error: XeroSdkError): string {
     : undefined;
   const title = getString(problem?.title)
     ?? getString(bodyFields?.httpStatusCode)
+    ?? getString(bodyFields?.Type)
     ?? "HTTP error";
   const detail = getString(problem?.detail)
     ?? getString(bodyFields?.detail)
     ?? getString(bodyFields?.Detail)
-    ?? getValidationErrorDetail(body);
+    ?? getValidationErrorDetail(body)
+    ?? getString(bodyFields?.Message);
   return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
 }
 
@@ -112,6 +114,7 @@ export function formatError(error: unknown): string {
       ? getString(responseBody.Detail)
         ?? getString(responseBody.detail)
         ?? getValidationErrorDetail(responseBody)
+        ?? getString(responseBody.Message)
       : undefined;
 
     if (status !== undefined) {

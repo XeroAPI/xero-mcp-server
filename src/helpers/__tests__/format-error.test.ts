@@ -161,6 +161,43 @@ describe("formatError", () => {
       expect(result).toBe("400 HTTP error: A contact is required.");
       expect(result).not.toContain("SDK_SECRET");
     });
+
+    it("uses Xero Type and Message fields when no detailed validation errors are present", () => {
+      const sdkError = JSON.stringify({
+        response: {
+          statusCode: 400,
+          body: {
+            Type: "ValidationException",
+            Message: "A validation exception occurred.",
+          },
+          request: { headers: { authorization: "Bearer SDK_SECRET" } },
+        },
+      });
+
+      const result = formatError(sdkError);
+
+      expect(result).toBe("400 ValidationException: A validation exception occurred.");
+      expect(result).not.toContain("SDK_SECRET");
+    });
+
+    it("prefers actionable nested validation messages over a generic Xero Message", () => {
+      const sdkError = {
+        response: {
+          statusCode: 400,
+          body: {
+            Type: "ValidationException",
+            Message: "A validation exception occurred.",
+            Elements: [{
+              ValidationErrors: [{ Message: "Account code is invalid." }],
+            }],
+          },
+        },
+      };
+
+      expect(formatError(sdkError)).toBe(
+        "400 ValidationException: Account code is invalid.",
+      );
+    });
   });
 
   describe("plain Error", () => {
