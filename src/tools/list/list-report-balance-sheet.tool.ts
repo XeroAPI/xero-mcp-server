@@ -51,7 +51,7 @@ const ListReportBalanceSheetTool = CreateXeroTool(
         },
         {
           type: "text" as const,
-          text: JSON.stringify(balanceSheetReport?.rows, null, 2),
+          text: JSON.stringify(balanceSheetReport?.rows ?? [], null, 2),
         },
       ],
     };

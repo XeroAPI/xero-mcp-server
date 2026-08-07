@@ -75,4 +75,23 @@ describe("report date labels", () => {
       expect.objectContaining({ text: "Generated date: 2026-08-06" }),
     ]));
   });
+
+  it("renders an empty row array when Xero omits balance sheet rows", async () => {
+    mocks.listXeroReportBalanceSheet.mockResolvedValue({
+      result: {
+        reportName: "Balance Sheet",
+        reportDate: "2026-08-06",
+        reportTitles: ["Balance Sheet", "Example organisation", "As at 31 July 2026"],
+      },
+      isError: false,
+      error: null,
+    });
+
+    const balanceSheet = await ListReportBalanceSheetTool().handler({}, {} as never);
+
+    expect(balanceSheet.content).toContainEqual({
+      type: "text",
+      text: "[]",
+    });
+  });
 });
