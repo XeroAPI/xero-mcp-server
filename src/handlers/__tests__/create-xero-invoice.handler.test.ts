@@ -161,4 +161,44 @@ describe("createXeroInvoice", () => {
     });
     expect(mocks.createInvoices).not.toHaveBeenCalled();
   });
+
+  it("returns resolved Xero validation errors instead of reporting a successful creation", async () => {
+    mocks.createInvoices.mockResolvedValue({
+      body: {
+        invoices: [{
+          validationErrors: [{ message: "Account code is invalid." }],
+        }],
+      },
+    });
+
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{ description: "Consulting services" }],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Account code is invalid.",
+    });
+  });
+
+  it("uses a generic error when Xero omits a validation message", async () => {
+    mocks.createInvoices.mockResolvedValue({
+      body: {
+        invoices: [{ hasErrors: true, validationErrors: [{}] }],
+      },
+    });
+
+    const result = await createXeroInvoice(
+      "contact-id",
+      [{ description: "Consulting services" }],
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Xero returned a validation error.",
+    });
+  });
 });
