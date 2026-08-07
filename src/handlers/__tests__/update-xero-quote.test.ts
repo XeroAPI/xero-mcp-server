@@ -139,6 +139,30 @@ describe("updateXeroQuote", () => {
     );
   });
 
+  it("rejects contact-only changes to deleted quotes", async () => {
+    mocks.getQuote.mockResolvedValue({
+      body: { quotes: [{ status: QuoteStatusCodes.DELETED }] },
+    });
+
+    const result = await updateXeroQuote(
+      "quote-id",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "updated-contact-id",
+    );
+
+    expect(result).toMatchObject({
+      result: null,
+      isError: true,
+      error: "Cannot update quote because it is neither editable nor eligible for the requested status transition. Current status: DELETED",
+    });
+    expect(mocks.updateQuote).not.toHaveBeenCalled();
+  });
+
   it("rejects field changes alongside a transition from a non-editable quote", async () => {
     mocks.getQuote.mockResolvedValue({
       body: { quotes: [{ status: QuoteStatusCodes.ACCEPTED }] },

@@ -128,6 +128,10 @@ export async function updateXeroQuote(
     ].some((value) => value !== undefined);
     const isContactOnlyUpdate =
       contactId !== undefined && !hasChangesOtherThanContact;
+    const allowsContactOnlyUpdate =
+      quoteStatus === QuoteStatusCodes.DECLINED ||
+      quoteStatus === QuoteStatusCodes.ACCEPTED ||
+      quoteStatus === QuoteStatusCodes.INVOICED;
 
     if (!isEditable && hasChangesOtherThanContact) {
       return {
@@ -140,7 +144,7 @@ export async function updateXeroQuote(
     if (
       nextStatus !== undefined
         ? !isValidStatusTransition
-        : !isEditable && !isContactOnlyUpdate
+        : !isEditable && !(isContactOnlyUpdate && allowsContactOnlyUpdate)
     ) {
       return {
         result: null,
