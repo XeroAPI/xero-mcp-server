@@ -38,7 +38,7 @@ const CreateCreditNoteTool = CreateXeroTool(
       "Optional issue date (YYYY-MM-DD). When omitted, Xero uses the current date in the organisation's timezone.",
     ),
     dueDate: z.string().optional().describe("Optional due date (YYYY-MM-DD)."),
-    status: z.enum(["DRAFT", "AUTHORISED"]).optional().describe(
+    status: z.enum(["DRAFT", "SUBMITTED", "AUTHORISED"]).optional().describe(
       "Credit note status. Defaults to DRAFT; AUTHORISED requires at least one line item.",
     ),
     idempotencyKey: z.string().min(1).max(128).optional().describe(
@@ -81,7 +81,9 @@ const CreateCreditNoteTool = CreateXeroTool(
     }
     const creditNoteStatus = status === "AUTHORISED"
       ? CreditNote.StatusEnum.AUTHORISED
-      : undefined;
+      : status === "SUBMITTED"
+        ? CreditNote.StatusEnum.SUBMITTED
+        : undefined;
     const result = await createXeroCreditNote(
       contactId,
       lineItems,

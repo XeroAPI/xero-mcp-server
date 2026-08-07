@@ -41,7 +41,7 @@ describe("create-credit-note tool", () => {
     expect(schema.safeParse({
       contactId: "contact-id",
       status: "SUBMITTED",
-    }).success).toBe(false);
+    }).success).toBe(true);
     expect(schema.safeParse({
       contactId: "contact-id",
       idempotencyKey: "x".repeat(129),
@@ -85,6 +85,37 @@ describe("create-credit-note tool", () => {
     );
     const text = result.content.find((content) => content.type === "text")?.text;
     expect(text).toContain("Due Date: 2026-08-30");
+  });
+
+  it("forwards submitted credit note status", async () => {
+    mocks.createXeroCreditNote.mockResolvedValue({
+      result: {
+        creditNoteID: "credit-note-id",
+        type: CreditNote.TypeEnum.ACCRECCREDIT,
+        status: CreditNote.StatusEnum.SUBMITTED,
+      },
+      isError: false,
+      error: null,
+    });
+    mocks.getDeepLink.mockResolvedValue(null);
+
+    await tool.handler({
+      contactId: "contact-id",
+      lineItems: [{ description: "Returned goods" }],
+      status: "SUBMITTED",
+    }, {} as never);
+
+    expect(mocks.createXeroCreditNote).toHaveBeenCalledWith(
+      "contact-id",
+      [{ description: "Returned goods" }],
+      CreditNote.TypeEnum.ACCRECCREDIT,
+      undefined,
+      CreditNote.StatusEnum.SUBMITTED,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
   });
 
   it("forwards and renders a customer credit note number", async () => {
