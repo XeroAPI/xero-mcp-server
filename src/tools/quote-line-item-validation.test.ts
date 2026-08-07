@@ -58,18 +58,18 @@ describe("quote line item validation", () => {
     }).success).toBe(true);
   });
 
-  it("requires a tax type whenever an account code is supplied", () => {
+  it("allows account-coded quote lines without a tax type", () => {
     const createSchema = z.object(CreateQuoteTool().schema as z.ZodRawShape);
     const updateSchema = z.object(UpdateQuoteTool().schema as z.ZodRawShape);
 
     expect(createSchema.safeParse({
       contactId: "contact-id",
       lineItems: [{ description: "Consulting services", accountCode: "200" }],
-    }).success).toBe(false);
+    }).success).toBe(true);
     expect(updateSchema.safeParse({
       quoteId: "quote-id",
       lineItems: [{ description: "Consulting services", accountCode: "200" }],
-    }).success).toBe(false);
+    }).success).toBe(true);
   });
 
   it("rejects empty and unidentified quote line items", () => {

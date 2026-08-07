@@ -18,12 +18,6 @@ interface QuoteLineItem {
   discountAmount?: number;
 }
 
-function hasAccountCodeWithoutTaxType(lineItems?: QuoteLineItem[]): boolean {
-  return lineItems?.some(
-    (lineItem) => lineItem.accountCode !== undefined && !lineItem.taxType?.trim(),
-  ) ?? false;
-}
-
 async function getQuote(quoteId: string): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
@@ -109,14 +103,6 @@ export async function updateXeroQuote(
   idempotencyKey?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
-    if (hasAccountCodeWithoutTaxType(lineItems)) {
-      return {
-        result: null,
-        isError: true,
-        error: "A quote line with an account code requires a tax type.",
-      };
-    }
-
     const existingQuote = await getQuote(quoteId);
 
     const quoteStatus = existingQuote?.status;

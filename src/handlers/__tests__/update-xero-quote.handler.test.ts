@@ -97,18 +97,17 @@ describe("updateXeroQuote", () => {
     expect(mocks.updateQuote.mock.calls[0][3]).toBe("quote-update-retry-key");
   });
 
-  it("rejects account-coded quote lines without a tax type", async () => {
+  it("forwards account-coded quote lines without a tax type", async () => {
     const result = await updateXeroQuote("quote-id", [{
       description: "Consulting services",
       accountCode: "200",
     }]);
 
-    expect(result).toMatchObject({
-      isError: true,
-      error: "A quote line with an account code requires a tax type.",
-    });
-    expect(mocks.getQuote).not.toHaveBeenCalled();
-    expect(mocks.updateQuote).not.toHaveBeenCalled();
+    expect(result.isError).toBe(false);
+    expect(mocks.updateQuote.mock.calls[0][2].quotes[0].lineItems).toEqual([
+      expect.objectContaining({ accountCode: "200" }),
+    ]);
+    expect(mocks.updateQuote.mock.calls[0][2].quotes[0].lineItems[0]).not.toHaveProperty("taxType");
   });
 
   it("reports a message-less validation error returned with an HTTP-successful update", async () => {
