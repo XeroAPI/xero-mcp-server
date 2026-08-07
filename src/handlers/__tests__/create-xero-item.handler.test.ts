@@ -48,4 +48,14 @@ describe("createXeroItem", () => {
       ],
     });
   });
+
+  it("leaves Xero sales and purchase availability defaults intact for a code-only item", async () => {
+    const result = await createXeroItem({ code: "SKU-001" });
+
+    expect(result.isError).toBe(false);
+
+    const requestItem = mocks.createItems.mock.calls[0][1].items[0];
+    expect(requestItem).not.toHaveProperty("isSold");
+    expect(requestItem).not.toHaveProperty("isPurchased");
+  });
 });

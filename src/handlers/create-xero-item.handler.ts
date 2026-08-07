@@ -33,8 +33,8 @@ async function createItem(
     name: itemDetails.name,
     description: itemDetails.description,
     purchaseDescription: itemDetails.purchaseDescription,
-    isPurchased: !!itemDetails.purchaseDetails,
-    isSold: !!itemDetails.salesDetails,
+    ...(itemDetails.purchaseDetails ? { isPurchased: true } : {}),
+    ...(itemDetails.salesDetails ? { isSold: true } : {}),
     purchaseDetails: itemDetails.purchaseDetails
       ? {
           unitPrice: itemDetails.purchaseDetails.unitPrice,
