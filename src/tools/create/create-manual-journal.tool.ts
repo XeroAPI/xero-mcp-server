@@ -104,11 +104,13 @@ const CreateManualJournalTool = CreateXeroTool(
               manualJournal.status
                 ? `Status: ${manualJournal.status}`
                 : "No status",
-              manualJournal.journalLines
+              manualJournal.journalLines?.length
                 ? manualJournal.journalLines
                     .map((line) =>
                       [
-                      `Line Amount: ${line.lineAmount}`,
+                      line.lineAmount !== undefined
+                        ? `Line Amount: ${line.lineAmount}`
+                        : "Line Amount: Not specified",
                       line.accountCode
                         ? `Account Code: ${line.accountCode}`
                         : "No account code",
@@ -118,14 +120,20 @@ const CreateManualJournalTool = CreateXeroTool(
                       line.taxType
                         ? `Tax Type: ${line.taxType}`
                         : "No tax type",
-                      `Tax Amount: ${line.taxAmount}`,
+                      line.taxAmount !== undefined
+                        ? `Tax Amount: ${line.taxAmount}`
+                        : "Tax Amount: Not specified",
                       ]
                         .filter(Boolean)
                         .join("\n"),
                     )
                     .join("\n\n")
                 : "No journal lines",
-              `Show on Cash Basis Reports: ${manualJournal.showOnCashBasisReports}`,
+              manualJournal.showOnCashBasisReports !== undefined
+                ? `Show on Cash Basis Reports: ${
+                    manualJournal.showOnCashBasisReports ? "Yes" : "No"
+                  }`
+                : "Show on Cash Basis Reports: Not specified",
               deepLink ? `Link to view: ${deepLink}` : null,
             ]
               .filter(Boolean)
