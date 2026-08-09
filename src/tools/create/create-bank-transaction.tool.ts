@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroBankTransaction } from "../../handlers/create-xero-bank-transaction.handler.js";
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
+import { idempotencyKeySchema, resolveIdempotencyKey } from "../../helpers/idempotency-key.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -25,10 +26,26 @@ const CreateBankTransactionTool = CreateXeroTool(
     reference: z.string().optional(),
     date: z.string()
       .optional()
-      .describe("If no date is provided, the date will default to today's date")
+      .describe("If no date is provided, the date will default to today's date"),
+    idempotencyKey: idempotencyKeySchema
+      .optional()
+      .describe("Optional key to reuse only when retrying this same bank transaction"),
   },
-  async ({ type, bankAccountId, contactId, lineItems, reference, date }) => {
-    const result = await createXeroBankTransaction(type, bankAccountId, contactId, lineItems, reference, date);
+  async ({ type, bankAccountId, contactId, lineItems, reference, date, idempotencyKey }, extra) => {
+    const result = await createXeroBankTransaction(
+      type,
+      bankAccountId,
+      contactId,
+      lineItems,
+      reference,
+      date,
+      resolveIdempotencyKey(
+        "create-bank-transaction",
+        extra.requestId,
+        idempotencyKey,
+        extra.sessionId,
+      ),
+    );
 
     if (result.isError) {
       return {

@@ -2,6 +2,10 @@ import { z } from "zod";
 import { createXeroPayment } from "../../handlers/create-xero-payment.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import {
+  idempotencyKeySchema,
+  resolveIdempotencyKey,
+} from "../../helpers/idempotency-key.js";
 
 const CreatePaymentTool = CreateXeroTool(
   "create-payment",
@@ -31,14 +35,26 @@ const CreatePaymentTool = CreateXeroTool(
       .string()
       .optional()
       .describe("Optional payment reference/description"),
+    idempotencyKey: idempotencyKeySchema
+      .optional()
+      .describe("Optional key to reuse only when retrying this same payment"),
   },
-  async ({ invoiceId, accountId, amount, date, reference }) => {
+  async (
+    { invoiceId, accountId, amount, date, reference, idempotencyKey },
+    extra,
+  ) => {
     const result = await createXeroPayment({
       invoiceId,
       accountId,
       amount,
       date,
       reference,
+      idempotencyKey: resolveIdempotencyKey(
+        "create-payment",
+        extra.requestId,
+        idempotencyKey,
+        extra.sessionId,
+      ),
     });
     if (result.isError) {
       return {

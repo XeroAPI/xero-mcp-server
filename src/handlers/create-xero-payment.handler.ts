@@ -10,6 +10,7 @@ type PaymentProps = {
   amount: number;
   date?: string;
   reference?: string;
+  idempotencyKey?: string;
 };
 
 async function createPayment({
@@ -18,6 +19,7 @@ async function createPayment({
   amount,
   date,
   reference,
+  idempotencyKey,
 }: PaymentProps): Promise<Payment | undefined> {
   await xeroClient.authenticate();
 
@@ -36,7 +38,7 @@ async function createPayment({
   const response = await xeroClient.accountingApi.createPayment(
     xeroClient.tenantId,
     payment,
-    undefined, // idempotencyKey
+    idempotencyKey,
     getClientHeaders(), // options
   );
 
@@ -52,6 +54,7 @@ export async function createXeroPayment({
   amount,
   date,
   reference,
+  idempotencyKey,
 }: PaymentProps): Promise<XeroClientResponse<Payment>> {
   try {
     const createdPayment = await createPayment({
@@ -60,6 +63,7 @@ export async function createXeroPayment({
       amount,
       date,
       reference,
+      idempotencyKey,
     });
 
     if (!createdPayment) {
