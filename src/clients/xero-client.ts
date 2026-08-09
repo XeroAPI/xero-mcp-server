@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { selectTenantId, type TenantConnection } from "./tenant-selection.js";
 
 dotenv.config();
 
@@ -35,9 +36,10 @@ abstract class MCPXeroClient extends XeroClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
-    }
+    this.tenantId = selectTenantId(
+      this.tenants ?? [],
+      process.env.XERO_TENANT_ID,
+    );
     return this.tenants;
   }
 
@@ -120,13 +122,15 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     const axiosError = error as AxiosError;
     const data = axiosError.response?.data;
     const message =
-      typeof data === "object" ? JSON.stringify(data) : data || axiosError.message;
+      typeof data === "object"
+        ? JSON.stringify(data)
+        : data || axiosError.message;
     return new Error(`Failed to get Xero token${context}: ${message}`);
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
     // If XERO_SCOPES is set, use that
-    if (process.env.XERO_SCOPES) {                                                                                                                                                     
+    if (process.env.XERO_SCOPES) {
       try {
         return await this.requestToken(process.env.XERO_SCOPES);
       } catch (envError) {
@@ -173,23 +177,31 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    // Get the tenant ID from the connections endpoint
-    const token = response.data.access_token;
-    const connectionsResponse = await axios.get(
+    return response.data;
+  }
+
+  // Get the tenant ID from the connections endpoint. Kept outside the token
+  // request so tenant-selection failures surface as-is instead of being
+  // re-wrapped as token-acquisition errors.
+  private async selectTenant(accessToken: string | undefined): Promise<void> {
+    const connectionsResponse = await axios.get<unknown>(
       "https://api.xero.com/connections",
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
           Accept: "application/json",
         },
       },
     );
 
-    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
-    }
+    const connections = Array.isArray(connectionsResponse.data)
+      ? connectionsResponse.data.filter(
+          (connection): connection is TenantConnection =>
+            connection !== null && typeof connection === "object",
+        )
+      : [];
 
-    return response.data;
+    this.tenantId = selectTenantId(connections, process.env.XERO_TENANT_ID);
   }
 
   public async authenticate() {
@@ -200,6 +212,8 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       expires_in: tokenResponse.expires_in,
       token_type: tokenResponse.token_type,
     });
+
+    await this.selectTenant(tokenResponse.access_token);
   }
 }
 

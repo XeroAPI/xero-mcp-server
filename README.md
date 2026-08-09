@@ -51,13 +51,38 @@ Set up a Custom Connection following these instructions: https://developer.xero.
 
 Custom connections require different scopes depending on when they were created. **All scopes in the relevant list must be added to your custom connection:**
 
-| Custom Connection Created | Required Scopes |
-|---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+For custom connections created **before Apr 29, 2026** (bundled permissions):
+
+```
+accounting.transactions
+accounting.contacts
+accounting.settings
+accounting.reports.read
+payroll.settings
+payroll.employees
+payroll.timesheets
+```
+
+For custom connections created **from Apr 29, 2026** (granular permissions):
+
+```
+accounting.invoices
+accounting.payments
+accounting.banktransactions
+accounting.manualjournals
+accounting.reports.aged.read
+accounting.reports.balancesheet.read
+accounting.reports.profitandloss.read
+accounting.reports.trialbalance.read
+accounting.contacts
+accounting.settings
+payroll.settings
+payroll.employees
+payroll.timesheets
+```
 
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
-> 
+>
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
 
 ##### Integrating the MCP server with Claude Desktop
@@ -73,7 +98,8 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
         "XERO_CLIENT_SECRET": "your_client_secret_here",
-        "XERO_SCOPES": "accounting.invoices accounting.contacts accounting.settings"
+        "XERO_SCOPES": "accounting.invoices accounting.contacts accounting.settings",
+        "XERO_TENANT_ID": "your_tenant_id_here"
       }
     }
   }
@@ -96,7 +122,8 @@ In this case, use the following configuration:
       "command": "npx",
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
-        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token"
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "XERO_TENANT_ID": "your_tenant_id_here"
       }
     }
   }
@@ -127,13 +154,21 @@ accounting.reports.aged.read
 accounting.reports.balancesheet.read
 accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
-accounting.contacts 
-accounting.settings 
-payroll.settings 
-payroll.employees 
+accounting.contacts
+accounting.settings
+payroll.settings
+payroll.employees
 payroll.timesheets
 ```
 
+##### Tenant Selection
+
+`XERO_TENANT_ID` is optional only when the configured credentials have access to
+exactly one Xero organisation. The server rejects zero or multiple available
+tenant connections rather than guessing which organisation to use. When a
+credential can access more than one organisation, set `XERO_TENANT_ID` to the
+desired `tenantId` returned by Xero's `/connections` endpoint. A configured
+tenant ID must match one of the connections available to the credential.
 
 ### Available MCP Commands
 
