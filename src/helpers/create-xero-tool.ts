@@ -12,7 +12,6 @@ import {
 } from "./mutation-confirmation.js";
 import {
   idempotencyKeySchema,
-  resolveIdempotencyKey,
   runWithIdempotencyKey,
 } from "./idempotency-key.js";
 
@@ -32,8 +31,7 @@ const MAX_PREVIEW_CHARS = 8_000;
 const MAX_PREVIEW_ITEMS = 50;
 const SENSITIVE_KEY =
   /^(?:authorization|token|secret|password|api.?key|idempotency.?key|bank.?account|account.?number|routing|bsb|email|phone|address|first.?name|last.?name|tax.?number|name|url|description|narration|reference|summary|title|terms|purchaseDescription|option|optionNames|options|.*ids?)$/i;
-const REVIEWABLE_DATE_KEY =
-  /^(?:date|dueDate|expiryDate|startDate|endDate)$/i;
+const REVIEWABLE_DATE_KEY = /^(?:date|dueDate|expiryDate|startDate|endDate)$/i;
 const REVIEWABLE_TOKEN_KEY = /^(?:status|type|taxType|lineAmountTypes)$/i;
 const ENUM_TOKEN = /^[A-Z][A-Z0-9_]{0,31}$/;
 
@@ -144,12 +142,13 @@ function serialisePreview(payload: unknown): string {
     : `${serialised.slice(0, MAX_PREVIEW_CHARS)}\n[preview truncated]`;
 }
 
-export const CreateXeroTool = <Args extends ZodRawShapeCompat>(
-  name: string,
-  description: string,
-  schema: Args,
-  handler: ToolCallback<Args>,
-): (() => ToolDefinition<ZodRawShapeCompat>) =>
+export const CreateXeroTool =
+  <Args extends ZodRawShapeCompat>(
+    name: string,
+    description: string,
+    schema: Args,
+    handler: ToolCallback<Args>,
+  ): (() => ToolDefinition<ZodRawShapeCompat>) =>
   () => ({
     name,
     description,
@@ -174,11 +173,9 @@ export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
     ...schema,
     ...(options.supportsIdempotency
       ? {
-          idempotencyKey: idempotencyKeySchema
-            .optional()
-            .describe(
-              "Optional key to reuse only when retrying this same mutation",
-            ),
+          idempotencyKey: idempotencyKeySchema.describe(
+            "Required stable caller-generated key to reuse for this exact mutation and every retry",
+          ),
         }
       : {}),
     confirmationAction,
@@ -195,10 +192,12 @@ export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
       idempotencyKey,
       ...payload
     } = parsed;
-    const confirmationPayload =
-      idempotencyKey === undefined
-        ? payload
-        : { ...payload, idempotencyKey };
+    const stableIdempotencyKey = options.supportsIdempotency
+      ? idempotencyKeySchema.parse(idempotencyKey)
+      : undefined;
+    const confirmationPayload = stableIdempotencyKey
+      ? { ...payload, idempotencyKey: stableIdempotencyKey }
+      : payload;
     if (requestedAction === "prepare") {
       if (suppliedToken !== undefined) {
         throw new Error(
@@ -235,16 +234,9 @@ export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
       suppliedToken,
     );
     return runWithAuthorisedMutationTarget(target, () =>
-      options.supportsIdempotency
-        ? runWithIdempotencyKey(
-            resolveIdempotencyKey(
-              name,
-              extra.requestId,
-              idempotencyKey,
-              extra.sessionId,
-              payload,
-            ),
-            () => handler(payload as ShapeOutput<Args>, extra),
+      stableIdempotencyKey
+        ? runWithIdempotencyKey(stableIdempotencyKey, () =>
+            handler(payload as ShapeOutput<Args>, extra),
           )
         : handler(payload as ShapeOutput<Args>, extra),
     );

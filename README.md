@@ -228,12 +228,12 @@ configured tenant ID must match one of the credential's connections.
 
 #### Retrying mutations safely
 
-The 24 mutation tools backed by Xero SDK methods with idempotency support accept
-an optional `idempotencyKey` of up to 128 characters. Reuse that key only when
-retrying the exact same mutation. When it is omitted, the server derives a key
-from the tool, MCP request, session and business payload. This protects a replay
-within the same server session; a retry in a new session or process must provide
-the original caller key.
+The 24 mutation tools backed by Xero SDK methods with idempotency support require
+a caller-generated `idempotencyKey` of up to 128 characters on the first
+`prepare` call. Submit the exact same key during `execute` and every retry of
+that business operation, even when the MCP request ID, session or process has
+changed. The server does not generate a business-operation key because it
+cannot safely recognise an ambiguous prior result across those boundaries.
 
 `delete-payroll-timesheet` is the sole current exception because its installed
 SDK method has no idempotency-key parameter; its tool schema does not advertise
@@ -244,12 +244,14 @@ an unsupported key.
 Every create, update, approve, revert and delete tool uses a mandatory two-step
 prepare/execute flow:
 
-1. Call the tool with `confirmationAction` set to `prepare`. The server returns
-   a bounded, redacted preview, the selected Xero organisation and a
+1. Call the tool with `confirmationAction` set to `prepare`. For the 24
+   SDK-supported tools, also supply a new stable `idempotencyKey`. The server
+   returns a bounded, redacted preview, the selected Xero organisation and a
    short-lived confirmation token. No mutation is sent to Xero.
 2. Review the action, target organisation and preview. Call the same tool with
    the exact same business payload, `confirmationAction` set to `execute`, and
-   the returned `confirmationToken`.
+   the returned `confirmationToken`. For those 24 tools, submit the exact same
+   `idempotencyKey` too.
 
 Tokens expire after five minutes, are bound to the tool, payload and selected
 organisation, and are consumed on the first execution attempt. A changed

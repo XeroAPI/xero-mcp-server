@@ -33,18 +33,23 @@ describe("MutationXeroTool confirmation", () => {
       "Create an example",
       { amount: z.number() },
       handler,
-      { supportsIdempotency: true, confirmation },
+      { supportsIdempotency: false, confirmation },
     )();
 
     const result = await tool.handler(
       { amount: 42, confirmationAction: "prepare" },
       {} as never,
     );
-    const text = result.content[0].type === "text" ? result.content[0].text : "";
+    const text =
+      result.content[0].type === "text" ? result.content[0].text : "";
 
     expect(handler).not.toHaveBeenCalled();
-    expect(text).toContain("Prepared only: create-example was not sent to Xero.");
-    expect(text).toContain("Selected Xero organisation: synthetic-organisation");
+    expect(text).toContain(
+      "Prepared only: create-example was not sent to Xero.",
+    );
+    expect(text).toContain(
+      "Selected Xero organisation: synthetic-organisation",
+    );
     expect(text).toContain("Confirmation token: synthetic-token");
     expect(text).toContain('"amount": 42');
   });
@@ -60,21 +65,18 @@ describe("MutationXeroTool confirmation", () => {
     const confirmation = new MutationConfirmationStore(
       async () => ({ organisationId: "synthetic-organisation" }),
       () => 1_000,
-      () => `token-${tokenCounter += 1}`,
+      () => `token-${(tokenCounter += 1)}`,
     );
     const tool = MutationXeroTool(
       name,
       "Mutate an example",
       { amount: z.number() },
       handler,
-      { supportsIdempotency: true, confirmation },
+      { supportsIdempotency: false, confirmation },
     )();
 
     await expect(
-      tool.handler(
-        { amount: 42, confirmationAction: "execute" },
-        {} as never,
-      ),
+      tool.handler({ amount: 42, confirmationAction: "execute" }, {} as never),
     ).rejects.toThrow("Prepare the mutation first");
 
     const prepared = await tool.handler(
@@ -125,7 +127,7 @@ describe("MutationXeroTool confirmation", () => {
         notes: z.string(),
       },
       handler,
-      { supportsIdempotency: true, confirmation },
+      { supportsIdempotency: false, confirmation },
     )();
 
     const result = await tool.handler(
@@ -150,7 +152,8 @@ describe("MutationXeroTool confirmation", () => {
       },
       {} as never,
     );
-    const text = result.content[0].type === "text" ? result.content[0].text : "";
+    const text =
+      result.content[0].type === "text" ? result.content[0].text : "";
 
     expect(handler).not.toHaveBeenCalled();
     expect(text).toContain("[redacted]");
@@ -189,7 +192,7 @@ describe("MutationXeroTool confirmation", () => {
         taxType: z.string(),
       },
       vi.fn(),
-      confirmation,
+      { supportsIdempotency: false, confirmation },
     )();
     const markers = {
       date: "2026-99-99",
@@ -213,14 +216,15 @@ describe("MutationXeroTool confirmation", () => {
   it.each(["", "synthetic-token", "x".repeat(129)])(
     "rejects any supplied confirmation token while preparing: %s",
     async (confirmationToken) => {
+      const confirmation = new MutationConfirmationStore(async () => ({
+        organisationId: "synthetic-organisation",
+      }));
       const tool = MutationXeroTool(
         "create-example",
         "Create an example",
         { amount: z.number() },
         vi.fn(),
-        new MutationConfirmationStore(async () => ({
-          organisationId: "synthetic-organisation",
-        })),
+        { supportsIdempotency: false, confirmation },
       )();
 
       await expect(
@@ -307,7 +311,7 @@ describe("MutationXeroTool confirmation", () => {
         apiCall(resolveAuthorisedMutationTenantId(tenantId));
         return { content: [] };
       },
-      { supportsIdempotency: true, confirmation },
+      { supportsIdempotency: false, confirmation },
     )();
     const prepared = await tool.handler(
       { amount: 42, confirmationAction: "prepare" },
@@ -369,20 +373,16 @@ describe("MutationXeroTool confirmation", () => {
     });
 
     await expect(
-      confirmation.authorise(
-        "create-invoice",
-        { amount: 42 },
-        prepared.token,
-      ),
+      confirmation.authorise("create-invoice", { amount: 42 }, prepared.token),
     ).rejects.toThrow("expired");
   });
 
   it.each([Number.NaN, Number.POSITIVE_INFINITY, undefined, 1n, new Date()])(
     "rejects payload values that JSON would not bind safely: %s",
     async (unsupported) => {
-      const confirmation = new MutationConfirmationStore(
-        async () => ({ organisationId: "synthetic-organisation" }),
-      );
+      const confirmation = new MutationConfirmationStore(async () => ({
+        organisationId: "synthetic-organisation",
+      }));
 
       await expect(
         confirmation.prepare("create-invoice", { unsupported }),
@@ -466,14 +466,14 @@ describe("MutationXeroTool confirmation", () => {
     const confirmation = new MutationConfirmationStore(
       async () => ({ organisationId: "synthetic-organisation" }),
       () => 1_000,
-      () => `token-${tokenCounter += 1}`,
+      () => `token-${(tokenCounter += 1)}`,
     );
     const tool = MutationXeroTool(
       "create-example",
       "Create an example",
       { amount: z.number() },
       handler,
-      { supportsIdempotency: true, confirmation },
+      { supportsIdempotency: false, confirmation },
     )();
     const prepared = await tool.handler(
       {

@@ -16,6 +16,29 @@ function tokenFrom(result: {
 }
 
 describe("MutationXeroTool idempotency", () => {
+  it("rejects a missing key before preparation or mutation", async () => {
+    const handler = vi.fn().mockResolvedValue({ content: [] });
+    const resolveTarget = vi.fn(async () => ({
+      organisationId: "synthetic-organisation",
+    }));
+    const tool = MutationXeroTool(
+      "create-example",
+      "Create an example",
+      { amount: z.number() },
+      handler,
+      {
+        supportsIdempotency: true,
+        confirmation: new MutationConfirmationStore(resolveTarget),
+      },
+    )();
+
+    await expect(
+      tool.handler({ amount: 42, confirmationAction: "prepare" }, {} as never),
+    ).rejects.toThrow();
+    expect(resolveTarget).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("binds a caller key to confirmation and scopes it to execution", async () => {
     const handler = vi.fn(async (args: { amount: number }) => ({
       content: [
@@ -43,6 +66,9 @@ describe("MutationXeroTool idempotency", () => {
     } as never;
 
     expect(tool.schema).toHaveProperty("idempotencyKey");
+    const keySchema = tool.schema.idempotencyKey as z.ZodTypeAny;
+    expect(keySchema.safeParse(undefined).success).toBe(false);
+    expect(keySchema.safeParse("caller-retry-key").success).toBe(true);
     const prepared = await tool.handler(
       {
         amount: 42,
@@ -114,43 +140,98 @@ describe("MutationXeroTool idempotency", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("derives different keys when a repeated request ID changes payload", async () => {
+  it("reuses the caller key across new request IDs and a full retry", async () => {
     let tokenCounter = 0;
-    const keys: Array<string | undefined> = [];
+    const executions: Array<{
+      idempotencyKey: string | undefined;
+      requestId: string | number;
+    }> = [];
     const confirmation = new MutationConfirmationStore(
       async () => ({ organisationId: "synthetic-organisation" }),
       () => 1_000,
-      () => `token-${tokenCounter += 1}`,
+      () => `token-${(tokenCounter += 1)}`,
     );
     const tool = MutationXeroTool(
       "create-example",
       "Create an example",
       { amount: z.number() },
-      async () => {
-        keys.push(getCurrentIdempotencyKey());
+      async (_, extra) => {
+        executions.push({
+          idempotencyKey: getCurrentIdempotencyKey(),
+          requestId: extra.requestId,
+        });
         return { content: [] };
       },
       { supportsIdempotency: true, confirmation },
     )();
-    const extra = { requestId: "request-1", sessionId: "session-1" } as never;
 
-    for (const amount of [42, 43]) {
+    for (const attempt of [1, 2]) {
       const prepared = await tool.handler(
-        { amount, confirmationAction: "prepare" },
-        extra,
+        {
+          amount: 42,
+          idempotencyKey: "stable-business-key",
+          confirmationAction: "prepare",
+        },
+        { requestId: `prepare-${attempt}` } as never,
       );
       await tool.handler(
         {
-          amount,
+          amount: 42,
+          idempotencyKey: "stable-business-key",
           confirmationAction: "execute",
           confirmationToken: tokenFrom(prepared),
         },
-        extra,
+        { requestId: `execute-${attempt}` } as never,
       );
     }
 
-    expect(keys[0]).toMatch(/^xero-mcp-[a-f0-9]{64}$/);
-    expect(keys[1]).not.toBe(keys[0]);
+    expect(executions).toEqual([
+      {
+        idempotencyKey: "stable-business-key",
+        requestId: "execute-1",
+      },
+      {
+        idempotencyKey: "stable-business-key",
+        requestId: "execute-2",
+      },
+    ]);
+  });
+
+  it("accepts 128 characters and rejects 129 before preparation", async () => {
+    const resolveTarget = vi.fn(async () => ({
+      organisationId: "synthetic-organisation",
+    }));
+    const tool = MutationXeroTool(
+      "update-example",
+      "Update an example",
+      { amount: z.number() },
+      vi.fn(),
+      {
+        supportsIdempotency: true,
+        confirmation: new MutationConfirmationStore(resolveTarget),
+      },
+    )();
+
+    await tool.handler(
+      {
+        amount: 42,
+        idempotencyKey: "x".repeat(128),
+        confirmationAction: "prepare",
+      },
+      {} as never,
+    );
+    await expect(
+      tool.handler(
+        {
+          amount: 42,
+          idempotencyKey: "x".repeat(129),
+          confirmationAction: "prepare",
+        },
+        {} as never,
+      ),
+    ).rejects.toThrow();
+
+    expect(resolveTarget).toHaveBeenCalledOnce();
   });
 
   it("omits an unsupported key while keeping the mutation gate", () => {
