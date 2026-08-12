@@ -2,9 +2,9 @@ import { updateXeroContact } from "../../handlers/update-xero-contact.handler.js
 import { z } from "zod";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
-const UpdateContactTool = CreateXeroTool(
+const UpdateContactTool = MutationXeroTool(
   "update-contact",
   "Update a contact in Xero.\
  When a contact is updated, a deep link to the contact in Xero is returned. \

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createXeroItem } from "../../handlers/create-xero-item.handler.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
 const purchaseDetailsSchema = z.object({
   unitPrice: z.number(),
@@ -14,7 +14,7 @@ const salesDetailsSchema = z.object({
   accountCode: z.string().optional(),
 });
 
-const CreateItemTool = CreateXeroTool(
+const CreateItemTool = MutationXeroTool(
   "create-item",
   "Create an item in Xero.",
   {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createXeroQuote } from "../../handlers/create-xero-quote.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -11,7 +11,7 @@ const lineItemSchema = z.object({
   taxType: z.string(),
 });
 
-const CreateQuoteTool = CreateXeroTool(
+const CreateQuoteTool = MutationXeroTool(
   "create-quote",
   "Create a quote in Xero.\
  When a quote is created, a deep link to the quote in Xero is returned. \

@@ -125,6 +125,19 @@ export const CreateXeroTool = <Args extends ZodRawShapeCompat>(
   description: string,
   schema: Args,
   handler: ToolCallback<Args>,
+): (() => ToolDefinition<ZodRawShapeCompat>) =>
+  () => ({
+    name,
+    description,
+    schema,
+    handler,
+  });
+
+export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
+  name: string,
+  description: string,
+  schema: Args,
+  handler: ToolCallback<Args>,
   confirmation: MutationConfirmation = mutationConfirmation,
 ): (() => ToolDefinition<ZodRawShapeCompat>) => {
   const createSchema: ZodRawShapeCompat = {

@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroManualJournal } from "../../handlers/create-xero-manual-journal.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
 
-const CreateManualJournalTool = CreateXeroTool(
+const CreateManualJournalTool = MutationXeroTool(
   "create-manual-journal",
   "Create a manual journal in Xero.\
   Retrieve a list of account codes in Xero to use for the journal lines.\

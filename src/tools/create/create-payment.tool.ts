@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { createXeroPayment } from "../../handlers/create-xero-payment.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
-const CreatePaymentTool = CreateXeroTool(
+const CreatePaymentTool = MutationXeroTool(
   "create-payment",
   "Create a payment against an invoice in Xero.\
  This tool records a payment transaction against an invoice. \

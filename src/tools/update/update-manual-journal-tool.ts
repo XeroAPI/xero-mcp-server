@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
 import { updateXeroManualJournal } from "../../handlers/update-xero-manual-journal.handler.js";
 
-const UpdateManualJournalTool = CreateXeroTool(
+const UpdateManualJournalTool = MutationXeroTool(
   "update-manual-journal",
   "Update a manual journal in Xero. Only works on draft manual journals.\
   Do not modify line items or parameters that have not been specified by the user.",

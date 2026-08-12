@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import {
   CreateXeroTool,
+  MutationXeroTool,
   REVIEWED_MUTATION_INPUT_KEYS,
 } from "./create-xero-tool.js";
 import { MutationConfirmationStore } from "./mutation-confirmation.js";
@@ -16,7 +17,7 @@ function tokenFrom(text: string): string {
   return match[1];
 }
 
-describe("CreateXeroTool mutation confirmation", () => {
+describe("MutationXeroTool confirmation", () => {
   it("prepares a bounded preview without invoking the mutation handler", async () => {
     const handler = vi.fn();
     const confirmation = new MutationConfirmationStore(
@@ -24,7 +25,7 @@ describe("CreateXeroTool mutation confirmation", () => {
       () => 1_000,
       () => "synthetic-token",
     );
-    const tool = CreateXeroTool(
+    const tool = MutationXeroTool(
       "create-example",
       "Create an example",
       { amount: z.number() },
@@ -58,7 +59,7 @@ describe("CreateXeroTool mutation confirmation", () => {
       () => 1_000,
       () => `token-${tokenCounter += 1}`,
     );
-    const tool = CreateXeroTool(
+    const tool = MutationXeroTool(
       name,
       "Mutate an example",
       { amount: z.number() },
@@ -99,7 +100,7 @@ describe("CreateXeroTool mutation confirmation", () => {
       () => 1_000,
       () => "synthetic-token",
     );
-    const tool = CreateXeroTool(
+    const tool = MutationXeroTool(
       "create-contact",
       "Create a contact",
       {
@@ -328,7 +329,7 @@ describe("CreateXeroTool mutation confirmation", () => {
 
     expect(mutationToolFiles).toHaveLength(25);
     for (const file of mutationToolFiles) {
-      expect(readFileSync(file, "utf8"), file).toContain("CreateXeroTool(");
+      expect(readFileSync(file, "utf8"), file).toContain("MutationXeroTool(");
     }
   });
 
@@ -340,7 +341,7 @@ describe("CreateXeroTool mutation confirmation", () => {
       () => 1_000,
       () => `token-${tokenCounter += 1}`,
     );
-    const tool = CreateXeroTool(
+    const tool = MutationXeroTool(
       "create-example",
       "Create an example",
       { amount: z.number() },
@@ -369,5 +370,22 @@ describe("CreateXeroTool mutation confirmation", () => {
     );
 
     expect(handler).toHaveBeenCalledWith({ amount: 42 }, {});
+  });
+
+  it("keeps read-only tool schemas and handlers unchanged", async () => {
+    const handler = vi.fn().mockResolvedValue({ content: [] });
+    const schema = { accountId: z.string() };
+    const tool = CreateXeroTool(
+      "list-example",
+      "List an example",
+      schema,
+      handler,
+    )();
+
+    expect(tool.schema).toBe(schema);
+    expect(tool.schema).not.toHaveProperty("confirmationAction");
+    expect(tool.schema).not.toHaveProperty("confirmationToken");
+    await tool.handler({ accountId: "synthetic-id" }, {} as never);
+    expect(handler).toHaveBeenCalledWith({ accountId: "synthetic-id" }, {});
   });
 });

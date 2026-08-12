@@ -4,9 +4,9 @@ import { z } from "zod";
 import {
   createXeroPayrollTimesheet,
 } from "../../handlers/create-xero-payroll-timesheet.handler.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
-const CreatePayrollTimesheetTool = CreateXeroTool(
+const CreatePayrollTimesheetTool = MutationXeroTool(
   "create-timesheet",
   `Create a new payroll timesheet in Xero.
 This allows you to specify details such as the employee ID, payroll calendar ID, start and end dates, and timesheet lines.`,
