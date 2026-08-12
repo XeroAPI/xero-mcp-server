@@ -189,6 +189,23 @@ payroll.timesheets
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
 
+#### Confirming mutations
+
+Every create, update, approve, revert and delete tool uses a mandatory two-step
+confirmation flow:
+
+1. Call the tool with `confirmationAction` set to `prepare`. The server returns
+   a bounded, redacted preview, the selected Xero organisation ID and a
+   short-lived confirmation token. No mutation is sent to Xero.
+2. Review the action, target organisation and preview. Call the same tool with
+   the exact same business payload, `confirmationAction` set to `execute`, and
+   the returned `confirmationToken`.
+
+Tokens expire after five minutes, are bound to the tool, payload and selected
+organisation, and are consumed on the first execution attempt. A changed
+payload or organisation requires a new prepare step. Clients that previously
+called mutation tools directly must adopt this prepare/execute sequence.
+
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
 ## For Developers

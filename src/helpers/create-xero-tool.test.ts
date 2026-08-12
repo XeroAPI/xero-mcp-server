@@ -1,35 +1,104 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import {
   CreateXeroTool,
-  REVIEWED_CREATE_INPUT_KEYS,
+  REVIEWED_MUTATION_INPUT_KEYS,
 } from "./create-xero-tool.js";
+import { MutationConfirmationStore } from "./mutation-confirmation.js";
 
-describe("CreateXeroTool dry-run support", () => {
-  it("returns a payload preview without invoking the create handler", async () => {
+function tokenFrom(text: string): string {
+  const match = text.match(/^Confirmation token: (.+)$/m);
+  if (!match) throw new Error("Prepared response did not contain a token");
+  return match[1];
+}
+
+describe("CreateXeroTool mutation confirmation", () => {
+  it("prepares a bounded preview without invoking the mutation handler", async () => {
     const handler = vi.fn();
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => "synthetic-token",
+    );
     const tool = CreateXeroTool(
       "create-example",
       "Create an example",
       { amount: z.number() },
       handler,
+      confirmation,
     )();
 
     const result = await tool.handler(
-      { amount: 42, dryRun: true },
+      { amount: 42, confirmationAction: "prepare" },
+      {} as never,
+    );
+    const text = result.content[0].type === "text" ? result.content[0].text : "";
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(text).toContain("Prepared only: create-example was not sent to Xero.");
+    expect(text).toContain("Selected Xero organisation: synthetic-organisation");
+    expect(text).toContain("Confirmation token: synthetic-token");
+    expect(text).toContain('"amount": 42');
+  });
+
+  it.each([
+    "create-invoice",
+    "update-invoice",
+    "delete-timesheet",
+    "approve-timesheet",
+  ])("requires prepare then execute for %s", async (name) => {
+    let tokenCounter = 0;
+    const handler = vi.fn().mockResolvedValue({ content: [] });
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => `token-${tokenCounter += 1}`,
+    );
+    const tool = CreateXeroTool(
+      name,
+      "Mutate an example",
+      { amount: z.number() },
+      handler,
+      confirmation,
+    )();
+
+    await expect(
+      tool.handler(
+        { amount: 42, confirmationAction: "execute" },
+        {} as never,
+      ),
+    ).rejects.toThrow("Prepare the mutation first");
+
+    const prepared = await tool.handler(
+      { amount: 42, confirmationAction: "prepare" },
+      {} as never,
+    );
+    const text =
+      prepared.content[0].type === "text" ? prepared.content[0].text : "";
+    await tool.handler(
+      {
+        amount: 42,
+        confirmationAction: "execute",
+        confirmationToken: tokenFrom(text),
+      },
       {} as never,
     );
 
-    expect(handler).not.toHaveBeenCalled();
-    expect(result.content[0]).toMatchObject({
-      type: "text",
-      text: expect.stringContaining('"amount": 42'),
-    });
+    expect(handler).toHaveBeenCalledOnce();
+    expect(handler).toHaveBeenCalledWith({ amount: 42 }, {});
   });
 
-  it("redacts sensitive fields and bounds preview output", async () => {
+  it("redacts sensitive fields and bounds the prepared preview", async () => {
     const handler = vi.fn();
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => "synthetic-token",
+    );
     const tool = CreateXeroTool(
       "create-contact",
       "Create a contact",
@@ -38,9 +107,21 @@ describe("CreateXeroTool dry-run support", () => {
         email: z.string(),
         phone: z.string(),
         bankAccountId: z.string(),
+        description: z.string(),
+        narration: z.string(),
+        reference: z.string(),
+        summary: z.string(),
+        title: z.string(),
+        terms: z.string(),
+        purchaseDescription: z.string(),
+        optionNames: z.array(z.string()),
+        date: z.string(),
+        status: z.string(),
+        type: z.string(),
         notes: z.string(),
       },
       handler,
+      confirmation,
     )();
 
     const result = await tool.handler(
@@ -49,13 +130,23 @@ describe("CreateXeroTool dry-run support", () => {
         email: "person@example.test",
         phone: "0400000000",
         bankAccountId: "synthetic-bank-id",
+        description: "private-description-marker",
+        narration: "private-narration-marker",
+        reference: "private-reference-marker",
+        summary: "private-summary-marker",
+        title: "private-title-marker",
+        terms: "private-terms-marker",
+        purchaseDescription: "private-purchase-marker",
+        optionNames: ["private-option-marker"],
+        date: "2026-08-13",
+        status: "DRAFT",
+        type: "ACCREC",
         notes: "x".repeat(20_000),
-        dryRun: true,
+        confirmationAction: "prepare",
       },
       {} as never,
     );
-    const text =
-      result.content[0].type === "text" ? result.content[0].text : "";
+    const text = result.content[0].type === "text" ? result.content[0].text : "";
 
     expect(handler).not.toHaveBeenCalled();
     expect(text).toContain("[redacted]");
@@ -63,34 +154,150 @@ describe("CreateXeroTool dry-run support", () => {
     expect(text).not.toContain("0400000000");
     expect(text).not.toContain("synthetic-bank-id");
     expect(text).not.toContain("Synthetic Person");
+    expect(text).not.toContain("private-description-marker");
+    expect(text).not.toContain("private-narration-marker");
+    expect(text).not.toContain("private-reference-marker");
+    expect(text).not.toContain("private-summary-marker");
+    expect(text).not.toContain("private-title-marker");
+    expect(text).not.toContain("private-terms-marker");
+    expect(text).not.toContain("private-purchase-marker");
+    expect(text).not.toContain("private-option-marker");
+    expect(text).not.toContain("x".repeat(100));
+    expect(text).toContain('"date": "2026-08-13"');
+    expect(text).toContain('"status": "DRAFT"');
+    expect(text).toContain('"type": "ACCREC"');
     expect(text.length).toBeLessThan(9_000);
   });
 
-  it("pins the reviewed create-input inventory", () => {
-    expect(REVIEWED_CREATE_INPUT_KEYS).toEqual([
+  it("keeps the token opaque and rejects changed payloads and replay", async () => {
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => "opaque-random-token",
+    );
+    const prepared = await confirmation.prepare("create-invoice", {
+      amount: 42,
+      reference: "private-reference",
+    });
+
+    expect(prepared.token).toBe("opaque-random-token");
+    expect(prepared.token).not.toContain("private-reference");
+    await expect(
+      confirmation.authorise(
+        "create-invoice",
+        { amount: 43, reference: "private-reference" },
+        prepared.token,
+      ),
+    ).rejects.toThrow("payload");
+    await expect(
+      confirmation.authorise(
+        "create-invoice",
+        { amount: 42, reference: "private-reference" },
+        prepared.token,
+      ),
+    ).rejects.toThrow("already used");
+  });
+
+  it("binds a token to the selected organisation and consumes a mismatch", async () => {
+    let organisationId = "organisation-a";
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId }),
+      () => 1_000,
+      () => "organisation-bound-token",
+    );
+    const prepared = await confirmation.prepare("delete-timesheet", {
+      timesheetID: "synthetic-timesheet",
+    });
+    organisationId = "organisation-b";
+
+    await expect(
+      confirmation.authorise(
+        "delete-timesheet",
+        { timesheetID: "synthetic-timesheet" },
+        prepared.token,
+      ),
+    ).rejects.toThrow("organisation changed");
+    organisationId = "organisation-a";
+    await expect(
+      confirmation.authorise(
+        "delete-timesheet",
+        { timesheetID: "synthetic-timesheet" },
+        prepared.token,
+      ),
+    ).rejects.toThrow("already used");
+  });
+
+  it("rejects expired tokens", async () => {
+    let now = 1_000;
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => now,
+      () => "expiring-token",
+      100,
+    );
+    const prepared = await confirmation.prepare("approve-timesheet", {
+      timesheetID: "synthetic-timesheet",
+    });
+    now = 1_101;
+
+    await expect(
+      confirmation.authorise(
+        "approve-timesheet",
+        { timesheetID: "synthetic-timesheet" },
+        prepared.token,
+      ),
+    ).rejects.toThrow("expired");
+  });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, undefined, 1n, new Date()])(
+    "rejects payload values that JSON would not bind safely: %s",
+    async (unsupported) => {
+      const confirmation = new MutationConfirmationStore(
+        async () => ({ organisationId: "synthetic-organisation" }),
+      );
+
+      await expect(
+        confirmation.prepare("create-invoice", { unsupported }),
+      ).rejects.toThrow(/non-finite|unsupported/);
+    },
+  );
+
+  it("pins the reviewed mutation-input inventory", () => {
+    expect(REVIEWED_MUTATION_INPUT_KEYS).toEqual([
       "accountId",
+      "address",
       "amount",
       "bankAccountId",
+      "bankTransactionId",
       "code",
       "contactId",
+      "creditNoteId",
       "date",
       "description",
+      "dueDate",
       "email",
       "employeeID",
       "endDate",
+      "expiryDate",
+      "firstName",
       "inventoryAssetAccountCode",
       "invoiceId",
       "isTrackedAsInventory",
+      "itemId",
+      "lastName",
       "lineAmountTypes",
       "lineItems",
+      "manualJournalID",
       "manualJournalLines",
       "name",
       "narration",
       "optionNames",
+      "options",
       "payrollCalendarID",
       "phone",
       "purchaseDescription",
       "purchaseDetails",
+      "quoteId",
       "quoteNumber",
       "reference",
       "salesDetails",
@@ -99,6 +306,9 @@ describe("CreateXeroTool dry-run support", () => {
       "status",
       "summary",
       "terms",
+      "timesheetID",
+      "timesheetLine",
+      "timesheetLineID",
       "timesheetLines",
       "title",
       "trackingCategoryId",
@@ -107,39 +317,57 @@ describe("CreateXeroTool dry-run support", () => {
     ]);
   });
 
-  it("keeps dryRun optional and strips unknown fields before the handler", async () => {
+  it("keeps every registered mutation tool behind the shared gate", () => {
+    const toolsRoot = fileURLToPath(new URL("../tools/", import.meta.url));
+    const mutationToolFiles = ["create", "update", "delete"].flatMap(
+      (directory) =>
+        readdirSync(`${toolsRoot}/${directory}`)
+          .filter((file) => file.endsWith("tool.ts"))
+          .map((file) => `${toolsRoot}/${directory}/${file}`),
+    );
+
+    expect(mutationToolFiles).toHaveLength(25);
+    for (const file of mutationToolFiles) {
+      expect(readFileSync(file, "utf8"), file).toContain("CreateXeroTool(");
+    }
+  });
+
+  it("strips unknown and confirmation fields before the handler", async () => {
     const handler = vi.fn().mockResolvedValue({ content: [] });
+    let tokenCounter = 0;
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => `token-${tokenCounter += 1}`,
+    );
     const tool = CreateXeroTool(
       "create-example",
       "Create an example",
       { amount: z.number() },
       handler,
+      confirmation,
     )();
+    const prepared = await tool.handler(
+      {
+        amount: 42,
+        unknownControl: "must-not-leak",
+        confirmationAction: "prepare",
+      } as never,
+      {} as never,
+    );
+    const text =
+      prepared.content[0].type === "text" ? prepared.content[0].text : "";
 
-    expect(
-      (tool.schema.dryRun as z.ZodTypeAny).safeParse(undefined).success,
-    ).toBe(true);
     await tool.handler(
-      { amount: 42, unknownControl: "must-not-leak" } as never,
+      {
+        amount: 42,
+        unknownControl: "must-not-leak",
+        confirmationAction: "execute",
+        confirmationToken: tokenFrom(text),
+      } as never,
       {} as never,
     );
 
-    expect(handler).toHaveBeenCalledOnce();
-    expect(handler.mock.calls[0][0]).toEqual({ amount: 42 });
-  });
-
-  it("removes the dry-run control before calling the create handler", async () => {
-    const handler = vi.fn().mockResolvedValue({ content: [] });
-    const tool = CreateXeroTool(
-      "create-example",
-      "Create an example",
-      { amount: z.number() },
-      handler,
-    )();
-
-    await tool.handler({ amount: 42, dryRun: false }, {} as never);
-
-    expect(handler).toHaveBeenCalledOnce();
-    expect(handler.mock.calls[0][0]).toEqual({ amount: 42 });
+    expect(handler).toHaveBeenCalledWith({ amount: 42 }, {});
   });
 });
