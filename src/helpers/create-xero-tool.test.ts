@@ -176,7 +176,7 @@ describe("MutationXeroTool confirmation", () => {
     expect(text.length).toBeLessThan(9_000);
   });
 
-  it("redacts adversarial strings under decision-field names", async () => {
+  it("redacts enum-shaped secrets under every reviewable string key", async () => {
     const confirmation = new MutationConfirmationStore(
       async () => ({ organisationId: "synthetic-organisation" }),
       () => 1_000,
@@ -187,18 +187,28 @@ describe("MutationXeroTool confirmation", () => {
       "Update an example",
       {
         date: z.string(),
+        dueDate: z.string(),
+        expiryDate: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
         status: z.string(),
         type: z.string(),
         taxType: z.string(),
+        lineAmountTypes: z.string(),
       },
       vi.fn(),
       { supportsIdempotency: false, confirmation },
     )();
     const markers = {
-      date: "2026-99-99",
-      status: "DRAFT private-status-marker",
-      type: "private-type-marker",
-      taxType: "OUTPUT secret-marker",
+      date: "DATESECRET",
+      dueDate: "DUESECRET",
+      expiryDate: "EXPIRYSECRET",
+      startDate: "STARTSECRET",
+      endDate: "ENDSECRET",
+      status: "STATUSSECRET",
+      type: "TYPESECRET",
+      taxType: "TAXSECRET",
+      lineAmountTypes: "AMOUNTTYPESECRET",
     };
 
     const prepared = await tool.handler(
@@ -211,6 +221,74 @@ describe("MutationXeroTool confirmation", () => {
     for (const marker of Object.values(markers)) {
       expect(text).not.toContain(marker);
     }
+  });
+
+  it.each([
+    ["date", "2026-08-13"],
+    ["dueDate", "2026-08-14"],
+    ["expiryDate", "2026-08-15"],
+    ["startDate", "2026-08-16"],
+    ["endDate", "2026-08-17"],
+    ["status", "ACTIVE"],
+    ["status", "ARCHIVED"],
+    ["status", "DELETED"],
+    ["status", "DRAFT"],
+    ["status", "POSTED"],
+    ["status", "VOIDED"],
+    ["type", "ACCPAY"],
+    ["type", "ACCREC"],
+    ["type", "RECEIVE"],
+    ["type", "SPEND"],
+    ["lineAmountTypes", "EXCLUSIVE"],
+    ["lineAmountTypes", "INCLUSIVE"],
+    ["lineAmountTypes", "NO_TAX"],
+  ])("shows the declared %s value %s", async (key, value) => {
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => "synthetic-token",
+    );
+    const tool = MutationXeroTool(
+      "update-example",
+      "Update an example",
+      { [key]: z.string() },
+      vi.fn(),
+      { supportsIdempotency: false, confirmation },
+    )();
+
+    const prepared = await tool.handler(
+      { [key]: value, confirmationAction: "prepare" },
+      {} as never,
+    );
+    const text =
+      prepared.content[0].type === "text" ? prepared.content[0].text : "";
+
+    expect(text).toContain(`"${key}": "${value}"`);
+  });
+
+  it("always redacts tenant-specific tax types", async () => {
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => "synthetic-token",
+    );
+    const tool = MutationXeroTool(
+      "update-example",
+      "Update an example",
+      { taxType: z.string() },
+      vi.fn(),
+      { supportsIdempotency: false, confirmation },
+    )();
+
+    const prepared = await tool.handler(
+      { taxType: "OUTPUT", confirmationAction: "prepare" },
+      {} as never,
+    );
+    const text =
+      prepared.content[0].type === "text" ? prepared.content[0].text : "";
+
+    expect(text).toContain('"taxType": "[redacted]"');
+    expect(text).not.toContain("OUTPUT");
   });
 
   it.each(["", "synthetic-token", "x".repeat(129)])(
