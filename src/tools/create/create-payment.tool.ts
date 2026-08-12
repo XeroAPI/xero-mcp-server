@@ -54,6 +54,7 @@ const CreatePaymentTool = CreateXeroTool(
         extra.requestId,
         idempotencyKey,
         extra.sessionId,
+        { invoiceId, accountId, amount, date, reference },
       ),
     });
     if (result.isError) {

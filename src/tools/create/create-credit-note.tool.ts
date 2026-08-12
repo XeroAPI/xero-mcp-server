@@ -41,6 +41,7 @@ const CreateCreditNoteTool = CreateXeroTool(
         extra.requestId,
         idempotencyKey,
         extra.sessionId,
+        { contactId, lineItems, reference },
       ),
     );
     if (result.isError) {

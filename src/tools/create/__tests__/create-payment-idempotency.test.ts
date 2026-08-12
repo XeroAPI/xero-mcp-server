@@ -56,7 +56,13 @@ describe("create-payment idempotency", () => {
     await paymentHandler(paymentArgs, extra);
     await paymentHandler(paymentArgs, extra);
 
-    const expectedKey = resolveIdempotencyKey("create-payment", "request-1");
+    const expectedKey = resolveIdempotencyKey(
+      "create-payment",
+      "request-1",
+      undefined,
+      undefined,
+      paymentArgs,
+    );
     expect(mocks.createXeroPayment).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({ idempotencyKey: expectedKey }),

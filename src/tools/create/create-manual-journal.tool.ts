@@ -87,6 +87,7 @@ const CreateManualJournalTool = CreateXeroTool(
           extra.requestId,
           args.idempotencyKey,
           extra.sessionId,
+          args,
         ),
       );
 

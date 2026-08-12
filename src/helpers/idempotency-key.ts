@@ -5,6 +5,24 @@ import { z } from "zod";
 export const idempotencyKeySchema = z.string().trim().min(1).max(128);
 
 const serverInvocationNamespace = randomUUID();
+const CONTROL_FIELDS = new Set(["dryRun", "idempotencyKey"]);
+
+function canonicalise(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(canonicalise);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(
+          ([key, child]) => !CONTROL_FIELDS.has(key) && child !== undefined,
+        )
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, child]) => [key, canonicalise(child)]),
+    );
+  }
+  return value;
+}
 
 /**
  * Resolve the Xero idempotency key for one financial MCP tool invocation.
@@ -19,6 +37,7 @@ export function resolveIdempotencyKey(
   requestId: string | number,
   explicitKey?: string,
   sessionId?: string,
+  payload: unknown = {},
 ): string {
   if (explicitKey) {
     return explicitKey;
@@ -30,6 +49,7 @@ export function resolveIdempotencyKey(
         toolName,
         requestId,
         sessionId: sessionId ?? serverInvocationNamespace,
+        payload: canonicalise(payload),
       }),
     )
     .digest("hex");

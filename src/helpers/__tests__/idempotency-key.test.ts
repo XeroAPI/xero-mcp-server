@@ -12,12 +12,68 @@ describe("idempotency keys", () => {
   });
 
   it("derives the same Xero-safe key for a replay of the same request", () => {
-    const first = resolveIdempotencyKey("create-payment", "request-1");
-    const replay = resolveIdempotencyKey("create-payment", "request-1");
+    const payload = { amount: 42, invoiceId: "invoice-1" };
+    const first = resolveIdempotencyKey(
+      "create-payment",
+      "request-1",
+      undefined,
+      "session-1",
+      payload,
+    );
+    const replay = resolveIdempotencyKey(
+      "create-payment",
+      "request-1",
+      undefined,
+      "session-1",
+      payload,
+    );
 
     expect(replay).toBe(first);
     expect(first).toMatch(/^xero-mcp-[a-f0-9]{64}$/);
     expect(first).toHaveLength(73);
+  });
+
+  it("uses distinct keys for different payloads under a reused request ID", () => {
+    const first = resolveIdempotencyKey(
+      "create-payment",
+      1,
+      undefined,
+      "session-1",
+      { amount: 42 },
+    );
+    const second = resolveIdempotencyKey(
+      "create-payment",
+      1,
+      undefined,
+      "session-1",
+      { amount: 43 },
+    );
+
+    expect(second).not.toBe(first);
+  });
+
+  it("canonicalises object keys and excludes control fields", () => {
+    const first = resolveIdempotencyKey(
+      "create-payment",
+      1,
+      undefined,
+      "session-1",
+      { amount: 42, invoice: { id: "invoice-1", type: "ACCREC" } },
+    );
+    const reordered = resolveIdempotencyKey(
+      "create-payment",
+      1,
+      undefined,
+      "session-1",
+      {
+        dryRun: true,
+        invoice: { type: "ACCREC", id: "invoice-1" },
+        idempotencyKey: "ignored-control",
+        amount: 42,
+      },
+    );
+
+    expect(reordered).toBe(first);
   });
 
   it("uses distinct generated keys for different tools or requests", () => {
