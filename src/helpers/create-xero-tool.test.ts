@@ -192,7 +192,7 @@ describe("MutationXeroTool confirmation", () => {
       confirmation,
     )();
     const markers = {
-      date: "private-date-marker",
+      date: "2026-99-99",
       status: "DRAFT private-status-marker",
       type: "private-type-marker",
       taxType: "OUTPUT secret-marker",
@@ -210,8 +210,8 @@ describe("MutationXeroTool confirmation", () => {
     }
   });
 
-  it.each(["", "x".repeat(129)])(
-    "rejects a malformed confirmation token: %s",
+  it.each(["", "synthetic-token", "x".repeat(129)])(
+    "rejects any supplied confirmation token while preparing: %s",
     async (confirmationToken) => {
       const tool = MutationXeroTool(
         "create-example",

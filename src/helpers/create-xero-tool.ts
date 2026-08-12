@@ -30,8 +30,23 @@ const SENSITIVE_KEY =
 const REVIEWABLE_DATE_KEY =
   /^(?:date|dueDate|expiryDate|startDate|endDate)$/i;
 const REVIEWABLE_TOKEN_KEY = /^(?:status|type|taxType|lineAmountTypes)$/i;
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ENUM_TOKEN = /^[A-Z][A-Z0-9_]{0,31}$/;
+
+function isReviewableDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
 
 /** Current mutation-tool inputs reviewed when defining the preview policy. */
 export const REVIEWED_MUTATION_INPUT_KEYS = [
@@ -91,7 +106,7 @@ function sanitisePreview(value: unknown, key = "", depth = 0): unknown {
   if (SENSITIVE_KEY.test(key)) return "[redacted]";
   if (depth >= 8) return "[truncated: maximum depth reached]";
   if (typeof value === "string") {
-    if (REVIEWABLE_DATE_KEY.test(key) && ISO_DATE.test(value)) return value;
+    if (REVIEWABLE_DATE_KEY.test(key) && isReviewableDate(value)) return value;
     if (REVIEWABLE_TOKEN_KEY.test(key) && ENUM_TOKEN.test(value)) return value;
     return "[redacted]";
   }
