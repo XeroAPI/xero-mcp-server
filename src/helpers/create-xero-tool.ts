@@ -15,7 +15,47 @@ const MAX_PREVIEW_CHARS = 8_000;
 const MAX_PREVIEW_STRING_CHARS = 500;
 const MAX_PREVIEW_ITEMS = 50;
 const SENSITIVE_KEY =
-  /(?:authorization|token|secret|password|api.?key|bank.?account|account.?number|routing|bsb|email|phone|address|employee.?id|contact.?ids?|first.?name|last.?name|tax.?number)/i;
+  /^(?:authorization|token|secret|password|api.?key|bank.?account|account.?number|routing|bsb|email|phone|address|first.?name|last.?name|tax.?number|name|url|.*ids?)$/i;
+
+/** Current create-tool inputs reviewed when defining the preview policy. */
+export const REVIEWED_CREATE_INPUT_KEYS = [
+  "accountId",
+  "amount",
+  "bankAccountId",
+  "code",
+  "contactId",
+  "date",
+  "description",
+  "email",
+  "employeeID",
+  "endDate",
+  "inventoryAssetAccountCode",
+  "invoiceId",
+  "isTrackedAsInventory",
+  "lineAmountTypes",
+  "lineItems",
+  "manualJournalLines",
+  "name",
+  "narration",
+  "optionNames",
+  "payrollCalendarID",
+  "phone",
+  "purchaseDescription",
+  "purchaseDetails",
+  "quoteNumber",
+  "reference",
+  "salesDetails",
+  "showOnCashBasisReports",
+  "startDate",
+  "status",
+  "summary",
+  "terms",
+  "timesheetLines",
+  "title",
+  "trackingCategoryId",
+  "type",
+  "url",
+] as const;
 
 function sanitisePreview(value: unknown, key = "", depth = 0): unknown {
   if (SENSITIVE_KEY.test(key)) return "[redacted]";
@@ -74,7 +114,7 @@ export const CreateXeroTool = <Args extends ZodRawShapeCompat>(
             type: "text" as const,
             text: [
               `Preview only: ${name} was not sent to Xero.`,
-              "Personal, bank and credential fields are redacted; long values may be truncated.",
+              "Common structured identifiers and credentials are redacted. Free-text fields remain visible but are length-bounded.",
               serialisePreview(payload),
             ].join("\n"),
           },

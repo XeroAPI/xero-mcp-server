@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { CreateXeroTool } from "./create-xero-tool.js";
+import {
+  CreateXeroTool,
+  REVIEWED_CREATE_INPUT_KEYS,
+} from "./create-xero-tool.js";
 
 describe("CreateXeroTool dry-run support", () => {
   it("returns a payload preview without invoking the create handler", async () => {
@@ -59,7 +62,49 @@ describe("CreateXeroTool dry-run support", () => {
     expect(text).not.toContain("person@example.test");
     expect(text).not.toContain("0400000000");
     expect(text).not.toContain("synthetic-bank-id");
+    expect(text).not.toContain("Synthetic Person");
     expect(text.length).toBeLessThan(9_000);
+  });
+
+  it("pins the reviewed create-input inventory", () => {
+    expect(REVIEWED_CREATE_INPUT_KEYS).toEqual([
+      "accountId",
+      "amount",
+      "bankAccountId",
+      "code",
+      "contactId",
+      "date",
+      "description",
+      "email",
+      "employeeID",
+      "endDate",
+      "inventoryAssetAccountCode",
+      "invoiceId",
+      "isTrackedAsInventory",
+      "lineAmountTypes",
+      "lineItems",
+      "manualJournalLines",
+      "name",
+      "narration",
+      "optionNames",
+      "payrollCalendarID",
+      "phone",
+      "purchaseDescription",
+      "purchaseDetails",
+      "quoteNumber",
+      "reference",
+      "salesDetails",
+      "showOnCashBasisReports",
+      "startDate",
+      "status",
+      "summary",
+      "terms",
+      "timesheetLines",
+      "title",
+      "trackingCategoryId",
+      "type",
+      "url",
+    ]);
   });
 
   it("keeps dryRun optional and strips unknown fields before the handler", async () => {
