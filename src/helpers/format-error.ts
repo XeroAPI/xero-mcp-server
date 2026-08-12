@@ -144,9 +144,7 @@ function formatXeroSdkError(error: XeroSdkError): string {
     ?? getString(bodyFields?.Detail)
     ?? getValidationErrorDetail(body)
     ?? getString(bodyFields?.Message);
-  return sanitiseErrorText(
-    detail ? `${status} ${title}: ${detail}` : `${status} ${title}`,
-  )!;
+  return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
 }
 
 /**
