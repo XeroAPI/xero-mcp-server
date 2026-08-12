@@ -29,8 +29,14 @@ const SENSITIVE_KEY =
   /^(?:authorization|token|secret|password|api.?key|bank.?account|account.?number|routing|bsb|email|phone|address|first.?name|last.?name|tax.?number|name|url|description|narration|reference|summary|title|terms|purchaseDescription|option|optionNames|options|.*ids?)$/i;
 const REVIEWABLE_DATE_KEY =
   /^(?:date|dueDate|expiryDate|startDate|endDate)$/i;
-const REVIEWABLE_TOKEN_KEY = /^(?:status|type|taxType|lineAmountTypes)$/i;
-const ENUM_TOKEN = /^[A-Z][A-Z0-9_]{0,31}$/;
+const REVIEWABLE_ENUMS = new Map<string, ReadonlySet<string>>([
+  [
+    "status",
+    new Set(["ACTIVE", "ARCHIVED", "DELETED", "DRAFT", "POSTED", "VOIDED"]),
+  ],
+  ["type", new Set(["ACCPAY", "ACCREC", "RECEIVE", "SPEND"])],
+  ["lineamounttypes", new Set(["EXCLUSIVE", "INCLUSIVE", "NO_TAX"])],
+]);
 
 function isReviewableDate(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -107,7 +113,7 @@ function sanitisePreview(value: unknown, key = "", depth = 0): unknown {
   if (depth >= 8) return "[truncated: maximum depth reached]";
   if (typeof value === "string") {
     if (REVIEWABLE_DATE_KEY.test(key) && isReviewableDate(value)) return value;
-    if (REVIEWABLE_TOKEN_KEY.test(key) && ENUM_TOKEN.test(value)) return value;
+    if (REVIEWABLE_ENUMS.get(key.toLowerCase())?.has(value)) return value;
     return "[redacted]";
   }
   if (Array.isArray(value)) {
