@@ -114,6 +114,7 @@ const UpdateInvoiceTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default UpdateInvoiceTool;

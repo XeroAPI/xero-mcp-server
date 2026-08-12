@@ -105,6 +105,7 @@ const UpdateContactTool = MutationXeroTool(
       };
     }
   },
+  { supportsIdempotency: true },
 );
 
 export default UpdateContactTool;

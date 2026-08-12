@@ -37,6 +37,7 @@ const RevertPayrollTimesheetTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default RevertPayrollTimesheetTool;

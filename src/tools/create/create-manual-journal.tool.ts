@@ -4,10 +4,6 @@ import { createXeroManualJournal } from "../../handlers/create-xero-manual-journ
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
 import { LineAmountTypes, ManualJournal } from "xero-node";
-import {
-  idempotencyKeySchema,
-  resolveIdempotencyKey,
-} from "../../helpers/idempotency-key.js";
 
 const CreateManualJournalTool = MutationXeroTool(
   "create-manual-journal",
@@ -66,13 +62,8 @@ const CreateManualJournalTool = MutationXeroTool(
       .describe(
         "Optional boolean to show on cash basis reports, default is true",
       ),
-    idempotencyKey: idempotencyKeySchema
-      .optional()
-      .describe(
-        "Optional key to reuse only when retrying this same manual journal",
-      ),
   },
-  async (args, extra) => {
+  async (args) => {
     try {
       const response = await createXeroManualJournal(
         args.narration,
@@ -82,13 +73,6 @@ const CreateManualJournalTool = MutationXeroTool(
         args.status as ManualJournal.StatusEnum | undefined,
         args.url,
         args.showOnCashBasisReports,
-        resolveIdempotencyKey(
-          "create-manual-journal",
-          extra.requestId,
-          args.idempotencyKey,
-          extra.sessionId,
-          args,
-        ),
       );
 
       if (response.isError) {
@@ -161,6 +145,7 @@ const CreateManualJournalTool = MutationXeroTool(
       };
     }
   },
+  { supportsIdempotency: true },
 );
 
 export default CreateManualJournalTool;

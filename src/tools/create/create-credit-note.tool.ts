@@ -2,10 +2,6 @@ import { z } from "zod";
 import { createXeroCreditNote } from "../../handlers/create-xero-credit-note.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
-import {
-  idempotencyKeySchema,
-  resolveIdempotencyKey,
-} from "../../helpers/idempotency-key.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -25,25 +21,9 @@ const CreateCreditNoteTool = MutationXeroTool(
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),
     reference: z.string().optional(),
-    idempotencyKey: idempotencyKeySchema
-      .optional()
-      .describe(
-        "Optional key to reuse only when retrying this same credit note",
-      ),
   },
-  async ({ contactId, lineItems, reference, idempotencyKey }, extra) => {
-    const result = await createXeroCreditNote(
-      contactId,
-      lineItems,
-      reference,
-      resolveIdempotencyKey(
-        "create-credit-note",
-        extra.requestId,
-        idempotencyKey,
-        extra.sessionId,
-        { contactId, lineItems, reference },
-      ),
-    );
+  async ({ contactId, lineItems, reference }) => {
+    const result = await createXeroCreditNote(contactId, lineItems, reference);
     if (result.isError) {
       return {
         content: [
@@ -79,6 +59,7 @@ const CreateCreditNoteTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default CreateCreditNoteTool;

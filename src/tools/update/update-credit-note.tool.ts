@@ -90,6 +90,7 @@ const UpdateCreditNoteTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
-export default UpdateCreditNoteTool; 
+export default UpdateCreditNoteTool;

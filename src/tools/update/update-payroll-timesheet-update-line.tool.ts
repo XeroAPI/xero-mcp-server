@@ -46,6 +46,7 @@ const UpdatePayrollTimesheetLineTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default UpdatePayrollTimesheetLineTool;

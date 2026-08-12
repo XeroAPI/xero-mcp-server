@@ -73,7 +73,8 @@ const UpdateBankTransactionTool = MutationXeroTool(
         },
       ],
     };
-  }
+  },
+  { supportsIdempotency: true },
 );
 
 export default UpdateBankTransactionTool;

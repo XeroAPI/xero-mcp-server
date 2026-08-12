@@ -82,6 +82,7 @@ const UpdateItemTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
-export default UpdateItemTool; 
+export default UpdateItemTool;

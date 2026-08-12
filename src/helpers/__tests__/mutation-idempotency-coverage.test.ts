@@ -66,7 +66,7 @@ function handlerSource(method: string): string {
 }
 
 describe("mutation idempotency coverage", () => {
-  it("uses the explicit mutation wrapper for every registered mutating tool", () => {
+  it("pins explicit support metadata on every registered mutation", () => {
     const tools = fileURLToPath(new URL("../../tools/", import.meta.url));
     const files = ["create", "update", "delete"].flatMap((directory) =>
       readdirSync(`${tools}/${directory}`)
@@ -75,8 +75,34 @@ describe("mutation idempotency coverage", () => {
     );
 
     expect(files).toHaveLength(25);
+    const supported: string[] = [];
+    const unsupported: string[] = [];
     for (const file of files) {
-      expect(readFileSync(file, "utf8"), file).toContain("MutationXeroTool(");
+      const source = readFileSync(file, "utf8");
+      expect(source, file).toContain("MutationXeroTool(");
+      if (source.includes("supportsIdempotency: true")) supported.push(file);
+      if (source.includes("supportsIdempotency: false")) unsupported.push(file);
+    }
+    expect(supported).toHaveLength(24);
+    expect(unsupported).toHaveLength(1);
+    expect(unsupported[0]).toMatch(/delete-payroll-timesheet\.tool\.ts$/);
+  });
+
+  it("keeps all registered read declarations free of mutation controls", () => {
+    const tools = fileURLToPath(new URL("../../tools/", import.meta.url));
+    const files = ["list", "get"].flatMap((directory) =>
+      readdirSync(`${tools}/${directory}`)
+        .filter((file) => file.endsWith("tool.ts"))
+        .map((file) => `${tools}/${directory}/${file}`),
+    );
+
+    expect(files).toHaveLength(26);
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      expect(source, file).toContain("CreateXeroTool(");
+      expect(source, file).not.toContain("MutationXeroTool(");
+      expect(source, file).not.toContain("idempotencyKey");
+      expect(source, file).not.toContain("confirmationAction");
     }
   });
 

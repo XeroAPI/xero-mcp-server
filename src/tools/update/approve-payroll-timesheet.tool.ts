@@ -37,6 +37,7 @@ const ApprovePayrollTimesheetTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default ApprovePayrollTimesheetTool;

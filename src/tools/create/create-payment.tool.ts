@@ -2,10 +2,6 @@ import { z } from "zod";
 import { createXeroPayment } from "../../handlers/create-xero-payment.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
-import {
-  idempotencyKeySchema,
-  resolveIdempotencyKey,
-} from "../../helpers/idempotency-key.js";
 
 const CreatePaymentTool = MutationXeroTool(
   "create-payment",
@@ -35,27 +31,14 @@ const CreatePaymentTool = MutationXeroTool(
       .string()
       .optional()
       .describe("Optional payment reference/description"),
-    idempotencyKey: idempotencyKeySchema
-      .optional()
-      .describe("Optional key to reuse only when retrying this same payment"),
   },
-  async (
-    { invoiceId, accountId, amount, date, reference, idempotencyKey },
-    extra,
-  ) => {
+  async ({ invoiceId, accountId, amount, date, reference }) => {
     const result = await createXeroPayment({
       invoiceId,
       accountId,
       amount,
       date,
       reference,
-      idempotencyKey: resolveIdempotencyKey(
-        "create-payment",
-        extra.requestId,
-        idempotencyKey,
-        extra.sessionId,
-        { invoiceId, accountId, amount, date, reference },
-      ),
     });
     if (result.isError) {
       return {
@@ -93,6 +76,7 @@ const CreatePaymentTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default CreatePaymentTool;

@@ -35,6 +35,7 @@ const DeletePayrollTimesheetTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: false },
 );
 
 export default DeletePayrollTimesheetTool;

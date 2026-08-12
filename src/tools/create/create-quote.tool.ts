@@ -79,6 +79,7 @@ const CreateQuoteTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default CreateQuoteTool;

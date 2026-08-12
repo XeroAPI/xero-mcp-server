@@ -77,6 +77,7 @@ const CreateItemTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
-export default CreateItemTool; 
+export default CreateItemTool;

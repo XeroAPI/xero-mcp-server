@@ -25,7 +25,7 @@ const UpdateTrackingCategoryTool = MutationXeroTool(
     }
 
     const trackingCategory = response.result;
-    
+
     return {
       content: [
         {
@@ -34,7 +34,8 @@ const UpdateTrackingCategoryTool = MutationXeroTool(
         },
       ]
     };
-  }
+  },
+  { supportsIdempotency: true },
 );
 
 export default UpdateTrackingCategoryTool;

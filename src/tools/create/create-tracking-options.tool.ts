@@ -25,7 +25,7 @@ const CreateTrackingOptionsTool = MutationXeroTool(
     }
 
     const trackingOptions = response.result;
-    
+
     return {
       content: [
         {
@@ -34,7 +34,8 @@ const CreateTrackingOptionsTool = MutationXeroTool(
         },
       ]
     };
-  }
+  },
+  { supportsIdempotency: true },
 );
 
 export default CreateTrackingOptionsTool;

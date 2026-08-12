@@ -61,6 +61,7 @@ const CreateContactTool = MutationXeroTool(
       };
     }
   },
+  { supportsIdempotency: true },
 );
 
 export default CreateContactTool;

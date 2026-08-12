@@ -2,10 +2,6 @@ import { z } from "zod";
 import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroBankTransaction } from "../../handlers/create-xero-bank-transaction.handler.js";
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
-import {
-  idempotencyKeySchema,
-  resolveIdempotencyKey,
-} from "../../helpers/idempotency-key.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -27,66 +23,29 @@ const CreateBankTransactionTool = MutationXeroTool(
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),
     reference: z.string().optional(),
-    date: z
-      .string()
+    date: z.string()
       .optional()
-      .describe(
-        "If no date is provided, the date will default to today's date",
-      ),
-    idempotencyKey: idempotencyKeySchema
-      .optional()
-      .describe(
-        "Optional key to reuse only when retrying this same bank transaction",
-      ),
+      .describe("If no date is provided, the date will default to today's date")
   },
-  async (
-    {
-      type,
-      bankAccountId,
-      contactId,
-      lineItems,
-      reference,
-      date,
-      idempotencyKey,
-    },
-    extra,
-  ) => {
-    const result = await createXeroBankTransaction(
-      type,
-      bankAccountId,
-      contactId,
-      lineItems,
-      reference,
-      date,
-      resolveIdempotencyKey(
-        "create-bank-transaction",
-        extra.requestId,
-        idempotencyKey,
-        extra.sessionId,
-        { type, bankAccountId, contactId, lineItems, reference, date },
-      ),
-    );
+  async ({ type, bankAccountId, contactId, lineItems, reference, date }) => {
+    const result = await createXeroBankTransaction(type, bankAccountId, contactId, lineItems, reference, date);
 
     if (result.isError) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Error creating bank transaction: ${result.error}`,
-          },
-        ],
+            text: `Error creating bank transaction: ${result.error}`
+          }
+        ]
       };
     }
 
     const bankTransaction = result.result;
 
-    const deepLink =
-      bankTransaction.bankAccount.accountID && bankTransaction.bankTransactionID
-        ? bankTransactionDeepLink(
-            bankTransaction.bankAccount.accountID,
-            bankTransaction.bankTransactionID,
-          )
-        : null;
+    const deepLink = bankTransaction.bankAccount.accountID && bankTransaction.bankTransactionID
+      ? bankTransactionDeepLink(bankTransaction.bankAccount.accountID, bankTransaction.bankTransactionID)
+      : null;
 
     return {
       content: [
@@ -99,14 +58,13 @@ const CreateBankTransactionTool = MutationXeroTool(
             `Contact: ${bankTransaction?.contact?.name}`,
             `Total: ${bankTransaction?.total}`,
             `Status: ${bankTransaction?.status}`,
-            deepLink ? `Link to view: ${deepLink}` : null,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+            deepLink ? `Link to view: ${deepLink}` : null
+          ].filter(Boolean).join("\n"),
         },
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default CreateBankTransactionTool;

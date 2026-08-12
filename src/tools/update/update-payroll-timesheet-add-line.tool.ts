@@ -45,6 +45,7 @@ const AddTimesheetLineTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
 export default AddTimesheetLineTool;

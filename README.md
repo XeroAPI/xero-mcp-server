@@ -51,13 +51,38 @@ Set up a Custom Connection following these instructions: https://developer.xero.
 
 Custom connections require different scopes depending on when they were created. **All scopes in the relevant list must be added to your custom connection:**
 
-| Custom Connection Created | Required Scopes |
-|---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+For custom connections created **before Apr 29, 2026** (bundled permissions):
+
+```
+accounting.transactions
+accounting.contacts
+accounting.settings
+accounting.reports.read
+payroll.settings
+payroll.employees
+payroll.timesheets
+```
+
+For custom connections created **from Apr 29, 2026** (granular permissions):
+
+```
+accounting.invoices
+accounting.payments
+accounting.banktransactions
+accounting.manualjournals
+accounting.reports.aged.read
+accounting.reports.balancesheet.read
+accounting.reports.profitandloss.read
+accounting.reports.trialbalance.read
+accounting.contacts
+accounting.settings
+payroll.settings
+payroll.employees
+payroll.timesheets
+```
 
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
-> 
+>
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
 
 ##### Integrating the MCP server with Claude Desktop
@@ -96,7 +121,8 @@ In this case, use the following configuration:
       "command": "npx",
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
-        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token"
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "XERO_TENANT_ID": "your_tenant_id_here"
       }
     }
   }
@@ -127,13 +153,24 @@ accounting.reports.aged.read
 accounting.reports.balancesheet.read
 accounting.reports.profitandloss.read
 accounting.reports.trialbalance.read
-accounting.contacts 
-accounting.settings 
-payroll.settings 
-payroll.employees 
+accounting.contacts
+accounting.settings
+payroll.settings
+payroll.employees
 payroll.timesheets
 ```
 
+##### Tenant Selection
+
+Custom Connections are bound to one organisation and neither need nor support
+`XERO_TENANT_ID`; their tokens are used only with tenanted endpoints.
+
+For bearer-token authentication, `XERO_TENANT_ID` is optional only when the
+credential has exactly one Xero organisation connection. The server rejects
+zero or multiple available tenant connections rather than guessing. When a
+bearer credential can access more than one organisation, set `XERO_TENANT_ID`
+to the desired `tenantId` returned by Xero's `/connections` endpoint. A
+configured tenant ID must match one of the credential's connections.
 
 ### Available MCP Commands
 
@@ -191,15 +228,39 @@ payroll.timesheets
 
 #### Retrying mutations safely
 
-Every mutation tool accepts an optional `idempotencyKey` of up to 128
-characters. Reuse that key only when retrying the exact same mutation. When it
-is omitted, the server derives a key from the tool, MCP request, session and
-business payload. This protects a replay within the same server session; a
-retry in a new session or process must provide the original caller key.
+The 24 mutation tools backed by Xero SDK methods with idempotency support accept
+an optional `idempotencyKey` of up to 128 characters. Reuse that key only when
+retrying the exact same mutation. When it is omitted, the server derives a key
+from the tool, MCP request, session and business payload. This protects a replay
+within the same server session; a retry in a new session or process must provide
+the original caller key.
 
-The key is forwarded to all 24 mutation endpoints for which the installed Xero
-SDK exposes idempotency support. `delete-payroll-timesheet` is the sole current
-exception because its SDK method has no idempotency-key parameter.
+`delete-payroll-timesheet` is the sole current exception because its installed
+SDK method has no idempotency-key parameter; its tool schema does not advertise
+an unsupported key.
+
+#### Two-step mutation guard
+
+Every create, update, approve, revert and delete tool uses a mandatory two-step
+prepare/execute flow:
+
+1. Call the tool with `confirmationAction` set to `prepare`. The server returns
+   a bounded, redacted preview, the selected Xero organisation and a
+   short-lived confirmation token. No mutation is sent to Xero.
+2. Review the action, target organisation and preview. Call the same tool with
+   the exact same business payload, `confirmationAction` set to `execute`, and
+   the returned `confirmationToken`.
+
+Tokens expire after five minutes, are bound to the tool, payload and selected
+organisation, and are consumed on the first execution attempt. A changed
+payload or organisation requires a new prepare step. Clients that previously
+called mutation tools directly must adopt this prepare/execute sequence.
+
+This server-side guard prevents a one-step mutation and blocks changed-payload,
+changed-organisation and token-replay attempts. It does not prove that a human
+approved the action because the same MCP caller receives and can submit the
+token. Trusted human attestation requires explicit support from the MCP host or
+user interface and remains a separate product decision.
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

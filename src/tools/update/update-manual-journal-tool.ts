@@ -119,6 +119,7 @@ const UpdateManualJournalTool = MutationXeroTool(
       };
     }
   },
+  { supportsIdempotency: true },
 );
 
 export default UpdateManualJournalTool;

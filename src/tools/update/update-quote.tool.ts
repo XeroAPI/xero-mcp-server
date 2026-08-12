@@ -93,6 +93,7 @@ const UpdateQuoteTool = MutationXeroTool(
       ],
     };
   },
+  { supportsIdempotency: true },
 );
 
-export default UpdateQuoteTool; 
+export default UpdateQuoteTool;
