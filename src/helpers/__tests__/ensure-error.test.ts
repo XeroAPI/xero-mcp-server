@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { ensureError } from "../ensure-error.js";
 
 describe("ensureError", () => {
-  it("returns an existing Error unchanged", () => {
+  it("returns a newly sanitised Error for an existing Error", () => {
     const error = new Error("original message");
+    const result = ensureError(error);
 
-    expect(ensureError(error)).toBe(error);
+    expect(result).not.toBe(error);
+    expect(result.message).toBe("original message");
   });
 
   it("does not stringify an unknown object containing an authorization header", () => {
