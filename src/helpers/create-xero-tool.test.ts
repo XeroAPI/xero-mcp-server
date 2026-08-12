@@ -173,6 +173,65 @@ describe("MutationXeroTool confirmation", () => {
     expect(text.length).toBeLessThan(9_000);
   });
 
+  it("redacts adversarial strings under decision-field names", async () => {
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => "synthetic-token",
+    );
+    const tool = MutationXeroTool(
+      "update-example",
+      "Update an example",
+      {
+        date: z.string(),
+        status: z.string(),
+        type: z.string(),
+        taxType: z.string(),
+      },
+      vi.fn(),
+      confirmation,
+    )();
+    const markers = {
+      date: "private-date-marker",
+      status: "DRAFT private-status-marker",
+      type: "private-type-marker",
+      taxType: "OUTPUT secret-marker",
+    };
+
+    const prepared = await tool.handler(
+      { ...markers, confirmationAction: "prepare" },
+      {} as never,
+    );
+    const text =
+      prepared.content[0].type === "text" ? prepared.content[0].text : "";
+
+    for (const marker of Object.values(markers)) {
+      expect(text).not.toContain(marker);
+    }
+  });
+
+  it.each(["", "x".repeat(129)])(
+    "rejects a malformed confirmation token: %s",
+    async (confirmationToken) => {
+      const tool = MutationXeroTool(
+        "create-example",
+        "Create an example",
+        { amount: z.number() },
+        vi.fn(),
+        new MutationConfirmationStore(async () => ({
+          organisationId: "synthetic-organisation",
+        })),
+      )();
+
+      await expect(
+        tool.handler(
+          { amount: 42, confirmationAction: "prepare", confirmationToken },
+          {} as never,
+        ),
+      ).rejects.toThrow();
+    },
+  );
+
   it("keeps the token opaque and rejects changed payloads and replay", async () => {
     const confirmation = new MutationConfirmationStore(
       async () => ({ organisationId: "synthetic-organisation" }),

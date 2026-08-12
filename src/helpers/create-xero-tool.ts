@@ -18,16 +18,20 @@ const confirmationAction = z
   );
 const confirmationToken = z
   .string()
+  .min(1)
+  .max(128)
   .optional()
   .describe("One-time token returned by the prepare step");
 
 const MAX_PREVIEW_CHARS = 8_000;
-const MAX_PREVIEW_STRING_CHARS = 500;
 const MAX_PREVIEW_ITEMS = 50;
 const SENSITIVE_KEY =
   /^(?:authorization|token|secret|password|api.?key|bank.?account|account.?number|routing|bsb|email|phone|address|first.?name|last.?name|tax.?number|name|url|description|narration|reference|summary|title|terms|purchaseDescription|option|optionNames|options|.*ids?)$/i;
-const REVIEWABLE_STRING_KEY =
-  /^(?:date|dueDate|expiryDate|startDate|endDate|status|type|taxType|lineAmountTypes)$/i;
+const REVIEWABLE_DATE_KEY =
+  /^(?:date|dueDate|expiryDate|startDate|endDate)$/i;
+const REVIEWABLE_TOKEN_KEY = /^(?:status|type|taxType|lineAmountTypes)$/i;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ENUM_TOKEN = /^[A-Z][A-Z0-9_]{0,31}$/;
 
 /** Current mutation-tool inputs reviewed when defining the preview policy. */
 export const REVIEWED_MUTATION_INPUT_KEYS = [
@@ -87,10 +91,9 @@ function sanitisePreview(value: unknown, key = "", depth = 0): unknown {
   if (SENSITIVE_KEY.test(key)) return "[redacted]";
   if (depth >= 8) return "[truncated: maximum depth reached]";
   if (typeof value === "string") {
-    if (!REVIEWABLE_STRING_KEY.test(key)) return "[redacted]";
-    return value.length <= MAX_PREVIEW_STRING_CHARS
-      ? value
-      : `${value.slice(0, MAX_PREVIEW_STRING_CHARS)}… [truncated]`;
+    if (REVIEWABLE_DATE_KEY.test(key) && ISO_DATE.test(value)) return value;
+    if (REVIEWABLE_TOKEN_KEY.test(key) && ENUM_TOKEN.test(value)) return value;
+    return "[redacted]";
   }
   if (Array.isArray(value)) {
     const items = value
@@ -157,7 +160,7 @@ export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
       ...payload
     } = parsed;
     if (requestedAction === "prepare") {
-      if (suppliedToken) {
+      if (suppliedToken !== undefined) {
         throw new Error(
           "Do not supply a confirmation token while preparing a mutation.",
         );
