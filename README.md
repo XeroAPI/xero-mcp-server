@@ -98,8 +98,7 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
         "XERO_CLIENT_SECRET": "your_client_secret_here",
-        "XERO_SCOPES": "accounting.invoices accounting.contacts accounting.settings",
-        "XERO_TENANT_ID": "your_tenant_id_here"
+        "XERO_SCOPES": "accounting.invoices accounting.contacts accounting.settings"
       }
     }
   }
@@ -163,12 +162,15 @@ payroll.timesheets
 
 ##### Tenant Selection
 
-`XERO_TENANT_ID` is optional only when the configured credentials have access to
-exactly one Xero organisation. The server rejects zero or multiple available
-tenant connections rather than guessing which organisation to use. When a
-credential can access more than one organisation, set `XERO_TENANT_ID` to the
-desired `tenantId` returned by Xero's `/connections` endpoint. A configured
-tenant ID must match one of the connections available to the credential.
+Custom Connections are bound to one organisation and neither need nor support
+`XERO_TENANT_ID`; their tokens are used only with tenanted endpoints.
+
+For bearer-token authentication, `XERO_TENANT_ID` is optional only when the
+credential has exactly one Xero organisation connection. The server rejects
+zero or multiple available tenant connections rather than guessing. When a
+bearer credential can access more than one organisation, set `XERO_TENANT_ID`
+to the desired `tenantId` returned by Xero's `/connections` endpoint. A
+configured tenant ID must match one of the credential's connections.
 
 ### Available MCP Commands
 

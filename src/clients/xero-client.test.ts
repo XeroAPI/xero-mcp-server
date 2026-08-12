@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => {
   process.env.XERO_CLIENT_SECRET = "test-client-secret";
   delete process.env.XERO_CLIENT_BEARER_TOKEN;
   delete process.env.XERO_SCOPES;
+  delete process.env.XERO_TENANT_ID;
 
   return {
     post: vi.fn(),
@@ -29,7 +30,7 @@ describe("CustomConnectionsXeroClient", () => {
     vi.clearAllMocks();
     mocks.post.mockResolvedValue({
       data: {
-        access_token: "custom-connection-token",
+        access_token: "synthetic-custom-connection-token",
         expires_in: 1800,
         token_type: "Bearer",
       },
@@ -43,10 +44,10 @@ describe("CustomConnectionsXeroClient", () => {
       grantType: "client_credentials",
     });
 
-    const tokenSet = await client.getClientCredentialsToken();
+    await client.authenticate();
 
-    expect(tokenSet.access_token).toBe("custom-connection-token");
     expect(client.tenantId).toBe("");
+    expect(mocks.post).toHaveBeenCalledTimes(1);
     expect(mocks.get).not.toHaveBeenCalled();
   });
 
