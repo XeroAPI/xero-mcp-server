@@ -8,7 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
-import { selectTenantId, type TenantConnection } from "./tenant-selection.js";
+import { selectTenantId } from "./tenant-selection.js";
 
 dotenv.config();
 
@@ -76,7 +76,7 @@ abstract class MCPXeroClient extends XeroClient {
   }
 }
 
-class CustomConnectionsXeroClient extends MCPXeroClient {
+export class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
 
@@ -177,31 +177,12 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
+    // Custom Connections are bound to one organisation and cannot call the
+    // non-tenanted /connections endpoint. xero-node accepts an empty tenant ID
+    // for their tenanted API calls.
+    this.tenantId = "";
+
     return response.data;
-  }
-
-  // Get the tenant ID from the connections endpoint. Kept outside the token
-  // request so tenant-selection failures surface as-is instead of being
-  // re-wrapped as token-acquisition errors.
-  private async selectTenant(accessToken: string | undefined): Promise<void> {
-    const connectionsResponse = await axios.get<unknown>(
-      "https://api.xero.com/connections",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-        },
-      },
-    );
-
-    const connections = Array.isArray(connectionsResponse.data)
-      ? connectionsResponse.data.filter(
-          (connection): connection is TenantConnection =>
-            connection !== null && typeof connection === "object",
-        )
-      : [];
-
-    this.tenantId = selectTenantId(connections, process.env.XERO_TENANT_ID);
   }
 
   public async authenticate() {
@@ -213,11 +194,10 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       token_type: tokenResponse.token_type,
     });
 
-    await this.selectTenant(tokenResponse.access_token);
   }
 }
 
-class BearerTokenXeroClient extends MCPXeroClient {
+export class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
 
   constructor(config: { bearerToken: string }) {
