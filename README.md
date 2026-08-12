@@ -226,13 +226,13 @@ configured tenant ID must match one of the credential's connections.
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
 
-#### Confirming mutations
+#### Two-step mutation guard
 
 Every create, update, approve, revert and delete tool uses a mandatory two-step
-confirmation flow:
+prepare/execute flow:
 
 1. Call the tool with `confirmationAction` set to `prepare`. The server returns
-   a bounded, redacted preview, the selected Xero organisation ID and a
+   a bounded, redacted preview, the selected Xero organisation and a
    short-lived confirmation token. No mutation is sent to Xero.
 2. Review the action, target organisation and preview. Call the same tool with
    the exact same business payload, `confirmationAction` set to `execute`, and
@@ -242,6 +242,12 @@ Tokens expire after five minutes, are bound to the tool, payload and selected
 organisation, and are consumed on the first execution attempt. A changed
 payload or organisation requires a new prepare step. Clients that previously
 called mutation tools directly must adopt this prepare/execute sequence.
+
+This server-side guard prevents a one-step mutation and blocks changed-payload,
+changed-organisation and token-replay attempts. It does not prove that a human
+approved the action because the same MCP caller receives and can submit the
+token. Trusted human attestation requires explicit support from the MCP host or
+user interface and remains a separate product decision.
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 

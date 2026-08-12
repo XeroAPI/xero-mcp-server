@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { resolveAuthorisedMutationTenantId } from "../helpers/mutation-confirmation.js";
 import { selectTenantId } from "./tenant-selection.js";
 
 dotenv.config();
@@ -32,13 +33,21 @@ if (!bearer_token && (!client_id || !client_secret)) {
 }
 
 abstract class MCPXeroClient extends XeroClient {
-  public tenantId: string;
+  private selectedTenantId: string;
   private shortCode: string;
 
   protected constructor(config?: IXeroClientConfig) {
     super(config);
-    this.tenantId = "";
+    this.selectedTenantId = "";
     this.shortCode = "";
+  }
+
+  public get tenantId(): string {
+    return resolveAuthorisedMutationTenantId(this.selectedTenantId);
+  }
+
+  public set tenantId(tenantId: string) {
+    this.selectedTenantId = tenantId;
   }
 
   public abstract authenticate(): Promise<void>;

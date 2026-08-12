@@ -8,6 +8,7 @@ import { z } from "zod";
 import {
   MutationConfirmation,
   mutationConfirmation,
+  runWithAuthorisedMutationTarget,
 } from "./mutation-confirmation.js";
 
 const confirmationAction = z
@@ -185,8 +186,10 @@ export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
         "A confirmation token is required. Prepare the mutation first.",
       );
     }
-    await confirmation.authorise(name, payload, suppliedToken);
-    return handler(payload as ShapeOutput<Args>, extra);
+    const target = await confirmation.authorise(name, payload, suppliedToken);
+    return runWithAuthorisedMutationTarget(target, () =>
+      handler(payload as ShapeOutput<Args>, extra),
+    );
   };
 
   return () => ({

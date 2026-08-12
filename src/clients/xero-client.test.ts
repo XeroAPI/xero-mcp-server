@@ -24,6 +24,7 @@ import {
   BearerTokenXeroClient,
   CustomConnectionsXeroClient,
 } from "./xero-client.js";
+import { runWithAuthorisedMutationTarget } from "../helpers/mutation-confirmation.js";
 
 describe("CustomConnectionsXeroClient", () => {
   beforeEach(() => {
@@ -226,5 +227,19 @@ describe("CustomConnectionsXeroClient", () => {
     await client.authenticate();
 
     expect(updateTenants).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a tenant change in an authorised mutation context", () => {
+    const client = new BearerTokenXeroClient({ bearerToken: "bearer-token" });
+    client.tenantId = "tenant-a";
+
+    runWithAuthorisedMutationTarget(
+      { organisationId: "tenant-a", tenantId: "tenant-a" },
+      () => {
+        expect(client.tenantId).toBe("tenant-a");
+        client.tenantId = "tenant-b";
+        expect(() => client.tenantId).toThrow("changed after confirmation");
+      },
+    );
   });
 });

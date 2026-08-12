@@ -1,7 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
+import { AsyncLocalStorage } from "node:async_hooks";
 
 export interface MutationTarget {
   organisationId: string;
+  tenantId?: string;
 }
 
 export interface PreparedMutation extends MutationTarget {
@@ -14,17 +16,43 @@ interface PendingMutation {
   expiresAt: number;
   organisationId: string;
   payloadHash: string;
+  tenantId?: string;
 }
 
 type MutationTargetResolver = () => Promise<MutationTarget>;
 
 export interface MutationConfirmation {
   prepare(action: string, payload: unknown): Promise<PreparedMutation>;
-  authorise(action: string, payload: unknown, token: string): Promise<void>;
+  authorise(
+    action: string,
+    payload: unknown,
+    token: string,
+  ): Promise<MutationTarget>;
 }
 
 const DEFAULT_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_MAX_PENDING = 1_000;
+const authorisedMutationTarget = new AsyncLocalStorage<MutationTarget>();
+
+export function runWithAuthorisedMutationTarget<T>(
+  target: MutationTarget,
+  callback: () => T,
+): T {
+  return authorisedMutationTarget.run(target, callback);
+}
+
+export function resolveAuthorisedMutationTenantId(
+  currentTenantId: string,
+): string {
+  const target = authorisedMutationTarget.getStore();
+  if (target?.tenantId === undefined) return currentTenantId;
+  if (target.tenantId !== currentTenantId) {
+    throw new Error(
+      "The selected Xero organisation changed after confirmation. Prepare the mutation again.",
+    );
+  }
+  return target.tenantId;
+}
 
 function canonicalise(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalise);
@@ -91,6 +119,7 @@ export class MutationConfirmationStore implements MutationConfirmation {
       expiresAt,
       organisationId: target.organisationId,
       payloadHash: hashPayload(action, payload),
+      tenantId: target.tenantId,
     });
 
     return {
@@ -104,7 +133,7 @@ export class MutationConfirmationStore implements MutationConfirmation {
     action: string,
     payload: unknown,
     token: string,
-  ): Promise<void> {
+  ): Promise<MutationTarget> {
     const pending = this.pending.get(token);
     this.pending.delete(token);
 
@@ -115,15 +144,23 @@ export class MutationConfirmationStore implements MutationConfirmation {
     }
 
     const target = await this.resolveTarget();
+    if (pending.expiresAt <= this.now()) {
+      throw new Error(
+        "Confirmation token is invalid, expired, or already used. Prepare the mutation again.",
+      );
+    }
     if (
       pending.action !== action ||
       pending.organisationId !== target.organisationId ||
+      pending.tenantId !== target.tenantId ||
       pending.payloadHash !== hashPayload(action, payload)
     ) {
       throw new Error(
         "The action, payload, or selected Xero organisation changed. Prepare the mutation again.",
       );
     }
+
+    return target;
   }
 
   private createUniqueToken(): string {
@@ -145,6 +182,10 @@ export const mutationConfirmation = new MutationConfirmationStore(
   async () => {
     const { xeroClient } = await import("../clients/xero-client.js");
     await xeroClient.authenticate();
-    return { organisationId: xeroClient.tenantId };
+    const tenantId = xeroClient.tenantId;
+    return {
+      organisationId: tenantId || "Custom Connection organisation",
+      tenantId,
+    };
   },
 );

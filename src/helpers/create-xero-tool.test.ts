@@ -9,7 +9,10 @@ import {
   MutationXeroTool,
   REVIEWED_MUTATION_INPUT_KEYS,
 } from "./create-xero-tool.js";
-import { MutationConfirmationStore } from "./mutation-confirmation.js";
+import {
+  MutationConfirmationStore,
+  resolveAuthorisedMutationTenantId,
+} from "./mutation-confirmation.js";
 
 function tokenFrom(text: string): string {
   const match = text.match(/^Confirmation token: (.+)$/m);
@@ -228,6 +231,45 @@ describe("MutationXeroTool confirmation", () => {
     ).rejects.toThrow("already used");
   });
 
+  it("stops execution when the tenant changes inside the handler", async () => {
+    let tenantId = "tenant-a";
+    const apiCall = vi.fn();
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: tenantId, tenantId }),
+      () => 1_000,
+      () => "tenant-bound-token",
+    );
+    const tool = MutationXeroTool(
+      "create-example",
+      "Create an example",
+      { amount: z.number() },
+      async () => {
+        tenantId = "tenant-b";
+        apiCall(resolveAuthorisedMutationTenantId(tenantId));
+        return { content: [] };
+      },
+      confirmation,
+    )();
+    const prepared = await tool.handler(
+      { amount: 42, confirmationAction: "prepare" },
+      {} as never,
+    );
+    const text =
+      prepared.content[0].type === "text" ? prepared.content[0].text : "";
+
+    await expect(
+      tool.handler(
+        {
+          amount: 42,
+          confirmationAction: "execute",
+          confirmationToken: tokenFrom(text),
+        },
+        {} as never,
+      ),
+    ).rejects.toThrow("changed after confirmation");
+    expect(apiCall).not.toHaveBeenCalled();
+  });
+
   it("rejects expired tokens", async () => {
     let now = 1_000;
     const confirmation = new MutationConfirmationStore(
@@ -245,6 +287,32 @@ describe("MutationXeroTool confirmation", () => {
       confirmation.authorise(
         "approve-timesheet",
         { timesheetID: "synthetic-timesheet" },
+        prepared.token,
+      ),
+    ).rejects.toThrow("expired");
+  });
+
+  it("rechecks expiry after resolving the execution target", async () => {
+    let now = 1_000;
+    let resolutionCount = 0;
+    const confirmation = new MutationConfirmationStore(
+      async () => {
+        resolutionCount += 1;
+        if (resolutionCount === 2) now = 1_101;
+        return { organisationId: "synthetic-organisation" };
+      },
+      () => now,
+      () => "slow-resolution-token",
+      100,
+    );
+    const prepared = await confirmation.prepare("create-invoice", {
+      amount: 42,
+    });
+
+    await expect(
+      confirmation.authorise(
+        "create-invoice",
+        { amount: 42 },
         prepared.token,
       ),
     ).rejects.toThrow("expired");
