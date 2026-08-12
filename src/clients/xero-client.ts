@@ -16,6 +16,16 @@ const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
 const grant_type = "client_credentials";
+const OAUTH_TOKEN_ERROR_CODES = new Set([
+  "invalid_request",
+  "invalid_client",
+  "invalid_grant",
+  "unauthorized_client",
+  "unsupported_grant_type",
+  "invalid_scope",
+  "server_error",
+  "temporarily_unavailable",
+]);
 
 if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
@@ -122,12 +132,25 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
 
   private formatTokenError(error: unknown, context: string): Error {
     const axiosError = error as AxiosError;
+    const status = axiosError.response?.status;
     const data = axiosError.response?.data;
-    const message =
-      typeof data === "object"
-        ? JSON.stringify(data)
-        : data || axiosError.message;
-    return new Error(`Failed to get Xero token${context}: ${message}`);
+    const oauthCode =
+      data &&
+      typeof data === "object" &&
+      "error" in data &&
+      typeof data.error === "string" &&
+      OAUTH_TOKEN_ERROR_CODES.has(data.error)
+        ? data.error
+        : undefined;
+    const details = [
+      Number.isInteger(status) ? `HTTP ${status}` : undefined,
+      oauthCode ? `OAuth error: ${oauthCode}` : undefined,
+    ].filter(Boolean);
+    return new Error(
+      `Failed to get Xero token${context}${
+        details.length ? ` (${details.join("; ")})` : ""
+      }`,
+    );
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {

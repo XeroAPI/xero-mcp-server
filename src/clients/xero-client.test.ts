@@ -151,6 +151,64 @@ describe("CustomConnectionsXeroClient", () => {
     expect(mocks.post).toHaveBeenCalledTimes(2);
   });
 
+  it("reports only status and an allow-listed OAuth token error", async () => {
+    const secret = "SYNTHETIC-TOKEN-ENDPOINT-SECRET";
+    process.env.XERO_SCOPES = "accounting.settings";
+    mocks.post.mockRejectedValue({
+      message: `Authorization: Basic ${secret}`,
+      config: { url: `https://identity.invalid/?client_secret=${secret}` },
+      response: {
+        status: 401,
+        data: {
+          error: "invalid_client",
+          error_description: `Cookie: session=${secret}`,
+          nested: { access_token: secret },
+        },
+      },
+    });
+    const client = new CustomConnectionsXeroClient({
+      clientId: "test-client-id",
+      clientSecret: "test-client-secret",
+      grantType: "client_credentials",
+    });
+
+    try {
+      await expect(client.authenticate()).rejects.toThrow(
+        "Failed to get Xero token with XERO_SCOPES " +
+          "(HTTP 401; OAuth error: invalid_client)",
+      );
+      await expect(client.authenticate()).rejects.not.toThrow(secret);
+    } finally {
+      delete process.env.XERO_SCOPES;
+    }
+  });
+
+  it("does not reflect an unrecognised OAuth code or arbitrary error", async () => {
+    const secret = "SYNTHETIC-TOKEN-ENDPOINT-SECRET";
+    process.env.XERO_SCOPES = "accounting.settings";
+    mocks.post.mockRejectedValue({
+      message: secret,
+      response: {
+        status: 502,
+        data: { error: secret, error_description: secret },
+      },
+    });
+    const client = new CustomConnectionsXeroClient({
+      clientId: "test-client-id",
+      clientSecret: "test-client-secret",
+      grantType: "client_credentials",
+    });
+
+    try {
+      await expect(client.authenticate()).rejects.toThrow(
+        "Failed to get Xero token with XERO_SCOPES (HTTP 502)",
+      );
+      await expect(client.authenticate()).rejects.not.toThrow(secret);
+    } finally {
+      delete process.env.XERO_SCOPES;
+    }
+  });
+
   it("does not hydrate organisation details for bearer-token authentication", async () => {
     const client = new BearerTokenXeroClient({ bearerToken: "bearer-token" });
     const updateTenants = vi.spyOn(client, "updateTenants").mockResolvedValue([]);
