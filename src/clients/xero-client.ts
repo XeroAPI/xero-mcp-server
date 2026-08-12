@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { selectTenantId } from "./tenant-selection.js";
 
 dotenv.config();
 
@@ -35,9 +36,10 @@ abstract class MCPXeroClient extends XeroClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
-    }
+    this.tenantId = selectTenantId(
+      this.tenants ?? [],
+      process.env.XERO_TENANT_ID,
+    );
     return this.tenants;
   }
 
@@ -122,13 +124,15 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
     const axiosError = error as AxiosError;
     const data = axiosError.response?.data;
     const message =
-      typeof data === "object" ? JSON.stringify(data) : data || axiosError.message;
+      typeof data === "object"
+        ? JSON.stringify(data)
+        : data || axiosError.message;
     return new Error(`Failed to get Xero token${context}: ${message}`);
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
     // If XERO_SCOPES is set, use that
-    if (process.env.XERO_SCOPES) {                                                                                                                                                     
+    if (process.env.XERO_SCOPES) {
       try {
         return await this.requestToken(process.env.XERO_SCOPES);
       } catch (envError) {
@@ -175,8 +179,9 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    // Custom Connections are bound to a single tenant. xero-node requires an
-    // empty tenant ID for their tenanted API calls.
+    // Custom Connections are bound to one organisation and cannot call the
+    // non-tenanted /connections endpoint. xero-node accepts an empty tenant ID
+    // for their tenanted API calls.
     this.tenantId = "";
 
     return response.data;
@@ -191,7 +196,8 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
       token_type: tokenResponse.token_type,
     });
     const lifetimeSeconds = Number(tokenResponse.expires_in) || 0;
-    this.authenticatedUntil = Date.now() + Math.max(0, lifetimeSeconds - 60) * 1000;
+    this.authenticatedUntil =
+      Date.now() + Math.max(0, lifetimeSeconds - 60) * 1000;
   }
 
   public async authenticate(): Promise<void> {
