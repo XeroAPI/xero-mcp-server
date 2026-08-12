@@ -3,9 +3,9 @@ import { z } from "zod";
 import {
   approveXeroPayrollTimesheet,
 } from "../../handlers/approve-xero-payroll-timesheet.handler.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
-const ApprovePayrollTimesheetTool = CreateXeroTool(
+const ApprovePayrollTimesheetTool = MutationXeroTool(
   "approve-timesheet",
   `Approve a payroll timesheet in Xero by its ID.`,
   {

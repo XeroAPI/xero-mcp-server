@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createXeroInvoice } from "../../handlers/create-xero-invoice.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { Invoice } from "xero-node";
 import {
   idempotencyKeySchema,
@@ -56,7 +56,7 @@ const lineItemSchema = z.object({
     .optional(),
 });
 
-const CreateInvoiceTool = CreateXeroTool(
+const CreateInvoiceTool = MutationXeroTool(
   "create-invoice",
   "Create an invoice in Xero.\
  When an invoice is created, a deep link to the invoice in Xero is returned. \

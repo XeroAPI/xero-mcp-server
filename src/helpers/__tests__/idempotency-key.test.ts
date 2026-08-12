@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  getCurrentIdempotencyKey,
   idempotencyKeySchema,
   resolveIdempotencyKey,
+  runWithIdempotencyKey,
 } from "../idempotency-key.js";
 
 describe("idempotency keys", () => {
@@ -108,5 +110,16 @@ describe("idempotency keys", () => {
     expect(idempotencyKeySchema.safeParse("x".repeat(128)).success).toBe(true);
     expect(idempotencyKeySchema.safeParse("x".repeat(129)).success).toBe(false);
     expect(idempotencyKeySchema.safeParse("   ").success).toBe(false);
+  });
+
+  it("scopes a resolved key to the mutation handler", async () => {
+    expect(getCurrentIdempotencyKey()).toBeUndefined();
+
+    await runWithIdempotencyKey("scoped-key", async () => {
+      await Promise.resolve();
+      expect(getCurrentIdempotencyKey()).toBe("scoped-key");
+    });
+
+    expect(getCurrentIdempotencyKey()).toBeUndefined();
   });
 });

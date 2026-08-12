@@ -63,7 +63,7 @@ async function createItem(
     true, // summarizeErrors
     undefined, // unitdp
     undefined, // idempotencyKey
-    getClientHeaders()
+    getClientHeaders(true)
   );
 
   return response.body.items?.[0] ?? null;
@@ -90,4 +90,4 @@ export async function createXeroItem(
       error: formatError(error),
     };
   }
-} 
+}

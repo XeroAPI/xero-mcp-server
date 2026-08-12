@@ -3,9 +3,9 @@ import { z } from "zod";
 import {
   deleteXeroPayrollTimesheet,
 } from "../../handlers/delete-xero-payroll-timesheet.handler.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
-const DeletePayrollTimesheetTool = CreateXeroTool(
+const DeletePayrollTimesheetTool = MutationXeroTool(
   "delete-timesheet",
   `Delete an existing payroll timesheet in Xero by its ID.`,
   {

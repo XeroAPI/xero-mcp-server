@@ -2,6 +2,7 @@ import { Timesheet } from "xero-node/dist/gen/model/payroll-nz/timesheet.js";
 
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
+import { getCurrentIdempotencyKey } from "../helpers/idempotency-key.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function approveTimesheet(timesheetID: string): Promise<Timesheet | null> {
@@ -11,6 +12,7 @@ async function approveTimesheet(timesheetID: string): Promise<Timesheet | null> 
   const approvedTimesheet = await xeroClient.payrollNZApi.approveTimesheet(
     xeroClient.tenantId,
     timesheetID,
+    getCurrentIdempotencyKey(),
   );
 
   return approvedTimesheet.body.timesheet ?? null;

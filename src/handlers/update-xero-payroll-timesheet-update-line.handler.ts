@@ -4,6 +4,7 @@ import {
 
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
+import { getCurrentIdempotencyKey } from "../helpers/idempotency-key.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function updateTimesheetLine(
@@ -19,6 +20,7 @@ async function updateTimesheetLine(
     timesheetID,
     timesheetLineID,
     timesheetLine,
+    getCurrentIdempotencyKey(),
   );
 
   return updatedLine.body.timesheetLine ?? null;

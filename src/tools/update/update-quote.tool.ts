@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { updateXeroQuote } from "../../handlers/update-xero-quote.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -11,7 +11,7 @@ const lineItemSchema = z.object({
   taxType: z.string(),
 });
 
-const UpdateQuoteTool = CreateXeroTool(
+const UpdateQuoteTool = MutationXeroTool(
   "update-quote",
   "Update a quote in Xero. Only works on draft quotes.\
   All line items must be provided. Any line items not provided will be removed. Including existing line items.\

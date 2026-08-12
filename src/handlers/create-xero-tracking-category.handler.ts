@@ -17,7 +17,7 @@ async function createTrackingCategory(
     xeroClient.tenantId, // xeroTenantId
     trackingCategory,
     undefined, // idempotencyKey
-    getClientHeaders() // options
+    getClientHeaders(true) // options
   );
 
   const createdTrackingCategory = response.body.trackingCategories?.[0];

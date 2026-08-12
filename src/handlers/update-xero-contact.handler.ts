@@ -52,7 +52,7 @@ async function updateContact(
     contactId, // contactId
     contacts, // contacts
     undefined, // idempotencyKey
-    getClientHeaders(),
+    getClientHeaders(true),
   );
 
   const updatedContact = response.body.contacts?.[0];

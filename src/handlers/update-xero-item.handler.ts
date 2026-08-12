@@ -50,7 +50,7 @@ async function updateItem(
     items,
     undefined, // unitdp
     undefined, // idempotencyKey
-    getClientHeaders()
+    getClientHeaders(true)
   );
 
   return response.body.items?.[0] ?? null;
@@ -81,4 +81,4 @@ export async function updateXeroItem(
       error: formatError(error),
     };
   }
-} 
+}

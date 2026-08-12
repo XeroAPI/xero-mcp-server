@@ -39,7 +39,7 @@ async function createCreditNote(
     true, // summarizeErrors
     undefined, // unitdp
     idempotencyKey,
-    getClientHeaders(),
+    getClientHeaders(true),
   );
   const createdCreditNote = response.body.creditNotes?.[0];
   return createdCreditNote;

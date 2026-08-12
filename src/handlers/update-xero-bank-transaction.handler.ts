@@ -52,7 +52,7 @@ async function updateBankTransaction(
     { bankTransactions: [bankTransaction] }, // bankTransactions
     undefined, // unitdp
     undefined, // idempotencyKey
-    getClientHeaders() // options
+    getClientHeaders(true) // options
   );
 
   return response.body.bankTransactions?.[0];

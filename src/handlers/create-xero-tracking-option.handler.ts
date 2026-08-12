@@ -17,7 +17,7 @@ async function createTrackingOption(
       name: name
     },
     undefined, // idempotencyKey
-    getClientHeaders()
+    getClientHeaders(true)
   );
 
   const createdTrackingOption = response.body.options?.[0];

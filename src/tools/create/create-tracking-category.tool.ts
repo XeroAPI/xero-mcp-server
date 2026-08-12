@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { createXeroTrackingCategory } from "../../handlers/create-xero-tracking-category.handler.js";
 
-const CreateTrackingCategoryTool = CreateXeroTool(
+const CreateTrackingCategoryTool = MutationXeroTool(
   "create-tracking-category",
   `Create a tracking category in Xero.`,
   {

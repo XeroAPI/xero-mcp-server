@@ -46,7 +46,7 @@ async function updateManualJournal(
     manualJournalID,
     manualJournals,
     undefined,
-    getClientHeaders(),
+    getClientHeaders(true),
   );
 
   return response.body.manualJournals?.[0];

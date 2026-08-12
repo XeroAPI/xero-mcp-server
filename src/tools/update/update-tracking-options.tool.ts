@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { formatTrackingOption } from "../../helpers/format-tracking-option.js";
 import { updateXeroTrackingOption } from "../../handlers/update-xero-tracking-options.handler.js";
 
@@ -9,7 +9,7 @@ const trackingOptionSchema = z.object({
   status: z.enum(["ACTIVE", "ARCHIVED"]).optional()
 });
 
-const UpdateTrackingOptionsTool = CreateXeroTool(
+const UpdateTrackingOptionsTool = MutationXeroTool(
   "update-tracking-options",
   `Updates tracking options for a tracking category in Xero.`,
   {

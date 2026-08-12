@@ -46,7 +46,7 @@ async function createManualJournal(
     manualJournals,
     true,
     idempotencyKey,
-    getClientHeaders(),
+    getClientHeaders(true),
   );
 
   return response.body.manualJournals?.[0];

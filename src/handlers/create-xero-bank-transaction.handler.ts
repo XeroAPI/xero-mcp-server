@@ -47,7 +47,7 @@ async function createBankTransaction(
     true, // summarizeErrors
     undefined, // unitdp
     idempotencyKey, // idempotencyKey
-    getClientHeaders()
+    getClientHeaders(true)
   );
 
   const createdBankTransaction = response.body.bankTransactions?.[0];

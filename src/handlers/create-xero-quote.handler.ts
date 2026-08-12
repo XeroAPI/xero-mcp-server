@@ -47,7 +47,7 @@ async function createQuote(
     }, // quotes
     true, //summarizeErrors
     undefined, //idempotencyKey
-    getClientHeaders(),
+    getClientHeaders(true),
   );
   const createdQuote = response.body.quotes?.[0];
   return createdQuote;

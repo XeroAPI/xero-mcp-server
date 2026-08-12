@@ -39,7 +39,7 @@ async function createPayment({
     xeroClient.tenantId,
     payment,
     idempotencyKey,
-    getClientHeaders(), // options
+    getClientHeaders(true), // options
   );
 
   return response.body.payments?.[0];

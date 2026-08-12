@@ -2,9 +2,9 @@ import { createXeroContact } from "../../handlers/create-xero-contact.handler.js
 import { z } from "zod";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { ensureError } from "../../helpers/ensure-error.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 
-const CreateContactTool = CreateXeroTool(
+const CreateContactTool = MutationXeroTool(
   "create-contact",
   "Create a contact in Xero.\
   When a contact is created, a deep link to the contact in Xero is returned. \

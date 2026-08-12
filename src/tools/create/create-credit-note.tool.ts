@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createXeroCreditNote } from "../../handlers/create-xero-credit-note.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import {
   idempotencyKeySchema,
   resolveIdempotencyKey,
@@ -15,7 +15,7 @@ const lineItemSchema = z.object({
   taxType: z.string(),
 });
 
-const CreateCreditNoteTool = CreateXeroTool(
+const CreateCreditNoteTool = MutationXeroTool(
   "create-credit-note",
   "Create a credit note in Xero.\
  When a credit note is created, a deep link to the credit note in Xero is returned. \

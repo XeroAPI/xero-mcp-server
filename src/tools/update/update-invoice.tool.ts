@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { updateXeroInvoice } from "../../handlers/update-xero-invoice.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { Invoice } from "xero-node";
 
 const trackingSchema = z.object({
@@ -25,7 +25,7 @@ const lineItemSchema = z.object({
     Only use if prompted by the user.").optional(),
 });
 
-const UpdateInvoiceTool = CreateXeroTool(
+const UpdateInvoiceTool = MutationXeroTool(
   "update-invoice",
   "Update an invoice in Xero. Only works on draft invoices.\
   All line items must be provided. Any line items not provided will be removed. Including existing line items.\

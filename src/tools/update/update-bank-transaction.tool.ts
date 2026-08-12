@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { MutationXeroTool } from "../../helpers/create-xero-tool.js";
 import { updateXeroBankTransaction } from "../../handlers/update-xero-bank-transaction.handler.js";
 import { bankTransactionDeepLink } from "../../consts/deeplinks.js";
 
@@ -11,7 +11,7 @@ const lineItemSchema = z.object({
   taxType: z.string(),
 });
 
-const UpdateBankTransactionTool = CreateXeroTool(
+const UpdateBankTransactionTool = MutationXeroTool(
   "update-bank-transaction",
   `Update a bank transaction in Xero.
   When a bank transaction is updated, a deep link to the bank transaction in Xero is returned.

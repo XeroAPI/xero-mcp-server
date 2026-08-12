@@ -31,7 +31,7 @@ async function createContact(
     }, //contacts
     true, //summarizeErrors
     undefined, //idempotencyKey
-    getClientHeaders(), // options
+    getClientHeaders(true), // options
   );
 
   return response.body.contacts?.[0];

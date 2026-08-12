@@ -48,7 +48,7 @@ async function createInvoice(
     true, //summarizeErrors
     undefined, //unitdp
     idempotencyKey,
-    getClientHeaders(),
+    getClientHeaders(true),
   );
   const createdInvoice = response.body.invoices?.[0];
   return createdInvoice;

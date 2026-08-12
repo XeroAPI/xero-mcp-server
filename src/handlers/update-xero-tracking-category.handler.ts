@@ -35,7 +35,7 @@ async function updateTrackingCategory(
     trackingCategoryId,
     trackingCategory,
     undefined, // idempotencyKey
-    getClientHeaders()
+    getClientHeaders(true)
   );
 
   return trackingCategory;

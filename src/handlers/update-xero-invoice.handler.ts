@@ -52,7 +52,7 @@ async function updateInvoice(
     }, // invoices
     undefined, // unitdp
     undefined, // idempotencyKey
-    getClientHeaders(), // options
+    getClientHeaders(true), // options
   );
 
   return response.body.invoices?.[0];

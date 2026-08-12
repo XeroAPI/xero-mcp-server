@@ -4,6 +4,7 @@ import {
 
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
+import { getCurrentIdempotencyKey } from "../helpers/idempotency-key.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function addTimesheetLine(timesheetID: string, timesheetLine: TimesheetLine): Promise<TimesheetLine | null> {
@@ -14,6 +15,7 @@ async function addTimesheetLine(timesheetID: string, timesheetLine: TimesheetLin
     xeroClient.tenantId,
     timesheetID,
     timesheetLine,
+    getCurrentIdempotencyKey(),
   );
 
   return createdLine.body.timesheetLine ?? null;

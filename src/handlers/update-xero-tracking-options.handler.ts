@@ -43,7 +43,7 @@ async function updateTrackingOption(
     trackingOptionId,
     trackingOption,
     undefined, // idempotencyKey
-    getClientHeaders()
+    getClientHeaders(true)
   );
 
   return trackingOption;

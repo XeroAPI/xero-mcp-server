@@ -2,6 +2,7 @@ import { Timesheet } from "xero-node/dist/gen/model/payroll-nz/timesheet.js";
 
 import { xeroClient } from "../clients/xero-client.js";
 import { formatError } from "../helpers/format-error.js";
+import { getCurrentIdempotencyKey } from "../helpers/idempotency-key.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function revertTimesheet(timesheetID: string): Promise<Timesheet | null> {
@@ -11,6 +12,7 @@ async function revertTimesheet(timesheetID: string): Promise<Timesheet | null> {
   const revertedTimesheet = await xeroClient.payrollNZApi.revertTimesheet(
     xeroClient.tenantId,
     timesheetID,
+    getCurrentIdempotencyKey(),
   );
 
   return revertedTimesheet.body.timesheet ?? null;

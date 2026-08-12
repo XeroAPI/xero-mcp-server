@@ -48,7 +48,7 @@ async function updateCreditNote(
     }, // creditNotes
     undefined, // unitdp
     undefined, // idempotencyKey
-    getClientHeaders(), // options
+    getClientHeaders(true), // options
   );
 
   return response.body.creditNotes?.[0] ?? null;
@@ -102,4 +102,4 @@ export async function updateXeroCreditNote(
       error: formatError(error),
     };
   }
-} 
+}

@@ -189,6 +189,18 @@ payroll.timesheets
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
 
+#### Retrying mutations safely
+
+Every mutation tool accepts an optional `idempotencyKey` of up to 128
+characters. Reuse that key only when retrying the exact same mutation. When it
+is omitted, the server derives a key from the tool, MCP request, session and
+business payload. This protects a replay within the same server session; a
+retry in a new session or process must provide the original caller key.
+
+The key is forwarded to all 24 mutation endpoints for which the installed Xero
+SDK exposes idempotency support. `delete-payroll-timesheet` is the sole current
+exception because its SDK method has no idempotency-key parameter.
+
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
 ## For Developers

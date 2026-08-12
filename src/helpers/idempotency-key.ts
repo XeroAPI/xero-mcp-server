@@ -1,11 +1,18 @@
 import { createHash, randomUUID } from "node:crypto";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { z } from "zod";
 
 /** Xero documents a maximum idempotency-key length of 128 characters. */
 export const idempotencyKeySchema = z.string().trim().min(1).max(128);
 
 const serverInvocationNamespace = randomUUID();
-const CONTROL_FIELDS = new Set(["dryRun", "idempotencyKey"]);
+const CONTROL_FIELDS = new Set([
+  "confirmationAction",
+  "confirmationToken",
+  "dryRun",
+  "idempotencyKey",
+]);
+const currentIdempotencyKey = new AsyncLocalStorage<string>();
 
 function canonicalise(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -56,4 +63,15 @@ export function resolveIdempotencyKey(
 
   // Xero accepts idempotency keys up to 128 characters. This is 73 chars.
   return `xero-mcp-${digest}`;
+}
+
+export function runWithIdempotencyKey<T>(
+  key: string,
+  callback: () => T,
+): T {
+  return currentIdempotencyKey.run(key, callback);
+}
+
+export function getCurrentIdempotencyKey(): string | undefined {
+  return currentIdempotencyKey.getStore();
 }

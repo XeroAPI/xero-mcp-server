@@ -70,7 +70,7 @@ async function updateQuote(
       quotes: [quote],
     }, // quotes
     undefined, // idempotencyKey
-    getClientHeaders(), // options
+    getClientHeaders(true), // options
   );
 
   return response.body.quotes?.[0];
@@ -135,4 +135,4 @@ export async function updateXeroQuote(
       error: formatError(error),
     };
   }
-} 
+}
