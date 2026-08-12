@@ -195,9 +195,14 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
       expires_in: tokenResponse.expires_in,
       token_type: tokenResponse.token_type,
     });
-    const lifetimeSeconds = Number(tokenResponse.expires_in) || 0;
+    const candidateLifetime = Number(tokenResponse.expires_in);
+    const lifetimeSeconds =
+      Number.isFinite(candidateLifetime) && candidateLifetime > 0
+        ? candidateLifetime
+        : 0;
+    const refreshSkewSeconds = Math.min(60, lifetimeSeconds / 2);
     this.authenticatedUntil =
-      Date.now() + Math.max(0, lifetimeSeconds - 60) * 1000;
+      Date.now() + (lifetimeSeconds - refreshSkewSeconds) * 1000;
   }
 
   public async authenticate(): Promise<void> {

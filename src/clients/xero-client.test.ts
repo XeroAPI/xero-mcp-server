@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   process.env.XERO_CLIENT_ID = "test-client-id";
@@ -37,6 +37,10 @@ describe("CustomConnectionsXeroClient", () => {
     });
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("does not call the non-tenanted connections endpoint", async () => {
     const client = new CustomConnectionsXeroClient({
       clientId: "test-client-id",
@@ -62,6 +66,89 @@ describe("CustomConnectionsXeroClient", () => {
     await client.authenticate();
 
     expect(mocks.post).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { lifetime: 30, cachedFor: 15 },
+    { lifetime: 60, cachedFor: 30 },
+    { lifetime: 61, cachedFor: 30.5 },
+    { lifetime: 1_800, cachedFor: 1_740 },
+  ])(
+    "uses a bounded proportional skew for a $lifetime-second token",
+    async ({ lifetime, cachedFor }) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+      mocks.post.mockResolvedValue({
+        data: {
+          access_token: "synthetic-custom-connection-token",
+          expires_in: lifetime,
+          token_type: "Bearer",
+        },
+      });
+      const client = new CustomConnectionsXeroClient({
+        clientId: "test-client-id",
+        clientSecret: "test-client-secret",
+        grantType: "client_credentials",
+      });
+
+      await client.authenticate();
+      vi.advanceTimersByTime(cachedFor * 1_000 - 1);
+      await client.authenticate();
+      expect(mocks.post).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(1);
+      await client.authenticate();
+      expect(mocks.post).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it.each([-1, 0, Number.NaN, Number.POSITIVE_INFINITY])(
+    "does not cache an invalid or expired lifetime (%s)",
+    async (expiresIn) => {
+      mocks.post.mockResolvedValue({
+        data: {
+          access_token: "synthetic-custom-connection-token",
+          expires_in: expiresIn,
+          token_type: "Bearer",
+        },
+      });
+      const client = new CustomConnectionsXeroClient({
+        clientId: "test-client-id",
+        clientSecret: "test-client-secret",
+        grantType: "client_credentials",
+      });
+
+      await client.authenticate();
+      await client.authenticate();
+
+      expect(mocks.post).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it("clears a failed single-flight request so authentication can retry", async () => {
+    mocks.post
+      .mockRejectedValueOnce(new Error("synthetic token failure"))
+      .mockResolvedValueOnce({
+        data: {
+          access_token: "synthetic-custom-connection-token",
+          expires_in: 1_800,
+          token_type: "Bearer",
+        },
+      });
+    const client = new CustomConnectionsXeroClient({
+      clientId: "test-client-id",
+      clientSecret: "test-client-secret",
+      grantType: "client_credentials",
+    });
+
+    const attempts = [client.authenticate(), client.authenticate()];
+    await expect(Promise.all(attempts)).rejects.toThrow(
+      "Failed to get Xero token",
+    );
+    expect(mocks.post).toHaveBeenCalledTimes(1);
+
+    await client.authenticate();
+    expect(mocks.post).toHaveBeenCalledTimes(2);
   });
 
   it("does not hydrate organisation details for bearer-token authentication", async () => {
