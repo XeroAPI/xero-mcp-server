@@ -50,6 +50,19 @@ describe("CustomConnectionsXeroClient", () => {
     expect(mocks.get).not.toHaveBeenCalled();
   });
 
+  it("shares an in-flight token request and caches it until near expiry", async () => {
+    const client = new CustomConnectionsXeroClient({
+      clientId: "test-client-id",
+      clientSecret: "test-client-secret",
+      grantType: "client_credentials",
+    });
+
+    await Promise.all([client.authenticate(), client.authenticate()]);
+    await client.authenticate();
+
+    expect(mocks.post).toHaveBeenCalledTimes(1);
+  });
+
   it("does not hydrate organisation details for bearer-token authentication", async () => {
     const client = new BearerTokenXeroClient({ bearerToken: "bearer-token" });
     const updateTenants = vi.spyOn(client, "updateTenants").mockResolvedValue([]);
@@ -57,5 +70,15 @@ describe("CustomConnectionsXeroClient", () => {
     await client.authenticate();
 
     expect(updateTenants).toHaveBeenCalledWith(false);
+  });
+
+  it("hydrates bearer-token tenants only once", async () => {
+    const client = new BearerTokenXeroClient({ bearerToken: "bearer-token" });
+    const updateTenants = vi.spyOn(client, "updateTenants").mockResolvedValue([]);
+
+    await Promise.all([client.authenticate(), client.authenticate()]);
+    await client.authenticate();
+
+    expect(updateTenants).toHaveBeenCalledTimes(1);
   });
 });

@@ -77,6 +77,8 @@ abstract class MCPXeroClient extends XeroClient {
 export class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private authenticatedUntil = 0;
+  private authenticationPromise?: Promise<void>;
 
   // Legacy scopes (deprecated but still supported for existing apps)
   private readonly XERO_DEFAULT_AUTH_SCOPES_V1 = [
@@ -180,7 +182,7 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
     return response.data;
   }
 
-  public async authenticate() {
+  private async refreshAuthentication(): Promise<void> {
     const tokenResponse = await this.getClientCredentialsToken();
 
     this.setTokenSet({
@@ -188,11 +190,27 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
       expires_in: tokenResponse.expires_in,
       token_type: tokenResponse.token_type,
     });
+    const lifetimeSeconds = Number(tokenResponse.expires_in) || 0;
+    this.authenticatedUntil = Date.now() + Math.max(0, lifetimeSeconds - 60) * 1000;
+  }
+
+  public async authenticate(): Promise<void> {
+    if (Date.now() < this.authenticatedUntil) {
+      return;
+    }
+    if (!this.authenticationPromise) {
+      this.authenticationPromise = this.refreshAuthentication().finally(() => {
+        this.authenticationPromise = undefined;
+      });
+    }
+    await this.authenticationPromise;
   }
 }
 
 export class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
+  private authenticated = false;
+  private authenticationPromise?: Promise<void>;
 
   constructor(config: { bearerToken: string }) {
     super();
@@ -200,11 +218,21 @@ export class BearerTokenXeroClient extends MCPXeroClient {
   }
 
   async authenticate(): Promise<void> {
-    this.setTokenSet({
-      access_token: this.bearerToken,
-    });
-
-    await this.updateTenants(false);
+    if (this.authenticated) {
+      return;
+    }
+    if (!this.authenticationPromise) {
+      this.authenticationPromise = (async () => {
+        this.setTokenSet({
+          access_token: this.bearerToken,
+        });
+        await this.updateTenants(false);
+        this.authenticated = true;
+      })().finally(() => {
+        this.authenticationPromise = undefined;
+      });
+    }
+    await this.authenticationPromise;
   }
 }
 
