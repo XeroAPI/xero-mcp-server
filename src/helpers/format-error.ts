@@ -8,12 +8,61 @@ interface XeroSdkError {
   body?: unknown;
 }
 
+const MAX_ERROR_TEXT_LENGTH = 1_000;
+const SECRET_ENVIRONMENT_KEYS = [
+  "XERO_CLIENT_SECRET",
+  "XERO_CLIENT_BEARER_TOKEN",
+  "XERO_ACCESS_TOKEN",
+  "XERO_REFRESH_TOKEN",
+] as const;
+
+function sanitiseErrorText(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+
+  let text = value.replace(
+    /\b(authorization|proxy-authorization|cookie|set-cookie)\s*:[^\r\n]*/gi,
+    "$1: [REDACTED]",
+  );
+  text = Array.from(text, (character) => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || (code >= 127 && code <= 159) ? " " : character;
+  }).join("");
+  for (const key of SECRET_ENVIRONMENT_KEYS) {
+    const secret = process.env[key];
+    if (secret && secret.length >= 4) {
+      text = text.split(secret).join("[REDACTED]");
+    }
+  }
+
+  text = text
+    .replace(
+      /\b(authorization|proxy-authorization)\s*[:=]\s*(?:(?:bearer|basic)\s+)?[^\s,;]+/gi,
+      "$1: [REDACTED]",
+    )
+    .replace(/\b(bearer|basic)\s+[A-Za-z0-9._~+/=-]+/gi, "$1 [REDACTED]")
+    .replace(
+      /\b(cookie|set-cookie|x-api-key|api[-_]?key|client[-_]?secret|access[-_]?token|refresh[-_]?token|password)\s*[:=]\s*[^\s,;]+/gi,
+      "$1=[REDACTED]",
+    )
+    .replace(
+      /([?&](?:sig|signature|token|access_token|refresh_token|api_key|key|code|client_secret)=)[^&#\s]*/gi,
+      "$1[REDACTED]",
+    )
+    .replace(/ {2,}/g, " ")
+    .trim();
+
+  if (!text) return undefined;
+  return text.length <= MAX_ERROR_TEXT_LENGTH
+    ? text
+    : `${text.slice(0, MAX_ERROR_TEXT_LENGTH - 3)}...`;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function getString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
+  return sanitiseErrorText(value);
 }
 
 function isXeroSdkError(error: unknown): error is XeroSdkError {
@@ -95,7 +144,9 @@ function formatXeroSdkError(error: XeroSdkError): string {
     ?? getString(bodyFields?.Detail)
     ?? getValidationErrorDetail(body)
     ?? getString(bodyFields?.Message);
-  return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
+  return sanitiseErrorText(
+    detail ? `${status} ${title}: ${detail}` : `${status} ${title}`,
+  )!;
 }
 
 /**
@@ -130,7 +181,8 @@ export function formatError(error: unknown): string {
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return sanitiseErrorText(error.message)
+      ?? "An unexpected error occurred while communicating with Xero.";
   }
 
   return "An unexpected error occurred while communicating with Xero.";

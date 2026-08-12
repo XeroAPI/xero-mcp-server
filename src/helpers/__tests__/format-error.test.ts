@@ -58,6 +58,25 @@ describe("formatError", () => {
         "An error occurred while communicating with Xero.",
       );
     });
+
+    it("sanitises hostile Axios detail text", () => {
+      const result = formatError(
+        makeAxiosError(
+          400,
+          "Invalid field\r\nAuthorization: Bearer AXIOS_SECRET\r\n"
+            + "Cookie: sid=COOKIE_SECRET; second=ANOTHER_SECRET\r\n"
+            + "https://example.test/callback?signature=SIGNED_VALUE&safe=yes",
+        ),
+      );
+
+      expect(result).toContain("Invalid field");
+      expect(result).toContain("safe=yes");
+      expect(result).not.toMatch(/[\r\n]/);
+      expect(result).not.toContain("AXIOS_SECRET");
+      expect(result).not.toContain("COOKIE_SECRET");
+      expect(result).not.toContain("ANOTHER_SECRET");
+      expect(result).not.toContain("SIGNED_VALUE");
+    });
   });
 
   describe("xero-node SDK error shape", () => {
@@ -198,6 +217,34 @@ describe("formatError", () => {
         "400 ValidationException: Account code is invalid.",
       );
     });
+
+    it("sanitises every title and nested validation message in a string error", () => {
+      process.env.XERO_CLIENT_SECRET = "KNOWN_CLIENT_SECRET";
+      const sdkError = JSON.stringify({
+        response: {
+          statusCode: 400,
+          body: {
+            Type: "Bad\u0000Title Authorization: Basic QWxhZGRpbjpvcGVu",
+            Elements: [{
+              ValidationErrors: [{
+                Message: "Ordinary validation text; api_key=QUERY_SECRET; KNOWN_CLIENT_SECRET",
+              }],
+            }],
+          },
+        },
+      });
+
+      try {
+        const result = formatError(sdkError);
+        expect(result).toContain("Ordinary validation text");
+        expect(result).not.toContain("QWxhZGRpbjpvcGVu");
+        expect(result).not.toContain("QUERY_SECRET");
+        expect(result).not.toContain("KNOWN_CLIENT_SECRET");
+        expect(result).not.toContain("\u0000");
+      } finally {
+        delete process.env.XERO_CLIENT_SECRET;
+      }
+    });
   });
 
   describe("plain Error", () => {
@@ -205,6 +252,23 @@ describe("formatError", () => {
       expect(formatError(new Error("Employee ID is required"))).toBe(
         "Employee ID is required",
       );
+    });
+
+    it("sanitises and bounds plain Error messages", () => {
+      process.env.XERO_CLIENT_BEARER_TOKEN = "KNOWN_BEARER_SECRET";
+      try {
+        const result = formatError(
+          new Error(
+            `Failed\nAuthorization: Bearer INLINE_SECRET KNOWN_BEARER_SECRET ${"x".repeat(2_000)}`,
+          ),
+        );
+        expect(result.length).toBeLessThanOrEqual(1_000);
+        expect(result).not.toMatch(/[\r\n]/);
+        expect(result).not.toContain("INLINE_SECRET");
+        expect(result).not.toContain("KNOWN_BEARER_SECRET");
+      } finally {
+        delete process.env.XERO_CLIENT_BEARER_TOKEN;
+      }
     });
   });
 
