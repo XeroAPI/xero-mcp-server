@@ -8,6 +8,7 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
+import { selectTenantId } from "./tenant-selection.js";
 
 dotenv.config();
 
@@ -15,6 +16,16 @@ const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
 const grant_type = "client_credentials";
+const OAUTH_TOKEN_ERROR_CODES = new Set([
+  "invalid_request",
+  "invalid_client",
+  "invalid_grant",
+  "unauthorized_client",
+  "unsupported_grant_type",
+  "invalid_scope",
+  "server_error",
+  "temporarily_unavailable",
+]);
 
 if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
@@ -35,9 +46,10 @@ abstract class MCPXeroClient extends XeroClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
-    }
+    this.tenantId = selectTenantId(
+      this.tenants ?? [],
+      process.env.XERO_TENANT_ID,
+    );
     return this.tenants;
   }
 
@@ -74,9 +86,11 @@ abstract class MCPXeroClient extends XeroClient {
   }
 }
 
-class CustomConnectionsXeroClient extends MCPXeroClient {
+export class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private authenticatedUntil = 0;
+  private authenticationPromise?: Promise<void>;
 
   // Legacy scopes (deprecated but still supported for existing apps)
   private readonly XERO_DEFAULT_AUTH_SCOPES_V1 = [
@@ -118,15 +132,30 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 
   private formatTokenError(error: unknown, context: string): Error {
     const axiosError = error as AxiosError;
+    const status = axiosError.response?.status;
     const data = axiosError.response?.data;
-    const message =
-      typeof data === "object" ? JSON.stringify(data) : data || axiosError.message;
-    return new Error(`Failed to get Xero token${context}: ${message}`);
+    const oauthCode =
+      data &&
+      typeof data === "object" &&
+      "error" in data &&
+      typeof data.error === "string" &&
+      OAUTH_TOKEN_ERROR_CODES.has(data.error)
+        ? data.error
+        : undefined;
+    const details = [
+      Number.isInteger(status) ? `HTTP ${status}` : undefined,
+      oauthCode ? `OAuth error: ${oauthCode}` : undefined,
+    ].filter(Boolean);
+    return new Error(
+      `Failed to get Xero token${context}${
+        details.length ? ` (${details.join("; ")})` : ""
+      }`,
+    );
   }
 
   public async getClientCredentialsToken(): Promise<TokenSet> {
     // If XERO_SCOPES is set, use that
-    if (process.env.XERO_SCOPES) {                                                                                                                                                     
+    if (process.env.XERO_SCOPES) {
       try {
         return await this.requestToken(process.env.XERO_SCOPES);
       } catch (envError) {
@@ -173,26 +202,15 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    // Get the tenant ID from the connections endpoint
-    const token = response.data.access_token;
-    const connectionsResponse = await axios.get(
-      "https://api.xero.com/connections",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      },
-    );
-
-    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
-    }
+    // Custom Connections are bound to one organisation and cannot call the
+    // non-tenanted /connections endpoint. xero-node accepts an empty tenant ID
+    // for their tenanted API calls.
+    this.tenantId = "";
 
     return response.data;
   }
 
-  public async authenticate() {
+  private async refreshAuthentication(): Promise<void> {
     const tokenResponse = await this.getClientCredentialsToken();
 
     this.setTokenSet({
@@ -200,11 +218,33 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       expires_in: tokenResponse.expires_in,
       token_type: tokenResponse.token_type,
     });
+    const candidateLifetime = Number(tokenResponse.expires_in);
+    const lifetimeSeconds =
+      Number.isFinite(candidateLifetime) && candidateLifetime > 0
+        ? candidateLifetime
+        : 0;
+    const refreshSkewSeconds = Math.min(60, lifetimeSeconds / 2);
+    this.authenticatedUntil =
+      Date.now() + (lifetimeSeconds - refreshSkewSeconds) * 1000;
+  }
+
+  public async authenticate(): Promise<void> {
+    if (Date.now() < this.authenticatedUntil) {
+      return;
+    }
+    if (!this.authenticationPromise) {
+      this.authenticationPromise = this.refreshAuthentication().finally(() => {
+        this.authenticationPromise = undefined;
+      });
+    }
+    await this.authenticationPromise;
   }
 }
 
-class BearerTokenXeroClient extends MCPXeroClient {
+export class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
+  private authenticated = false;
+  private authenticationPromise?: Promise<void>;
 
   constructor(config: { bearerToken: string }) {
     super();
@@ -212,11 +252,21 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 
   async authenticate(): Promise<void> {
-    this.setTokenSet({
-      access_token: this.bearerToken,
-    });
-
-    await this.updateTenants();
+    if (this.authenticated) {
+      return;
+    }
+    if (!this.authenticationPromise) {
+      this.authenticationPromise = (async () => {
+        this.setTokenSet({
+          access_token: this.bearerToken,
+        });
+        await this.updateTenants(false);
+        this.authenticated = true;
+      })().finally(() => {
+        this.authenticationPromise = undefined;
+      });
+    }
+    await this.authenticationPromise;
   }
 }
 
