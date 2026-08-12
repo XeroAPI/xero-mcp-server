@@ -75,3 +75,23 @@ export function runWithIdempotencyKey<T>(
 export function getCurrentIdempotencyKey(): string | undefined {
   return currentIdempotencyKey.getStore();
 }
+
+export function deriveChildIdempotencyKey(
+  operation: string,
+  item: unknown,
+): string | undefined {
+  const parentKey = getCurrentIdempotencyKey();
+  if (!parentKey) return undefined;
+
+  const digest = createHash("sha256")
+    .update(
+      JSON.stringify({
+        parentKey,
+        operation,
+        item: canonicalise(item),
+      }),
+    )
+    .digest("hex");
+
+  return `xero-mcp-child-${digest}`;
+}

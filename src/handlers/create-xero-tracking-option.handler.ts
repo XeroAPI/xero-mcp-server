@@ -2,6 +2,7 @@ import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { deriveChildIdempotencyKey } from "../helpers/idempotency-key.js";
 import { TrackingOption } from "xero-node";
 
 async function createTrackingOption(
@@ -16,8 +17,11 @@ async function createTrackingOption(
     {
       name: name
     },
-    undefined, // idempotencyKey
-    getClientHeaders(true)
+    deriveChildIdempotencyKey("create-tracking-option", {
+      trackingCategoryId,
+      name,
+    }),
+    getClientHeaders()
   );
 
   const createdTrackingOption = response.body.options?.[0];

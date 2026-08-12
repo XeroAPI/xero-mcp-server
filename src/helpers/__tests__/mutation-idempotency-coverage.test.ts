@@ -13,7 +13,6 @@ const ACCOUNTING_MUTATIONS = [
   "createPayment",
   "createQuotes",
   "createTrackingCategory",
-  "createTrackingOptions",
   "updateBankTransaction",
   "updateContact",
   "updateCreditNote",
@@ -22,6 +21,10 @@ const ACCOUNTING_MUTATIONS = [
   "updateManualJournal",
   "updateQuote",
   "updateTrackingCategory",
+] as const;
+
+const FAN_OUT_ACCOUNTING_MUTATIONS = [
+  "createTrackingOptions",
   "updateTrackingOptions",
 ] as const;
 
@@ -115,6 +118,19 @@ describe("mutation idempotency coverage", () => {
     );
     expect(call?.[0], method).toContain("getClientHeaders(true)");
   });
+
+  it.each(FAN_OUT_ACCOUNTING_MUTATIONS)(
+    "forwards per-item child keys to %s",
+    (method) => {
+      const source = handlerSource(method);
+      const call = source.match(
+        new RegExp(
+          `accountingApi\\.${method}\\([\\s\\S]*?deriveChildIdempotencyKey\\([\\s\\S]*?getClientHeaders\\(\\)[\\s\\S]*?\\);`,
+        ),
+      );
+      expect(call?.[0], method).toContain("deriveChildIdempotencyKey(");
+    },
+  );
 
   it.each(PAYROLL_MUTATIONS)("forwards a key to %s", (method) => {
     const source = handlerSource(method);

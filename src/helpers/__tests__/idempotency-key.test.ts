@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  deriveChildIdempotencyKey,
   getCurrentIdempotencyKey,
   idempotencyKeySchema,
   resolveIdempotencyKey,
@@ -121,5 +122,33 @@ describe("idempotency keys", () => {
     });
 
     expect(getCurrentIdempotencyKey()).toBeUndefined();
+  });
+
+  it("derives stable and distinct keys for fan-out items", () => {
+    runWithIdempotencyKey("parent-retry-key", () => {
+      const first = deriveChildIdempotencyKey("create-option", {
+        categoryId: "category-1",
+        name: "Alpha",
+      });
+      const second = deriveChildIdempotencyKey("create-option", {
+        categoryId: "category-1",
+        name: "Beta",
+      });
+      const replay = deriveChildIdempotencyKey("create-option", {
+        name: "Alpha",
+        categoryId: "category-1",
+      });
+
+      expect(first).toMatch(/^xero-mcp-child-[a-f0-9]{64}$/);
+      expect(first?.length).toBeLessThanOrEqual(128);
+      expect(second).not.toBe(first);
+      expect(replay).toBe(first);
+    });
+  });
+
+  it("does not invent a child key outside a parent mutation", () => {
+    expect(deriveChildIdempotencyKey("create-option", { name: "Alpha" })).toBe(
+      undefined,
+    );
   });
 });
