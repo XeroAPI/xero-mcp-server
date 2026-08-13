@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { BankTransaction } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -8,9 +9,7 @@ async function getBankTransactions(
   page: number,
   bankAccountId?: string,
 ): Promise<BankTransaction[]> {
-  await xeroClient.authenticate();
-
-  const response = await xeroClient.accountingApi.getBankTransactions(xeroClient.tenantId,
+  const response = await xeroClient.accountingApi.getBankTransactions(xeroApiTenantId(),
       undefined, // ifModifiedSince
       bankAccountId ? `BankAccount.AccountID=guid("${bankAccountId}")` : undefined, // where
       "Date DESC", // order

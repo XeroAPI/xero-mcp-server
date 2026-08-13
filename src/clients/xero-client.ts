@@ -7,7 +7,7 @@ import {
   XeroClient,
 } from "xero-node";
 
-import { ensureError } from "../helpers/ensure-error.js";
+import { formatError } from "../helpers/format-error.js";
 
 dotenv.config();
 
@@ -20,33 +20,20 @@ if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
 }
 
-abstract class MCPXeroClient extends XeroClient {
-  public tenantId: string;
-  private shortCode: string;
+export abstract class MCPXeroClient extends XeroClient {
+  // Short codes are cached per logical tenant. A single cached value would leak
+  // one organisation's deep links into another organisation's responses.
+  private readonly shortCodes = new Map<string, string>();
 
   protected constructor(config?: IXeroClientConfig) {
     super(config);
-    this.tenantId = "";
-    this.shortCode = "";
   }
 
   public abstract authenticate(): Promise<void>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
-    await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
-    }
-    return this.tenants;
-  }
-
-  private async getOrganisation(): Promise<Organisation> {
-    await this.authenticate();
-
-    const organisationResponse = await this.accountingApi.getOrganisations(
-      this.tenantId || "",
-    );
+  public async getOrganisation(apiTenantId: string): Promise<Organisation> {
+    const organisationResponse =
+      await this.accountingApi.getOrganisations(apiTenantId);
 
     const organisation = organisationResponse.body.organisations?.[0];
 
@@ -57,26 +44,41 @@ abstract class MCPXeroClient extends XeroClient {
     return organisation;
   }
 
-  public async getShortCode(): Promise<string | undefined> {
-    if (!this.shortCode) {
-      try {
-        const organisation = await this.getOrganisation();
-        this.shortCode = organisation.shortCode ?? "";
-      } catch (error: unknown) {
-        const err = ensureError(error);
+  public async getShortCode(
+    tenantId: string,
+    apiTenantId: string,
+  ): Promise<string | undefined> {
+    const cached = this.shortCodes.get(tenantId);
 
-        throw new Error(
-          `Failed to get Organisation short code: ${err.message}`,
-        );
-      }
+    if (cached) {
+      return cached;
     }
-    return this.shortCode;
+
+    try {
+      const organisation = await this.getOrganisation(apiTenantId);
+      const shortCode = organisation.shortCode ?? "";
+      this.shortCodes.set(tenantId, shortCode);
+      return shortCode;
+    } catch (error: unknown) {
+      // formatError is the redaction boundary: never stringify raw SDK errors,
+      // whose request headers carry the caller's token.
+      throw new Error(
+        `Failed to get Organisation short code: ${formatError(error)}`,
+      );
+    }
   }
 }
 
-class CustomConnectionsXeroClient extends MCPXeroClient {
+export class CustomConnectionsXeroClient extends MCPXeroClient {
   private readonly clientId: string;
   private readonly clientSecret: string;
+
+  // Identifiers the credential itself can prove, learned from the /connections
+  // response at token acquisition. A Custom Connection is bound to exactly one
+  // organisation, so this identifies that organisation — it is never used to
+  // choose between organisations.
+  private connectionTenantIds: string[] = [];
+  private boundOrganisation: Organisation | undefined;
 
   // Legacy scopes (deprecated but still supported for existing apps)
   private readonly XERO_DEFAULT_AUTH_SCOPES_V1 = [
@@ -185,9 +187,15 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
-    }
+    this.connectionTenantIds = Array.isArray(connectionsResponse.data)
+      ? connectionsResponse.data
+          .map((connection: { tenantId?: unknown }) => connection?.tenantId)
+          .filter(
+            (tenantId: unknown): tenantId is string =>
+              typeof tenantId === "string" && tenantId.trim().length > 0,
+          )
+          .map((tenantId: string) => tenantId.trim())
+      : [];
 
     return response.data;
   }
@@ -201,9 +209,68 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       token_type: tokenResponse.token_type,
     });
   }
+
+  /**
+   * The organisation this Custom Connection is bound to. The lookup uses the
+   * empty tenant ID because the bound organisation may not be known yet; the
+   * result is credential-scoped and so safe to cache for the process lifetime.
+   */
+  public async getBoundOrganisation(): Promise<Organisation> {
+    if (!this.boundOrganisation) {
+      this.boundOrganisation = await this.getOrganisation("");
+    }
+
+    return this.boundOrganisation;
+  }
+
+  /**
+   * Resolves `requestedTenantId` to the bound organisation's identifier, in the
+   * casing Xero reported it, or undefined when it does not identify that
+   * organisation.
+   */
+  public async resolveBoundOrganisationId(
+    requestedTenantId: string,
+  ): Promise<string | undefined> {
+    const requested = requestedTenantId.trim().toLowerCase();
+
+    if (!requested) {
+      return undefined;
+    }
+
+    // Only trust the /connections result when it named exactly one
+    // organisation. More than one contradicts the Custom Connection contract,
+    // so fall back to the organisation the credential actually reaches.
+    const boundTenantId = this.boundTenantId;
+
+    if (boundTenantId && boundTenantId.toLowerCase() === requested) {
+      return boundTenantId;
+    }
+
+    const organisationId = (await this.getBoundOrganisation()).organisationID;
+
+    if (
+      typeof organisationId === "string" &&
+      organisationId.trim().toLowerCase() === requested
+    ) {
+      return organisationId.trim();
+    }
+
+    return undefined;
+  }
+
+  /**
+   * The bound organisation identifier learned during token acquisition, or the
+   * empty string when it could not be established unambiguously. Never used to
+   * choose between organisations: a Custom Connection has exactly one.
+   */
+  public get boundTenantId(): string {
+    return this.connectionTenantIds.length === 1
+      ? this.connectionTenantIds[0]
+      : "";
+  }
 }
 
-class BearerTokenXeroClient extends MCPXeroClient {
+export class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
 
   constructor(config: { bearerToken: string }) {
@@ -220,7 +287,20 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 }
 
-export const xeroClient = bearer_token
+export type XeroAuthMode = "bearer" | "custom-connection";
+
+/**
+ * Which credential the server is running with. Derived once, from the same
+ * check that picks the client implementation.
+ */
+export const authMode: XeroAuthMode = bearer_token
+  ? "bearer"
+  : "custom-connection";
+
+export const isCustomConnectionMode = (): boolean =>
+  authMode === "custom-connection";
+
+export const xeroClient: MCPXeroClient = bearer_token
   ? new BearerTokenXeroClient({
       bearerToken: bearer_token,
     })

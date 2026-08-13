@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Item, Items } from "xero-node";
@@ -26,8 +27,6 @@ interface ItemDetails {
 async function createItem(
   itemDetails: ItemDetails
 ): Promise<Item | null> {
-  await xeroClient.authenticate();
-
   const item: Item = {
     code: itemDetails.code,
     name: itemDetails.name,
@@ -58,7 +57,7 @@ async function createItem(
   };
 
   const response = await xeroClient.accountingApi.createItems(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     items, // items
     true, // summarizeErrors
     undefined, // unitdp

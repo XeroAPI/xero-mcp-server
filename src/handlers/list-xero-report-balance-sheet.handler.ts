@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
@@ -18,10 +19,8 @@ async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Prom
         paymentsOnly,
     } = params;
 
-    await xeroClient.authenticate();
-
     const response = await xeroClient.accountingApi.getReportBalanceSheet(
-        xeroClient.tenantId,
+        xeroApiTenantId(),
         date || undefined,
         periods || undefined,
         timeframe || undefined,

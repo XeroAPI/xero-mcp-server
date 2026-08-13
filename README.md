@@ -135,8 +135,60 @@ payroll.timesheets
 ```
 
 
+### Tenant selection
+
+Xero credentials can be authorised for more than one organisation. A *tenant ID* is the GUID identifying one of those organisations, and every tenanted tool in this server takes it as a required `tenantId` argument.
+
+Earlier versions did not: they called Xero with whichever organisation the Xero SDK happened to place first in the connections list, which is the *most recently updated* organisation, not a stable choice. On a multi-organisation connection that made the target of a read or a write non-deterministic. Requiring the caller to name the organisation removes that ambiguity, and a request that does not name an authorised organisation now fails instead of guessing.
+
+#### Discovering tenant IDs
+
+Call the `list-tenants` tool. It is read-only, takes no arguments, and returns the `tenantId`, name and type of every organisation the credentials are authorised for. The same information is available from the Xero [`/connections`](https://developer.xero.com/documentation/guides/oauth2/tenants/) endpoint.
+
+#### Example
+
+```jsonc
+// list-tenants
+{}
+
+// list-invoices, targeting one of the organisations it returned
+{
+  "tenantId": "00000000-0000-0000-0000-000000000000",
+  "page": 1
+}
+```
+
+Single-organisation connections work the same way: there is one tenant ID, and it must still be supplied.
+
+#### Bearer token vs Custom Connection
+
+- **Bearer token**: `tenantId` is required on every tenanted tool and is validated against the organisations the token is authorised for.
+- **Custom Connection**: the credential is bound to exactly one organisation, so `tenantId` is optional. When it is supplied it is validated against the bound organisation and a mismatch is rejected.
+
+#### Failure behaviour
+
+Requests that cannot be attributed to an authorised organisation are rejected before any tenanted call to Xero. Two layers are involved:
+
+1. **Schema validation, in the MCP SDK.** Omitting `tenantId` entirely on a bearer token setup never reaches this server's code: the SDK rejects the call with its own protocol error, along the lines of *"Invalid arguments for tool list-accounts: ... path: [tenantId] ... Required"*.
+2. **Tenant resolution, in this server.** Anything that satisfies the schema is then resolved and validated:
+
+- Blank `tenantId` (bearer token): *"This tool requires a tenantId. Use the list-tenants tool to see the organisations this connection is authorised for."* This is rejected before any network call at all — a request naming no organisation can never succeed, so no authentication round trip is spent on it.
+- A tenant ID that is not authorised: *"The supplied tenantId does not match any authorised Xero connection."*
+- A tenant ID other than the bound organisation (Custom Connection): *"This server uses a Xero Custom Connection bound to a single organisation; the supplied tenantId does not match it."*
+
+Error messages never list the authorised tenant IDs; use `list-tenants` to see them.
+
+#### Migrating from earlier versions
+
+This is a breaking change for bearer token setups: tool calls that previously omitted `tenantId` now fail as described above instead of silently acting on an arbitrary organisation. MCP clients pick the new required argument up from the tool schema automatically; hard-coded call sites need the argument added.
+
+Custom Connection setups keep working without changes, because `tenantId` stays optional and the organisation sent to Xero is unchanged. The one new behaviour there is validation: supplying a `tenantId` that is not the bound organisation is now rejected, where previously the field did not exist.
+
 ### Available MCP Commands
 
+Every command below except `list-tenants` takes a `tenantId` argument identifying the Xero organisation to act on. See [Tenant selection](#tenant-selection).
+
+- `list-tenants`: Retrieve the Xero organisations these credentials are authorised for, and their tenant IDs
 - `list-accounts`: Retrieve a list of accounts
 - `list-contacts`: Retrieve a list of contacts from Xero
 - `list-credit-notes`: Retrieve a list of credit notes
