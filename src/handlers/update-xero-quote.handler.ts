@@ -14,8 +14,6 @@ interface QuoteLineItem {
 }
 
 async function getQuote(quoteId: string): Promise<Quote | undefined> {
-  await xeroClient.authenticate();
-
   // First, get the current quote to check its status
   const response = await xeroClient.accountingApi.getQuote(
     xeroApiTenantId(), // tenantId

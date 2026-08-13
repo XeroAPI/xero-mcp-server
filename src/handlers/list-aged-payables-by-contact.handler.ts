@@ -11,8 +11,6 @@ async function listAgedPayablesByContact(
   invoicesFromDate?: string,
   invoicesToDate?: string
 ): Promise<ReportWithRow | undefined> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getReportAgedPayablesByContact(
     xeroApiTenantId(), // xeroTenantId
     contactId, // contactId

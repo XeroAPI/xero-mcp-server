@@ -14,8 +14,6 @@ interface TrackingOptionItem {
 }
 
 async function getTrackingOptions(trackingCategoryId: string): Promise<TrackingOption[] | undefined> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getTrackingCategory(
     xeroApiTenantId(),
     trackingCategoryId,

@@ -9,8 +9,6 @@ async function getBankTransactions(
   page: number,
   bankAccountId?: string,
 ): Promise<BankTransaction[]> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getBankTransactions(xeroApiTenantId(),
       undefined, // ifModifiedSince
       bankAccountId ? `BankAccount.AccountID=guid("${bankAccountId}")` : undefined, // where

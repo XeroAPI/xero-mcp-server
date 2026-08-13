@@ -20,8 +20,6 @@ async function updateManualJournal(
   url?: string,
   showOnCashBasisReports?: boolean,
 ): Promise<ManualJournal | undefined> {
-  await xeroClient.authenticate();
-
   const manualJournal: ManualJournal = {
     narration,
     journalLines: manualJournalLines.map((journalLine) => ({

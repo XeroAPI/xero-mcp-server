@@ -16,8 +16,6 @@ interface BankTransactionLineItem {
 type BankTransactionType = "RECEIVE" | "SPEND";
 
 async function getBankTransaction(bankTransactionId: string): Promise<BankTransaction | undefined> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getBankTransaction(
     xeroApiTenantId(), // xeroTenantId
     bankTransactionId, // bankTransactionID

@@ -10,8 +10,6 @@ async function createContact(
   email?: string,
   phone?: string,
 ): Promise<Contact | undefined> {
-  await xeroClient.authenticate();
-
   const contact: Contact = {
     name,
     emailAddress: email,

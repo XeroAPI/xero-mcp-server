@@ -14,8 +14,6 @@ interface CreditNoteLineItem {
 }
 
 async function getCreditNote(creditNoteId: string): Promise<CreditNote | null> {
-  await xeroClient.authenticate();
-
   // First, get the current credit note to check its status
   const response = await xeroClient.accountingApi.getCreditNote(
     xeroApiTenantId(),

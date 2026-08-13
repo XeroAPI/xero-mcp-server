@@ -8,8 +8,6 @@ import { XeroClientResponse } from "../types/tool-response.js";
 type TrackingCategoryStatus = "ACTIVE" | "ARCHIVED";
 
 async function getTrackingCategory(trackingCategoryId: string): Promise<TrackingCategory | undefined> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getTrackingCategory(
     xeroApiTenantId(),
     trackingCategoryId,

@@ -22,8 +22,6 @@ async function createQuote(
   title: string | undefined,
   summary: string | undefined,
 ): Promise<Quote | undefined> {
-  await xeroClient.authenticate();
-
   const quote: Quote = {
     quoteNumber: quoteNumber,
     reference: reference,

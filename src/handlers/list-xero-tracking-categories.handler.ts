@@ -8,8 +8,6 @@ import { formatError } from "../helpers/format-error.js";
 async function getTrackingCategories(
   includeArchived?: boolean
 ): Promise<TrackingCategory[]> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getTrackingCategories(
     xeroApiTenantId(), // xeroTenantId
     undefined, // where

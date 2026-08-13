@@ -8,8 +8,6 @@ import { TrackingCategory } from "xero-node";
 async function createTrackingCategory(
   name: string
 ): Promise<TrackingCategory | undefined> {
-  xeroClient.authenticate();
-
   const trackingCategory: TrackingCategory = {
     name: name
   };

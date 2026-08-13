@@ -10,8 +10,6 @@ async function getManualJournals(
   manualJournalId?: string,
   modifiedAfter?: string,
 ): Promise<ManualJournal[]> {
-  await xeroClient.authenticate();
-
   if (manualJournalId) {
     const response = await xeroClient.accountingApi.getManualJournal(
       xeroApiTenantId(),

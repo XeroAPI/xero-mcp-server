@@ -8,8 +8,6 @@ import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function addTimesheetLine(timesheetID: string, timesheetLine: TimesheetLine): Promise<TimesheetLine | null> {
-  await xeroClient.authenticate();
-
   // Call the createTimesheetLine endpoint from the PayrollNZApi
   const createdLine = await xeroClient.payrollNZApi.createTimesheetLine(
     xeroApiTenantId(),

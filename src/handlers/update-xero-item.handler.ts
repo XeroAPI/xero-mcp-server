@@ -28,8 +28,6 @@ async function updateItem(
   itemId: string,
   itemDetails: ItemDetails
 ): Promise<Item | null> {
-  await xeroClient.authenticate();
-
   const item: Partial<Item> = {
     code: itemDetails.code,
     name: itemDetails.name,

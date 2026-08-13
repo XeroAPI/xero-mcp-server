@@ -18,8 +18,6 @@ async function createCreditNote(
   lineItems: CreditNoteLineItem[],
   reference: string | undefined,
 ): Promise<CreditNote | undefined> {
-  await xeroClient.authenticate();
-
   const creditNote: CreditNote = {
     type: CreditNote.TypeEnum.ACCRECCREDIT,
     contact: {

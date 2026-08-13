@@ -20,8 +20,6 @@ async function createPayment({
   date,
   reference,
 }: PaymentProps): Promise<Payment | undefined> {
-  await xeroClient.authenticate();
-
   const payment: Payment = {
     invoice: {
       invoiceID: invoiceId,

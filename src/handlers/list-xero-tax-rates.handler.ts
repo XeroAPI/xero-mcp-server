@@ -6,8 +6,6 @@ import { TaxRate } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getTaxRates(): Promise<TaxRate[]> {
-  await xeroClient.authenticate();
-
   const taxRates = await xeroClient.accountingApi.getTaxRates(
     xeroApiTenantId(),
     undefined, // where

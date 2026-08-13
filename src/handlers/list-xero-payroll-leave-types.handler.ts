@@ -9,8 +9,6 @@ import { LeaveType } from "../types/payroll-nz-types.js";
  * Internal function to fetch leave types from Xero
  */
 async function fetchLeaveTypes(): Promise<LeaveType[] | null> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.payrollNZApi.getLeaveTypes(
     xeroApiTenantId(),
     undefined, // page

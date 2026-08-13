@@ -6,8 +6,6 @@ import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function revertTimesheet(timesheetID: string): Promise<Timesheet | null> {
-  await xeroClient.authenticate();
-
   // Call the revertTimesheet endpoint from the PayrollNZApi
   const revertedTimesheet = await xeroClient.payrollNZApi.revertTimesheet(
     xeroApiTenantId(),

@@ -9,8 +9,6 @@ import { EmployeeLeaveBalance } from "../types/payroll-nz-types.js";
  * Internal function to fetch employee leave balances from Xero
  */
 async function fetchEmployeeLeaveBalances(employeeId: string): Promise<EmployeeLeaveBalance[] | null> {
-  await xeroClient.authenticate();
-
   if (!employeeId) {
     throw new Error("Employee ID is required to fetch employee leave balances");
   }

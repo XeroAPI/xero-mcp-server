@@ -12,8 +12,6 @@ async function fetchTrialBalance(
   date?: string,
   paymentsOnly?: boolean,
 ): Promise<ReportWithRow | null> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getReportTrialBalance(
     xeroApiTenantId(),
     date, // Optional date parameter in YYYY-MM-DD format

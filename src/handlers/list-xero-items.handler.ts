@@ -8,8 +8,6 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 async function getItems(
   page: number,
 ): Promise<Item[]> {
-  await xeroClient.authenticate();
-
   const items = await xeroClient.accountingApi.getItems(
     xeroApiTenantId(),
     undefined, // ifModifiedSince

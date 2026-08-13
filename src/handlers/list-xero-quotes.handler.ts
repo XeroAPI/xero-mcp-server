@@ -10,8 +10,6 @@ async function getQuotes(
   page: number,
   quoteNumber: string | undefined,
 ): Promise<Quote[]> {
-  await xeroClient.authenticate();
-
   const quotes = await xeroClient.accountingApi.getQuotes(
     xeroApiTenantId(),
     undefined, // ifModifiedSince

@@ -27,8 +27,6 @@ interface ItemDetails {
 async function createItem(
   itemDetails: ItemDetails
 ): Promise<Item | null> {
-  await xeroClient.authenticate();
-
   const item: Item = {
     code: itemDetails.code,
     name: itemDetails.name,

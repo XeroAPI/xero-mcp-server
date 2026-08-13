@@ -9,8 +9,6 @@ async function getCreditNotes(
   contactId: string | undefined,
   page: number,
 ): Promise<CreditNote[]> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getCreditNotes(
     xeroApiTenantId(),
     undefined, // ifModifiedSince

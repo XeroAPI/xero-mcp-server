@@ -19,8 +19,6 @@ async function fetchProfitAndLoss(
   standardLayout?: boolean,
   paymentsOnly?: boolean,
 ): Promise<ReportWithRow | null> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getReportProfitAndLoss(
     xeroApiTenantId(),
     fromDate,

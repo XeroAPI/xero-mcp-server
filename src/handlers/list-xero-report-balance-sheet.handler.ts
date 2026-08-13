@@ -19,8 +19,6 @@ async function getReportBalanceSheet(params: ListReportBalanceSheetParams): Prom
         paymentsOnly,
     } = params;
 
-    await xeroClient.authenticate();
-
     const response = await xeroClient.accountingApi.getReportBalanceSheet(
         xeroApiTenantId(),
         date || undefined,

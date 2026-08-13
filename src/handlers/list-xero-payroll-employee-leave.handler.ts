@@ -14,8 +14,6 @@ interface FetchEmployeeLeaveParams {
  * Internal function to fetch employee leave from Xero
  */
 async function fetchEmployeeLeave({ employeeId }: FetchEmployeeLeaveParams): Promise<EmployeeLeave[] | null> {
-  await xeroClient.authenticate();
-
   if (!employeeId) {
     throw new Error("Employee ID is required to fetch employee leave");
   }

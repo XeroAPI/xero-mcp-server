@@ -6,8 +6,6 @@ import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function getTimesheet(timesheetID: string): Promise<Timesheet | null> {
-  await xeroClient.authenticate();
-
   // Call the Timesheet endpoint from the PayrollNZApi
   const timesheet = await xeroClient.payrollNZApi.getTimesheet(
     xeroApiTenantId(),

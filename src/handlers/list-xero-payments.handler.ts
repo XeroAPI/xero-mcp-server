@@ -19,8 +19,6 @@ async function getPayments(
     reference?: string;
   },
 ): Promise<Payment[]> {
-  await xeroClient.authenticate();
-
   // Build where clause for filtering
   const whereConditions: string[] = [];
 

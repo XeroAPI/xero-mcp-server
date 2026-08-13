@@ -12,8 +12,6 @@ async function updateTimesheetLine(
   timesheetLineID: string,
   timesheetLine: TimesheetLine
 ): Promise<TimesheetLine | null> {
-  await xeroClient.authenticate();
-
   // Call the updateTimesheetLine endpoint from the PayrollNZApi
   const updatedLine = await xeroClient.payrollNZApi.updateTimesheetLine(
     xeroApiTenantId(),

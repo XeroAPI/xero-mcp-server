@@ -6,8 +6,6 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { Employee } from "../types/payroll-nz-types.js";
 
 async function getPayrollEmployees(): Promise<Employee[]> {
-  await xeroClient.authenticate();
-
   // Call the Employees endpoint from the PayrollNZApi
   const employees = await xeroClient.payrollNZApi.getEmployees(
     xeroApiTenantId(),
