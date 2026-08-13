@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { LeavePeriod } from "../types/payroll-nz-types.js";
@@ -24,7 +25,7 @@ async function fetchLeavePeriods({
   }  // After reviewing the SDK documentation, it appears this API call requires different parameters
   // Use parameters that match the SDK's expectations
   const response = await xeroClient.payrollNZApi.getEmployeeLeavePeriods(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     employeeId,
     startDate,
     endDate,

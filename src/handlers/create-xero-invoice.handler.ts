@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice, LineItemTracking } from "xero-node";
@@ -40,7 +41,7 @@ async function createInvoice(
   };
 
   const response = await xeroClient.accountingApi.createInvoices(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     {
       invoices: [invoice],
     }, // invoices

@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -14,7 +15,7 @@ async function fetchTrialBalance(
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getReportTrialBalance(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     date, // Optional date parameter in YYYY-MM-DD format
     paymentsOnly, // Optional boolean to include only accounts with payments
     getClientHeaders(),

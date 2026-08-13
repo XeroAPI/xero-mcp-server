@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -18,7 +19,7 @@ async function getBankTransaction(bankTransactionId: string): Promise<BankTransa
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getBankTransaction(
-    xeroClient.tenantId, // xeroTenantId
+    xeroApiTenantId(), // xeroTenantId
     bankTransactionId, // bankTransactionID
     undefined, // unitdp
     getClientHeaders() // options
@@ -47,7 +48,7 @@ async function updateBankTransaction(
   };
 
   const response = await xeroClient.accountingApi.updateBankTransaction(
-    xeroClient.tenantId, // xeroTenantId
+    xeroApiTenantId(), // xeroTenantId
     bankTransactionId, // bankTransactionID
     { bankTransactions: [bankTransaction] }, // bankTransactions
     undefined, // unitdp

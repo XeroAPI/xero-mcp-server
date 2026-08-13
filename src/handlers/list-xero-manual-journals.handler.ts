@@ -1,5 +1,6 @@
 import { ManualJournal } from "xero-node";
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -13,7 +14,7 @@ async function getManualJournals(
 
   if (manualJournalId) {
     const response = await xeroClient.accountingApi.getManualJournal(
-      xeroClient.tenantId,
+      xeroApiTenantId(),
       manualJournalId,
       getClientHeaders(),
     );
@@ -22,7 +23,7 @@ async function getManualJournals(
   }
 
   const response = await xeroClient.accountingApi.getManualJournals(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     modifiedAfter ? new Date(modifiedAfter) : undefined,
     undefined,
     "UpdatedDateUTC DESC",

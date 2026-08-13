@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Quote } from "xero-node";
@@ -12,7 +13,7 @@ async function getQuotes(
   await xeroClient.authenticate();
 
   const quotes = await xeroClient.accountingApi.getQuotes(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // ifModifiedSince
     undefined, // dateFrom
     undefined, // dateTo

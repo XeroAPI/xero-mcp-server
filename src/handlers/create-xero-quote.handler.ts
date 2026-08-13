@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Quote, QuoteStatusCodes } from "xero-node";
@@ -41,7 +42,7 @@ async function createQuote(
   };
 
   const response = await xeroClient.accountingApi.createQuotes(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     {
       quotes: [quote],
     }, // quotes

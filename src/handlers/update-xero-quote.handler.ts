@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Quote, QuoteStatusCodes } from "xero-node";
@@ -17,7 +18,7 @@ async function getQuote(quoteId: string): Promise<Quote | undefined> {
 
   // First, get the current quote to check its status
   const response = await xeroClient.accountingApi.getQuote(
-    xeroClient.tenantId, // tenantId
+    xeroApiTenantId(), // tenantId
     quoteId, // quoteId
     getClientHeaders(), // options
   );
@@ -64,7 +65,7 @@ async function updateQuote(
   }
 
   const response = await xeroClient.accountingApi.updateQuote(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     quoteId, // quoteId
     {
       quotes: [quote],

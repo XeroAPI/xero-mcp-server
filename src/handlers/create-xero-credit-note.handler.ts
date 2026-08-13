@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
@@ -31,7 +32,7 @@ async function createCreditNote(
   };
 
   const response = await xeroClient.accountingApi.createCreditNotes(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     {
       creditNotes: [creditNote],
     }, // creditNotes

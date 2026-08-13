@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { TrackingCategory } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -10,7 +11,7 @@ async function getTrackingCategories(
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getTrackingCategories(
-    xeroClient.tenantId, // xeroTenantId
+    xeroApiTenantId(), // xeroTenantId
     undefined, // where
     undefined, // order
     includeArchived, // includeArchived

@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { ContactGroup } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
@@ -9,7 +10,7 @@ async function getContactGroups(contactGroupId?: string): Promise<ContactGroup[]
 
   if (contactGroupId) {
     const response = await xeroClient.accountingApi.getContactGroup(
-      xeroClient.tenantId,
+      xeroApiTenantId(),
       contactGroupId,
       getClientHeaders(),
     );
@@ -17,7 +18,7 @@ async function getContactGroups(contactGroupId?: string): Promise<ContactGroup[]
   }
 
   const response = await xeroClient.accountingApi.getContactGroups(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // where
     undefined, // order
     getClientHeaders(),

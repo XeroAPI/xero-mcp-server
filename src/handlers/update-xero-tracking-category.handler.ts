@@ -1,5 +1,6 @@
 import { TrackingCategory } from "xero-node";
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -10,7 +11,7 @@ async function getTrackingCategory(trackingCategoryId: string): Promise<Tracking
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getTrackingCategory(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     trackingCategoryId,
     getClientHeaders()
   );
@@ -31,7 +32,7 @@ async function updateTrackingCategory(
   };
 
   await xeroClient.accountingApi.updateTrackingCategory(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     trackingCategoryId,
     trackingCategory,
     undefined, // idempotencyKey

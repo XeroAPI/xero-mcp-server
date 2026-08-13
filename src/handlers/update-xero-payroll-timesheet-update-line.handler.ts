@@ -3,6 +3,7 @@ import {
 } from "xero-node/dist/gen/model/payroll-nz/timesheetLine.js";
 
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
@@ -15,7 +16,7 @@ async function updateTimesheetLine(
 
   // Call the updateTimesheetLine endpoint from the PayrollNZApi
   const updatedLine = await xeroClient.payrollNZApi.updateTimesheetLine(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     timesheetID,
     timesheetLineID,
     timesheetLine,

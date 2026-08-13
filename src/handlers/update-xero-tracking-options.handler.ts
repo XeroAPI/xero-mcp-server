@@ -1,5 +1,6 @@
 import { TrackingOption } from "xero-node";
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
@@ -16,7 +17,7 @@ async function getTrackingOptions(trackingCategoryId: string): Promise<TrackingO
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getTrackingCategory(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     trackingCategoryId,
     getClientHeaders()
   );
@@ -38,7 +39,7 @@ async function updateTrackingOption(
   };
 
   await xeroClient.accountingApi.updateTrackingOptions(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     trackingCategoryId,
     trackingOptionId,
     trackingOption,

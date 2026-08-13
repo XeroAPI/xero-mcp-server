@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { Contact } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
@@ -8,7 +9,7 @@ async function getContacts(page?: number, searchTerm?: string): Promise<Contact[
   await xeroClient.authenticate();
 
   const contacts = await xeroClient.accountingApi.getContacts(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order

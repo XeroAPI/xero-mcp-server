@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
@@ -34,7 +35,7 @@ async function createPayment({
   };
 
   const response = await xeroClient.accountingApi.createPayment(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     payment,
     undefined, // idempotencyKey
     getClientHeaders(), // options
