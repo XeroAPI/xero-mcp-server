@@ -42,4 +42,18 @@ describe("tool schemas (bearer token mode)", () => {
     expect(safeParse(tenantIdSchema, undefined).success).toBe(false);
     expect(safeParse(tenantIdSchema, "a-tenant-id").success).toBe(true);
   });
+
+  it.each(NON_TENANTED_TOOLS)("%s does not require a tenantId", (name) => {
+    const tool = allTools.find((candidate) => candidate.name === name);
+    expect(tool, `${name} tool is not registered`).toBeDefined();
+
+    const schema = (tool?.schema ?? {}) as Record<string, unknown>;
+    const tenantIdSchema = schema.tenantId as
+      | Parameters<typeof safeParse>[0]
+      | undefined;
+
+    if (tenantIdSchema) {
+      expect(safeParse(tenantIdSchema, undefined).success).toBe(true);
+    }
+  });
 });
