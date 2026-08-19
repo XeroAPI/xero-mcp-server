@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   authenticate: vi.fn(),
@@ -19,28 +19,64 @@ vi.mock("../../clients/xero-client.js", () => ({
 
 import { updateXeroTrackingCategory } from "../update-xero-tracking-category.handler.js";
 
+const existingCategory = {
+  trackingCategoryID: "category-id",
+  name: "Old name",
+  status: "ACTIVE",
+  options: [{ trackingOptionID: "option-id", name: "Option", status: "ACTIVE" }],
+};
+
 describe("updateXeroTrackingCategory", () => {
-  it("returns the updated category rather than its previous value", async () => {
-    mocks.authenticate.mockResolvedValueOnce(undefined);
-    mocks.getTrackingCategory.mockResolvedValueOnce({
+  beforeEach(() => {
+    mocks.authenticate.mockReset();
+    mocks.getTrackingCategory.mockReset();
+    mocks.updateTrackingCategory.mockReset();
+
+    mocks.authenticate.mockResolvedValue(undefined);
+    mocks.getTrackingCategory.mockResolvedValue({
+      body: { trackingCategories: [existingCategory] },
+    });
+  });
+
+  it("returns the category from the update response, not the request payload", async () => {
+    mocks.updateTrackingCategory.mockResolvedValueOnce({
       body: {
         trackingCategories: [
-          { trackingCategoryID: "category-id", name: "Old name", status: "ACTIVE" },
+          {
+            trackingCategoryID: "category-id",
+            name: "New Name",
+            status: "ACTIVE",
+            options: existingCategory.options,
+          },
         ],
       },
     });
-    mocks.updateTrackingCategory.mockResolvedValueOnce({ body: {} });
 
     await expect(
       updateXeroTrackingCategory("category-id", "New name"),
     ).resolves.toEqual({
       result: {
         trackingCategoryID: "category-id",
-        name: "New name",
+        name: "New Name",
         status: "ACTIVE",
+        options: existingCategory.options,
       },
       isError: false,
       error: null,
+    });
+  });
+
+  it("reports an error when the update response contains no category", async () => {
+    mocks.updateTrackingCategory.mockResolvedValueOnce({
+      body: { trackingCategories: [] },
+    });
+
+    await expect(
+      updateXeroTrackingCategory("category-id", "New name"),
+    ).resolves.toEqual({
+      result: null,
+      isError: true,
+      error: "Failed to update tracking category.",
     });
   });
 });

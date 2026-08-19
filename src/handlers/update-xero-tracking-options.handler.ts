@@ -37,7 +37,7 @@ async function updateTrackingOption(
     status: status ? TrackingOption.StatusEnum[status] : existingTrackingOption.status
   };
 
-  await xeroClient.accountingApi.updateTrackingOptions(
+  const response = await xeroClient.accountingApi.updateTrackingOptions(
     xeroClient.tenantId,
     trackingCategoryId,
     trackingOptionId,
@@ -46,7 +46,7 @@ async function updateTrackingOption(
     getClientHeaders()
   );
 
-  return trackingOption;
+  return response.body.options?.[0];
 }
 
 export async function updateXeroTrackingOption(

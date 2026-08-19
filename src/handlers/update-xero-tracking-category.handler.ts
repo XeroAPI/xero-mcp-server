@@ -30,7 +30,7 @@ async function updateTrackingCategory(
     status: status ? TrackingCategory.StatusEnum[status] : existingTrackingCategory.status
   };
 
-  await xeroClient.accountingApi.updateTrackingCategory(
+  const response = await xeroClient.accountingApi.updateTrackingCategory(
     xeroClient.tenantId,
     trackingCategoryId,
     trackingCategory,
@@ -38,7 +38,7 @@ async function updateTrackingCategory(
     getClientHeaders()
   );
 
-  return trackingCategory;
+  return response.body.trackingCategories?.[0];
 }
 
 export async function updateXeroTrackingCategory(
