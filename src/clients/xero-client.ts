@@ -43,6 +43,13 @@ abstract class MCPXeroClient extends XeroClient {
 
   public abstract authenticate(): Promise<void>;
 
+  /**
+   * Discards any cached authentication so the next authenticate() re-runs.
+   * Called when Xero rejects a token that was still inside its cached
+   * lifetime, which happens on a server-side revocation or a secret rotation.
+   */
+  public abstract invalidateAuthentication(): void;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
@@ -239,6 +246,10 @@ export class CustomConnectionsXeroClient extends MCPXeroClient {
     }
     await this.authenticationPromise;
   }
+
+  public invalidateAuthentication(): void {
+    this.authenticatedUntil = 0;
+  }
 }
 
 export class BearerTokenXeroClient extends MCPXeroClient {
@@ -268,6 +279,10 @@ export class BearerTokenXeroClient extends MCPXeroClient {
     }
     await this.authenticationPromise;
   }
+
+  public invalidateAuthentication(): void {
+    this.authenticated = false;
+  }
 }
 
 export const xeroClient = bearer_token
@@ -279,3 +294,33 @@ export const xeroClient = bearer_token
       clientSecret: client_secret!,
       grantType: grant_type,
     });
+
+/**
+ * Recognises a Xero API call rejected for authentication reasons. The token
+ * endpoint is excluded: a failure there is already surfaced by the caller and
+ * never leaves a cache entry behind.
+ */
+export function isXeroApiAuthFailure(error: unknown): boolean {
+  const response = (error as AxiosError | undefined)?.response;
+  if (response?.status !== 401) return false;
+
+  const url = response.config?.url;
+  if (!url) return false;
+
+  try {
+    const { hostname } = new URL(url);
+    return hostname === "api.xero.com" || hostname.endsWith(".api.xero.com");
+  } catch {
+    return false;
+  }
+}
+
+// xero-node issues every tenanted call through the default axios instance, so
+// this is the one place a rejected cached token can be observed. Without it a
+// revoked secret stays cached for the rest of the token lifetime.
+axios.interceptors.response.use(undefined, (error: unknown) => {
+  if (isXeroApiAuthFailure(error)) {
+    xeroClient.invalidateAuthentication();
+  }
+  return Promise.reject(error);
+});
