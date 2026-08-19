@@ -2,14 +2,17 @@ import { describe, it, expect } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
 import { formatError } from "../format-error.js";
 
+const AXIOS_CONFIG_SECRET = "Bearer AXIOS_CONFIG_TOKEN";
+const AXIOS_REQUEST_SECRET = "AXIOS_REQUEST_COOKIE";
+
 function makeAxiosError(status: number, detail?: string): AxiosError {
-  const headers = new AxiosHeaders();
+  const headers = new AxiosHeaders({ Authorization: AXIOS_CONFIG_SECRET });
   const config = { headers };
   const err = new AxiosError(
     "Request failed",
     String(status),
     config as never,
-    null,
+    { _header: `Cookie: ${AXIOS_REQUEST_SECRET}` },
     {
       status,
       data: detail ? { Detail: detail } : {},
@@ -76,6 +79,18 @@ describe("formatError", () => {
       expect(result).not.toContain("COOKIE_SECRET");
       expect(result).not.toContain("ANOTHER_SECRET");
       expect(result).not.toContain("SIGNED_VALUE");
+    });
+
+    it("never leaks config.headers or the request from an AxiosError", () => {
+      for (const status of [400, 401, 403, 404, 429, 500]) {
+        for (const detail of ["Field is required", undefined]) {
+          const result = formatError(makeAxiosError(status, detail));
+
+          expect(result).not.toContain("AXIOS_CONFIG_TOKEN");
+          expect(result).not.toContain("AXIOS_REQUEST_COOKIE");
+          expect(result).not.toContain("Bearer");
+        }
+      }
     });
   });
 
@@ -244,6 +259,45 @@ describe("formatError", () => {
       } finally {
         delete process.env.XERO_CLIENT_SECRET;
       }
+    });
+  });
+
+  describe("returned message length", () => {
+    it("bounds a response carrying many validation errors", () => {
+      const sdkError = {
+        response: {
+          statusCode: 400,
+          body: {
+            Elements: [{
+              ValidationErrors: Array.from({ length: 200 }, (_, index) => ({
+                Message: `Validation failure number ${index} on a line item.`,
+              })),
+            }],
+          },
+        },
+      };
+
+      expect(formatError(sdkError).length).toBeLessThanOrEqual(1_000);
+    });
+
+    it("bounds a response whose title and detail are both at the cap", () => {
+      const sdkError = {
+        response: {
+          statusCode: 400,
+          body: {
+            Type: "T".repeat(2_000),
+            Detail: "D".repeat(2_000),
+          },
+        },
+      };
+
+      expect(formatError(sdkError).length).toBeLessThanOrEqual(1_000);
+    });
+
+    it("bounds an Axios detail that is already at the cap", () => {
+      expect(
+        formatError(makeAxiosError(400, "A".repeat(2_000))).length,
+      ).toBeLessThanOrEqual(1_000);
     });
   });
 

@@ -52,6 +52,10 @@ function sanitiseErrorText(value: unknown): string | undefined {
     .trim();
 
   if (!text) return undefined;
+  return capErrorTextLength(text);
+}
+
+function capErrorTextLength(text: string): string {
   return text.length <= MAX_ERROR_TEXT_LENGTH
     ? text
     : `${text.slice(0, MAX_ERROR_TEXT_LENGTH - 3)}...`;
@@ -154,8 +158,16 @@ function formatXeroSdkError(error: XeroSdkError): string {
  * string containing `request.headers.authorization`. Parse only its expected
  * response shape and whitelist the fields we extract so secrets never reach
  * the response.
+ *
+ * The returned message is capped at MAX_ERROR_TEXT_LENGTH characters. Capping
+ * each extracted string is not enough: a single response can contribute many
+ * of them, for example one message per entry in `body.Elements[].ValidationErrors`.
  */
 export function formatError(error: unknown): string {
+  return capErrorTextLength(formatErrorMessage(error));
+}
+
+function formatErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
     const responseBody = error.response?.data;
