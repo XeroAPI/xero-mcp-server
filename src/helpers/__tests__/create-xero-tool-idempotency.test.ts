@@ -269,3 +269,66 @@ describe("MutationXeroTool idempotency", () => {
     expect(handler).toHaveBeenCalledWith({ accountId: "synthetic-id" }, {});
   });
 });
+
+describe("idempotency key payload binding", () => {
+  function makeTool(handler: () => Promise<{ content: [] }>) {
+    let issued = 0;
+    const confirmation = new MutationConfirmationStore(
+      async () => ({ organisationId: "synthetic-organisation" }),
+      () => 1_000,
+      () => `synthetic-token-${(issued += 1)}`,
+    );
+    return MutationXeroTool(
+      "create-example",
+      "Create an example",
+      { amount: z.number() },
+      handler,
+      { supportsIdempotency: true, confirmation },
+    )();
+  }
+
+  async function execute(
+    tool: ReturnType<typeof makeTool>,
+    amount: number,
+    idempotencyKey: string,
+  ) {
+    const prepared = (await tool.handler(
+      { amount, idempotencyKey, confirmationAction: "prepare" } as never,
+      {} as never,
+    )) as { content: Array<{ type: string; text?: string }> };
+
+    return tool.handler(
+      {
+        amount,
+        idempotencyKey,
+        confirmationAction: "execute",
+        confirmationToken: tokenFrom(prepared),
+      } as never,
+      {} as never,
+    );
+  }
+
+  it("allows a retry that reuses a key with the same payload", async () => {
+    const handler = vi.fn().mockResolvedValue({ content: [] });
+    const tool = makeTool(handler);
+    const key = `same-payload-${Math.random()}`;
+
+    await execute(tool, 42, key);
+    await execute(tool, 42, key);
+
+    expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects a key reused for a different payload", async () => {
+    const handler = vi.fn().mockResolvedValue({ content: [] });
+    const tool = makeTool(handler);
+    const key = `changed-payload-${Math.random()}`;
+
+    await execute(tool, 42, key);
+
+    await expect(execute(tool, 43, key)).rejects.toThrow(
+      "This idempotencyKey was already used for a different mutation.",
+    );
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+});

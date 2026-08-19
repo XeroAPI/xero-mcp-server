@@ -20,7 +20,6 @@ async function createInvoice(
   type: Invoice.TypeEnum,
   reference: string | undefined,
   date: string | undefined,
-  idempotencyKey: string | undefined,
 ): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
@@ -47,7 +46,7 @@ async function createInvoice(
     }, // invoices
     true, //summarizeErrors
     undefined, //unitdp
-    idempotencyKey,
+    undefined, // idempotencyKey: sent as a header by getClientHeaders(true)
     getClientHeaders(true),
   );
   const createdInvoice = response.body.invoices?.[0];
@@ -63,7 +62,6 @@ export async function createXeroInvoice(
   type: Invoice.TypeEnum = Invoice.TypeEnum.ACCREC,
   reference?: string,
   date?: string,
-  idempotencyKey?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const createdInvoice = await createInvoice(
@@ -72,7 +70,6 @@ export async function createXeroInvoice(
       type,
       reference,
       date,
-      idempotencyKey,
     );
 
     if (!createdInvoice) {

@@ -11,6 +11,7 @@ import {
   runWithAuthorisedMutationTarget,
 } from "./mutation-confirmation.js";
 import {
+  idempotencyKeyBindings,
   idempotencyKeySchema,
   runWithIdempotencyKey,
 } from "./idempotency-key.js";
@@ -239,6 +240,9 @@ export const MutationXeroTool = <Args extends ZodRawShapeCompat>(
       confirmationPayload,
       suppliedToken,
     );
+    if (stableIdempotencyKey) {
+      idempotencyKeyBindings.bind(name, stableIdempotencyKey, payload);
+    }
     return runWithAuthorisedMutationTarget(target, () =>
       stableIdempotencyKey
         ? runWithIdempotencyKey(stableIdempotencyKey, () =>

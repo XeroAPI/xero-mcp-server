@@ -20,8 +20,7 @@ async function createBankTransaction(
   contactId: string,
   lineItems: BankTransactionLineItem[],
   reference?: string,
-  date?: string,
-  idempotencyKey?: string
+  date?: string
 ): Promise<BankTransaction | undefined> {
   await xeroClient.authenticate();
 
@@ -46,7 +45,7 @@ async function createBankTransaction(
     }, // bankTransactions
     true, // summarizeErrors
     undefined, // unitdp
-    idempotencyKey, // idempotencyKey
+    undefined, // idempotencyKey: sent as a header by getClientHeaders(true)
     getClientHeaders(true)
   );
 
@@ -61,11 +60,10 @@ export async function createXeroBankTransaction(
   contactId: string,
   lineItems: BankTransactionLineItem[],
   reference?: string,
-  date?: string,
-  idempotencyKey?: string
+  date?: string
 ): Promise<XeroClientResponse<BankTransaction>> {
   try {
-    const createdTransaction = await createBankTransaction(type, bankAccountId, contactId, lineItems, reference, date, idempotencyKey);
+    const createdTransaction = await createBankTransaction(type, bankAccountId, contactId, lineItems, reference, date);
   
     if (!createdTransaction) {
       throw new Error("Bank transaction creation failed.");

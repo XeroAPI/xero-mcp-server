@@ -16,7 +16,6 @@ async function createCreditNote(
   contactId: string,
   lineItems: CreditNoteLineItem[],
   reference: string | undefined,
-  idempotencyKey: string | undefined,
 ): Promise<CreditNote | undefined> {
   await xeroClient.authenticate();
 
@@ -38,7 +37,7 @@ async function createCreditNote(
     }, // creditNotes
     true, // summarizeErrors
     undefined, // unitdp
-    idempotencyKey,
+    undefined, // idempotencyKey: sent as a header by getClientHeaders(true)
     getClientHeaders(true),
   );
   const createdCreditNote = response.body.creditNotes?.[0];
@@ -52,14 +51,12 @@ export async function createXeroCreditNote(
   contactId: string,
   lineItems: CreditNoteLineItem[],
   reference?: string,
-  idempotencyKey?: string,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const createdCreditNote = await createCreditNote(
       contactId,
       lineItems,
       reference,
-      idempotencyKey,
     );
 
     if (!createdCreditNote) {
