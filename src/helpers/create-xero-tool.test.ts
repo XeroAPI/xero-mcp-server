@@ -594,3 +594,52 @@ describe("MutationXeroTool confirmation", () => {
     expect(handler).toHaveBeenCalledWith({ accountId: "synthetic-id" }, {});
   });
 });
+
+describe("MutationXeroTool legacy one-step calls", () => {
+  function build() {
+    const handler = vi.fn().mockResolvedValue({ content: [] });
+    const prepare = vi.fn(async () => ({
+      token: "synthetic-token",
+      expiresAt: new Date(1_000 + 300_000),
+      organisationId: "synthetic-organisation",
+    }));
+    const authorise = vi.fn(async () => ({
+      organisationId: "synthetic-organisation",
+    }));
+    const tool = MutationXeroTool(
+      "create-example",
+      "Create an example",
+      { amount: z.number() },
+      handler,
+      { prepare, authorise },
+    )();
+
+    return { authorise, handler, prepare, tool };
+  }
+
+  it("rejects a call that omits confirmationAction entirely", async () => {
+    const { authorise, handler, prepare, tool } = build();
+
+    await expect(
+      tool.handler({ amount: 42 }, {} as never),
+    ).rejects.toThrow();
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(prepare).not.toHaveBeenCalled();
+    expect(authorise).not.toHaveBeenCalled();
+  });
+
+  it("rejects a token-bearing call that omits confirmationAction", async () => {
+    const { authorise, handler, tool } = build();
+
+    await expect(
+      tool.handler(
+        { amount: 42, confirmationToken: "synthetic-token" },
+        {} as never,
+      ),
+    ).rejects.toThrow();
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(authorise).not.toHaveBeenCalled();
+  });
+});
