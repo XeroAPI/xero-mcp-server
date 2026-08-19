@@ -6,6 +6,7 @@ docs_theme/
 typedoc.json
 scratch.ts
 **/__tests__/**
+**/*.test.*
 docs_theme
 *.config.js
 start-server.sh

@@ -15,9 +15,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && shx chmod +x dist/*.js",
+    "build": "tsc -p tsconfig.build.json && shx chmod +x dist/*.js",
     "prepare": "npm run build",
-    "watch": "tsc --watch",
+    "watch": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:fix": "eslint --fix",
