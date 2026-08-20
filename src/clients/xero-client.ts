@@ -134,6 +134,14 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       }
     }
 
+    // New apps (post-April 2026) reject explicit scopes entirely.
+    // Try without scopes first — Xero returns all configured scopes.
+    try {
+      return await this.requestToken("");
+    } catch {
+      // Fall through to V1/V2 for older apps that require explicit scopes
+    }
+
     // Else if XERO_SCOPES is not set, try V1 scopes first (for existing apps), fallback to V2 scopes (for new apps) only on invalid_scope error
     try {
       return await this.requestToken(this.XERO_DEFAULT_AUTH_SCOPES_V1);
@@ -163,7 +171,9 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 
     const response = await axios.post(
       "https://identity.xero.com/connect/token",
-      `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`,
+      scope
+        ? `grant_type=client_credentials&scope=${encodeURIComponent(scope)}`
+        : "grant_type=client_credentials",
       {
         headers: {
           Authorization: `Basic ${credentials}`,
