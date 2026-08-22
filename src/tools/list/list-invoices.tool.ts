@@ -7,7 +7,7 @@ const ListInvoicesTool = CreateXeroTool(
   "list-invoices",
   "List invoices in Xero. This includes Draft, Submitted, and Paid invoices. \
   Ask the user if they want to see invoices for a specific contact, \
-  invoice number, or to see all invoices before running. \
+  invoice number, date range, or to see all invoices before running. \
   Ask the user if they want the next page of invoices after running this tool \
   if 10 invoices are returned. \
   If they want the next page, call this tool again with the next page number \
@@ -19,9 +19,37 @@ const ListInvoicesTool = CreateXeroTool(
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
+    fromDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .describe("Only return invoices dated on or after this YYYY-MM-DD date"),
+    toDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .describe("Only return invoices dated on or before this YYYY-MM-DD date"),
+    includeLineItems: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("Include line-item details in the response"),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({
+    page,
+    contactIds,
+    invoiceNumbers,
+    fromDate,
+    toDate,
+    includeLineItems,
+  }) => {
+    const response = await listXeroInvoices(
+      page,
+      contactIds,
+      invoiceNumbers,
+      fromDate,
+      toDate,
+    );
     if (response.error !== null) {
       return {
         content: [
@@ -34,7 +62,8 @@ const ListInvoicesTool = CreateXeroTool(
     }
 
     const invoices = response.result;
-    const returnLineItems = (invoiceNumbers?.length ?? 0) > 0;
+    const returnLineItems =
+      includeLineItems || (invoiceNumbers?.length ?? 0) > 0;
 
     return {
       content: [

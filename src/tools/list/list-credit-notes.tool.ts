@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { listXeroCreditNotes } from "../../handlers/list-xero-credit-notes.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatLineItem } from "../../helpers/format-line-item.js";
 
 const ListCreditNotesTool = CreateXeroTool(
   "list-credit-notes",
   `List credit notes in Xero. 
   Ask the user if they want to see credit notes for a specific contact,
-  or to see all credit notes before running. 
+  date range, or to see all credit notes before running.
   Ask the user if they want the next page of credit notes after running this tool 
   if 10 credit notes are returned. 
   If they want the next page, call this tool again with the next page number 
@@ -14,9 +15,29 @@ const ListCreditNotesTool = CreateXeroTool(
   {
     page: z.number(),
     contactId: z.string().optional(),
+    fromDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .describe("Only return credit notes dated on or after this YYYY-MM-DD date"),
+    toDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .describe("Only return credit notes dated on or before this YYYY-MM-DD date"),
+    includeLineItems: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe("Include line-item details in the response"),
   },
-  async ({ page, contactId }) => {
-    const response = await listXeroCreditNotes(page, contactId);
+  async ({ page, contactId, fromDate, toDate, includeLineItems }) => {
+    const response = await listXeroCreditNotes(
+      page,
+      contactId,
+      fromDate,
+      toDate,
+    );
     if (response.error !== null) {
       return {
         content: [
@@ -62,6 +83,9 @@ const ListCreditNotesTool = CreateXeroTool(
               : null,
             creditNote.updatedDateUTC
               ? `Last Updated: ${creditNote.updatedDateUTC}`
+              : null,
+            includeLineItems
+              ? `Line Items: ${creditNote.lineItems?.map(formatLineItem)}`
               : null,
           ]
             .filter(Boolean)
