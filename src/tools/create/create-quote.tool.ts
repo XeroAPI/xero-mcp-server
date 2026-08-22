@@ -4,6 +4,7 @@ import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const lineItemSchema = z.object({
+  itemCode: z.string().optional(),
   description: z.string(),
   quantity: z.number(),
   unitAmount: z.number(),

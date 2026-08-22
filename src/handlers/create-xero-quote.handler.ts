@@ -5,6 +5,7 @@ import { Quote, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface QuoteLineItem {
+  itemCode?: string;
   description: string;
   quantity: number;
   unitAmount: number;
