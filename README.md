@@ -4,10 +4,13 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 ## Features
 
-- Xero OAuth2 authentication with custom connections
+- Xero OAuth2 authentication — three modes supported (see below)
 - Contact management
 - Chart of Accounts management
 - Invoice creation and management
+- Bank transactions and payments
+- Financial reports (P&L, Balance Sheet, Trial Balance, Aged Receivables/Payables)
+- Payroll management (employees, timesheets, leave)
 - MCP protocol compliance
 
 ## Prerequisites
@@ -18,51 +21,91 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 
 ## Docs and Links
 
-- [Xero Public API Documentation](https://developer.xero.com/documentation/api/)
+- [Xero Public API Documentation](https://developer.xero.com/documentation/)
 - [Xero API Explorer](https://api-explorer.xero.com/)
-- [Xero OpenAPI Specs](https://github.com/XeroAPI/Xero-OpenAPI)
-- [Xero-Node Public API SDK Docs](https://xeroapi.github.io/xero-node/accounting)
-- [Developer Documentation](https://developer.xero.com/)
+- [Xero Developer Portal](https://developer.xero.com/app/manage)
+
+---
 
 ## Setup
 
 ### Create a Xero Account
 
-If you don't already have a Xero account and organisation already, can create one by signing up [here](https://www.xero.com/au/signup/) using the free trial.
+If you don't already have a Xero account and organisation, you can create one by signing up at xero.com. We recommend using a **Demo Company** to start with — it comes with pre-loaded sample data.
 
-We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
+---
 
-NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
+## Authentication
 
-### Authentication
+Three authentication modes are supported. Choose **one**.
 
-There are 2 modes of authentication supported in the Xero MCP server:
+---
 
-#### 1. Custom Connections
+### Mode 1: OAuth2 Web App (Free — recommended)
 
-This is a better choice for testing and development which allows you to specify client id and secrets for a specific organisation.
-It is also the recommended approach if you are integrating this into 3rd party MCP clients such as Claude Desktop.
+This uses the standard OAuth2 Authorization Code flow with PKCE. It works with a **free** Xero Web App integration — no paid Custom Connection subscription required.
 
-##### Configuring your Xero Developer account
+On first use, a browser window opens for you to authorize access to your Xero organisation. Tokens are persisted to `~/.xero-mcp-tokens.json` and automatically refreshed.
 
-Set up a Custom Connection following these instructions: https://developer.xero.com/documentation/guides/oauth2/custom-connections/
+#### Step 1: Create a Web App in Xero
 
-##### Required Scopes
+1. Go to [developer.xero.com/app/manage](https://developer.xero.com/app/manage) → **New App**
+2. Enter a name (e.g. "My MCP Server")
+3. Select **Web app** as the integration type
+4. Company URL: any valid URL (e.g. `https://example.com`)
+5. Redirect URI: `http://localhost:5000/callback`
+6. Accept terms → **Create app**
+7. Go to **Configuration** → **Generate a secret**
+8. Note the **Client ID** and **Client Secret**
 
-Custom connections require different scopes depending on when they were created. **All scopes in the relevant list must be added to your custom connection:**
+#### Step 2: Configure your MCP client
+
+Add the following to your MCP client config (e.g. `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "xero": {
+      "command": "npx",
+      "args": ["-y", "github:jsamuel1/xero-mcp-server#feature/oauth2-web-app"],
+      "env": {
+        "XERO_CLIENT_ID": "your_client_id_here",
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "XERO_REDIRECT_URI": "http://localhost:5000/callback"
+      }
+    }
+  }
+}
+```
+
+> **Note:** If you use Node Version Manager (nvm), replace `"npx"` with the full path, e.g. `~/.nvm/versions/node/v22.14.0/bin/npx`
+
+#### Step 3: Authorize
+
+On first use, a browser window will open asking you to log in to Xero and authorize access to your organisation. After authorizing, you can close the browser tab — tokens are saved automatically and will be refreshed as needed.
+
+---
+
+### Mode 2: Custom Connections (Paid)
+
+This uses the OAuth2 `client_credentials` grant type. It requires a [Xero Custom Connection](https://developer.xero.com/documentation/guides/oauth2/custom-connections/) subscription (paid add-on).
+
+#### Configuring your Xero Developer account
+
+Set up a Custom Connection following [these instructions](https://developer.xero.com/documentation/guides/oauth2/custom-connections/).
+
+#### Required Scopes
+
+Custom connections require different scopes depending on when they were created:
 
 | Custom Connection Created | Required Scopes |
 |---------------------------|-----------------|
-| Before Apr 29, 2026 | [SCOPES_V1](src/clients/xero-client.ts#L82-L90) (bundled permissions) |
-| From Apr 29, 2026 | [SCOPES_V2](src/clients/xero-client.ts#L93-L112) (granular permissions) |
+| Before Apr 29, 2026       | SCOPES_V1 (bundled permissions) |
+| From Apr 29, 2026         | SCOPES_V2 (granular permissions) |
 
-> **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
-> 
-> You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+> The MCP server automatically tries V1 scopes first and falls back to V2 if needed. You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
 
-##### Integrating the MCP server with Claude Desktop
-
-To add the MCP server to Claude go to Settings > Developer > Edit config and add the following to your claude_desktop_config.json file:
+#### MCP Client Config
 
 ```json
 {
@@ -72,22 +115,18 @@ To add the MCP server to Claude go to Settings > Developer > Edit config and add
       "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
       "env": {
         "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here",
-        "XERO_SCOPES": "accounting.invoices accounting.contacts accounting.settings"
+        "XERO_CLIENT_SECRET": "your_client_secret_here"
       }
     }
   }
 }
 ```
 
-The `XERO_SCOPES` variable is optional. If omitted, the default scopes listed above will be used.
+---
 
-NOTE: If you are using [Node Version Manager](https://github.com/nvm-sh/nvm) `"command": "npx"` section change it to be the full path to the executable, ie: `your_home_directory/.nvm/versions/node/v22.14.0/bin/npx` on Mac / Linux or `"your_home_directory\\.nvm\\versions\\node\\v22.14.0\\bin\\npx"` on Windows
+### Mode 3: [REDACTED_TOKEN]
 
-#### 2. Bearer Token
-
-This is a better choice if you are to support multiple Xero accounts at runtime and allow the MCP client to execute an auth flow (such as PKCE) as required.
-In this case, use the following configuration:
+Use a pre-obtained bearer token. Suitable for testing or when you manage token acquisition externally.
 
 ```json
 {
@@ -103,93 +142,77 @@ In this case, use the following configuration:
 }
 ```
 
-NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_ID` if defined.
+> **Note:** `XERO_CLIENT_BEARER_TOKEN` takes precedence over all other settings if defined.
 
-##### Required Scopes for Bearer Token
+---
 
-When obtaining a bearer token, you must request the appropriate scopes. The scopes you request should be:
+## Environment Variable Reference
 
-> **Note:** Some scopes are being deprecated in favour of more granular scopes. See the [Xero OAuth 2.0 Scopes documentation](https://developer.xero.com/documentation/guides/oauth2/scopes/) for details on deprecation timelines.
+| Variable | Mode | Description |
+|----------|------|-------------|
+| `XERO_CLIENT_ID` | 1, 2 | OAuth2 client ID from your Xero app |
+| `XERO_CLIENT_SECRET` | 1, 2 | OAuth2 client secret |
+| `XERO_REDIRECT_URI` | 1 | Redirect URI for OAuth2 Web App flow (e.g. `http://localhost:5000/callback`). Setting this activates Mode 1. |
+| `XERO_CLIENT_BEARER_TOKEN` | 3 | Pre-obtained bearer token. Takes highest priority if set. |
+| `XERO_SCOPES` | 2 | Optional: override OAuth scopes (space-separated). Only applies to Custom Connection mode. |
 
-```
-accounting.transactions (Deprecated)
-accounting.transactions.read (Deprecated)
-accounting.invoices
-accounting.invoices.read
-accounting.payments
-accounting.payments.read
-accounting.banktransactions
-accounting.banktransactions.read
-accounting.manualjournals
-accounting.manualjournals.read
-accounting.reports.read (Deprecated)
-accounting.reports.aged.read
-accounting.reports.balancesheet.read
-accounting.reports.profitandloss.read
-accounting.reports.trialbalance.read
-accounting.contacts 
-accounting.settings 
-payroll.settings 
-payroll.employees 
-payroll.timesheets
-```
+---
 
+## Available MCP Commands
 
-### Available MCP Commands
+- `list-accounts` — Retrieve a list of accounts
+- `list-contacts` — Retrieve a list of contacts from Xero
+- `list-credit-notes` — Retrieve a list of credit notes
+- `list-invoices` — Retrieve a list of invoices
+- `list-items` — Retrieve a list of items
+- `list-manual-journals` — Retrieve a list of manual journals
+- `list-organisation-details` — Retrieve details about an organisation
+- `list-profit-and-loss` — Retrieve a profit and loss report
+- `list-quotes` — Retrieve a list of quotes
+- `list-tax-rates` — Retrieve a list of tax rates
+- `list-payments` — Retrieve a list of payments
+- `list-trial-balance` — Retrieve a trial balance report
+- `list-bank-transactions` — Retrieve a list of bank account transactions
+- `list-payroll-employees` — Retrieve a list of Payroll Employees
+- `list-report-balance-sheet` — Retrieve a balance sheet report
+- `list-payroll-employee-leave` — Retrieve a Payroll Employee's leave records
+- `list-payroll-employee-leave-balances` — Retrieve a Payroll Employee's leave balances
+- `list-payroll-employee-leave-types` — Retrieve a list of Payroll leave types
+- `list-payroll-leave-periods` — Retrieve a list of a Payroll Employee's leave periods
+- `list-payroll-leave-types` — Retrieve a list of all available leave types in Xero Payroll
+- `list-timesheets` — Retrieve a list of Payroll Timesheets
+- `list-aged-receivables-by-contact` — Retrieves aged receivables for a contact
+- `list-aged-payables-by-contact` — Retrieves aged payables for a contact
+- `list-contact-groups` — Retrieve a list of contact groups
+- `list-tracking-categories` — Retrieve a list of tracking categories
+- `create-bank-transaction` — Create a new bank transaction
+- `create-contact` — Create a new contact
+- `create-credit-note` — Create a new credit note
+- `create-invoice` — Create a new invoice
+- `create-item` — Create a new item
+- `create-manual-journal` — Create a new manual journal
+- `create-payment` — Create a new payment
+- `create-quote` — Create a new quote
+- `create-payroll-timesheet` — Create a new Payroll Timesheet
+- `create-tracking-category` — Create a new tracking category
+- `create-tracking-option` — Create a new tracking option
+- `update-bank-transaction` — Update an existing bank transaction
+- `update-contact` — Update an existing contact
+- `update-invoice` — Update an existing draft invoice
+- `update-item` — Update an existing item
+- `update-manual-journal` — Update an existing manual journal
+- `update-quote` — Update an existing draft quote
+- `update-credit-note` — Update an existing draft credit note
+- `update-tracking-category` — Update an existing tracking category
+- `update-tracking-options` — Update tracking options
+- `update-payroll-timesheet-line` — Update a line on an existing Payroll Timesheet
+- `approve-payroll-timesheet` — Approve a Payroll Timesheet
+- `revert-payroll-timesheet` — Revert an approved Payroll Timesheet
+- `add-payroll-timesheet-line` — Add new line on an existing Payroll Timesheet
+- `delete-payroll-timesheet` — Delete an existing Payroll Timesheet
+- `get-payroll-timesheet` — Retrieve an existing Payroll Timesheet
 
-- `list-accounts`: Retrieve a list of accounts
-- `list-contacts`: Retrieve a list of contacts from Xero
-- `list-credit-notes`: Retrieve a list of credit notes
-- `list-invoices`: Retrieve a list of invoices
-- `list-items`: Retrieve a list of items
-- `list-manual-journals`: Retrieve a list of manual journals
-- `list-organisation-details`: Retrieve details about an organisation
-- `list-profit-and-loss`: Retrieve a profit and loss report
-- `list-quotes`: Retrieve a list of quotes
-- `list-tax-rates`: Retrieve a list of tax rates
-- `list-payments`: Retrieve a list of payments
-- `list-trial-balance`: Retrieve a trial balance report
-- `list-bank-transactions`: Retrieve a list of bank account transactions
-- `list-payroll-employees`: Retrieve a list of Payroll Employees
-- `list-report-balance-sheet`: Retrieve a balance sheet report
-- `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
-- `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
-- `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
-- `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods
-- `list-payroll-leave-types`: Retrieve a list of all available leave types in Xero Payroll
-- `list-timesheets`: Retrieve a list of Payroll Timesheets
-- `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
-- `list-aged-payables-by-contact`: Retrieves aged payables for a contact
-- `list-contact-groups`: Retrieve a list of contact groups
-- `list-tracking-categories`: Retrieve a list of tracking categories
-- `create-bank-transaction`: Create a new bank transaction
-- `create-contact`: Create a new contact
-- `create-credit-note`: Create a new credit note
-- `create-invoice`: Create a new invoice
-- `create-item`: Create a new item
-- `create-manual-journal`: Create a new manual journal
-- `create-payment`: Create a new payment
-- `create-quote`: Create a new quote
-- `create-payroll-timesheet`: Create a new Payroll Timesheet
-- `create-tracking-category`: Create a new tracking category
-- `create-tracking-option`: Create a new tracking option
-- `update-bank-transaction`: Update an existing bank transaction
-- `update-contact`: Update an existing contact
-- `update-invoice`: Update an existing draft invoice
-- `update-item`: Update an existing item
-- `update-manual-journal`: Update an existing manual journal
-- `update-quote`: Update an existing draft quote
-- `update-credit-note`: Update an existing draft credit note
-- `update-tracking-category`: Update an existing tracking category
-- `update-tracking-options`: Update tracking options
-- `update-payroll-timesheet-line`: Update a line on an existing Payroll Timesheet
-- `approve-payroll-timesheet`: Approve a Payroll Timesheet
-- `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
-- `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
-- `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
-- `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
-
-For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
+---
 
 ## For Developers
 
@@ -203,41 +226,14 @@ npm install
 pnpm install
 ```
 
-### Run a build
+### Building
 
 ```bash
-# Using npm
 npm run build
-
-# Using pnpm
-pnpm build
 ```
 
-### Integrating with Claude Desktop
+### Running locally
 
-To link your Xero MCP server in development to Claude Desktop go to Settings > Developer > Edit config and add the following to your `claude_desktop_config.json` file:
-
-NOTE: For Windows ensure the `args` path escapes the `\` between folders ie. `"C:\\projects\xero-mcp-server\\dist\\index.js"`
-
-```json
-{
-  "mcpServers": {
-    "xero": {
-      "command": "node",
-      "args": ["insert-your-file-path-here/xero-mcp-server/dist/index.js"],
-      "env": {
-        "XERO_CLIENT_ID": "your_client_id_here",
-        "XERO_CLIENT_SECRET": "your_client_secret_here"
-      }
-    }
-  }
-}
+```bash
+npm start
 ```
-
-## License
-
-MIT
-
-## Security
-
-Please do not commit your `.env` file or any sensitive credentials to version control (it is included in `.gitignore` as a safe default.)
