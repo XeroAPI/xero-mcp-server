@@ -3,6 +3,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Quote, QuoteLineAmountTypes, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { describeRejectedQuoteTransition } from "../helpers/to-quote-status.js";
 
 interface QuoteLineItem {
   description: string;
@@ -227,6 +228,16 @@ export async function updateXeroQuote(
         result: null,
         isError: true,
         error: "Nothing to update. Provide a status or at least one field to change.",
+      };
+    }
+
+    const rejectedTransition = describeRejectedQuoteTransition(quoteStatus, status);
+
+    if (rejectedTransition) {
+      return {
+        result: null,
+        isError: true,
+        error: rejectedTransition,
       };
     }
 
