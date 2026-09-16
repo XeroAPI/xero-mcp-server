@@ -58,9 +58,10 @@ to keep the value already on the quote.",
 quote through the pipeline, for example marking a sent quote ACCEPTED once the \
 customer approves it or DECLINED once they do not. Leave unset to keep the \
 current status. A quote cannot be set to INVOICED here — that happens when an \
-invoice is created from it. Xero also restricts which transitions are legal: an \
-ACCEPTED quote cannot move straight to DECLINED, it has to go back to SENT \
-first.",
+invoice is created from it. Xero also restricts which transitions are legal: \
+DECLINED is only reachable from SENT, so a DRAFT or ACCEPTED quote has to be \
+set to SENT first. Attempting a rejected transition returns an error naming \
+the route that works.",
       ),
   },
   async (

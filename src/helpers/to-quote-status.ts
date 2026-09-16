@@ -33,3 +33,39 @@ export function toQuoteStatus(
       return undefined;
   }
 }
+
+/**
+ * Status transitions Xero rejects, verified against a live organisation.
+ *
+ * Xero refuses these with a generic error carrying no explanation, so they are
+ * caught before the request is sent and reported with the route that does
+ * work. Only transitions confirmed to fail are listed: every other combination
+ * is passed through to Xero rather than guessed at, so a legal transition is
+ * never blocked by an assumption made here.
+ */
+export const rejectedQuoteTransitions: ReadonlyArray<{
+  from: QuoteStatusCodes;
+  to: QuoteStatusCodes;
+}> = [
+  { from: QuoteStatusCodes.DRAFT, to: QuoteStatusCodes.DECLINED },
+  { from: QuoteStatusCodes.ACCEPTED, to: QuoteStatusCodes.DECLINED },
+];
+
+/**
+ * Returns an explanatory message when a transition is known to be rejected,
+ * or null when it should be attempted.
+ */
+export function describeRejectedQuoteTransition(
+  from: QuoteStatusCodes | undefined,
+  to: QuoteStatusCodes | undefined,
+): string | null {
+  if (!from || !to) return null;
+
+  const rejected = rejectedQuoteTransitions.some(
+    (transition) => transition.from === from && transition.to === to,
+  );
+
+  if (!rejected) return null;
+
+  return `Xero does not allow a quote to move directly from ${from} to ${to}. Set it to ${QuoteStatusCodes.SENT} first, then to ${to}.`;
+}
