@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Quote, QuoteStatusCodes } from "xero-node";
+import { Quote, QuoteLineAmountTypes, QuoteStatusCodes } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface QuoteLineItem {
@@ -20,6 +20,7 @@ async function createQuote(
   lineItems: QuoteLineItem[],
   title: string | undefined,
   summary: string | undefined,
+  lineAmountTypes: QuoteLineAmountTypes | undefined,
 ): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
@@ -38,6 +39,9 @@ async function createQuote(
     status: QuoteStatusCodes.DRAFT,
     title: title,
     summary: summary,
+    // Xero treats line amounts as tax exclusive when this is omitted, so an
+    // unspecified value keeps the previous behaviour.
+    lineAmountTypes: lineAmountTypes,
   };
 
   const response = await xeroClient.accountingApi.createQuotes(
@@ -64,6 +68,7 @@ export async function createXeroQuote(
   terms?: string,
   title?: string,
   summary?: string,
+  lineAmountTypes?: QuoteLineAmountTypes,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     const createdQuote = await createQuote(
@@ -74,6 +79,7 @@ export async function createXeroQuote(
       lineItems,
       title,
       summary,
+      lineAmountTypes,
     );
 
     if (!createdQuote) {

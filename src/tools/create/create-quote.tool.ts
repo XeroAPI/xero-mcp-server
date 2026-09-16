@@ -2,6 +2,10 @@ import { z } from "zod";
 import { createXeroQuote } from "../../handlers/create-xero-quote.handler.js";
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import {
+  quoteLineAmountTypeNames,
+  toQuoteLineAmountTypes,
+} from "../../helpers/to-quote-line-amount-types.js";
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -25,6 +29,14 @@ const CreateQuoteTool = CreateXeroTool(
     terms: z.string().optional(),
     title: z.string().optional(),
     summary: z.string().optional(),
+    lineAmountTypes: z
+      .enum(quoteLineAmountTypeNames)
+      .optional()
+      .describe(
+        "Optional line amount types (EXCLUSIVE, INCLUSIVE, NO_TAX). Xero treats \
+unit amounts as tax exclusive when this is omitted, so pass INCLUSIVE when the \
+amounts supplied already include tax.",
+      ),
   },
   async ({
     contactId,
@@ -34,6 +46,7 @@ const CreateQuoteTool = CreateXeroTool(
     terms,
     title,
     summary,
+    lineAmountTypes,
   }) => {
     const result = await createXeroQuote(
       contactId,
@@ -43,6 +56,7 @@ const CreateQuoteTool = CreateXeroTool(
       terms,
       title,
       summary,
+      toQuoteLineAmountTypes(lineAmountTypes),
     );
     if (result.isError) {
       return {
