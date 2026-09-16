@@ -6,6 +6,10 @@ interface XeroSdkProblem {
   status?: number;
 }
 
+interface XeroValidationError {
+  Message?: string;
+}
+
 interface XeroSdkError {
   response: {
     statusCode: number;
@@ -13,8 +17,28 @@ interface XeroSdkError {
       httpStatusCode?: string;
       problem?: XeroSdkProblem;
       Detail?: string;
+      Message?: string;
+      Elements?: Array<{ ValidationErrors?: XeroValidationError[] }>;
+      ValidationErrors?: XeroValidationError[];
     };
   };
+}
+
+/**
+ * Xero reports a rejected document by returning its validation errors rather
+ * than a Detail string. Without this the caller is told only that something
+ * unexpected happened, which is not enough to act on.
+ */
+function collectValidationErrors(body: XeroSdkError["response"]["body"]): string {
+  const errors = [
+    ...(body?.ValidationErrors ?? []),
+    ...(body?.Elements ?? []).flatMap((e) => e.ValidationErrors ?? []),
+  ];
+
+  return errors
+    .map((e) => e.Message)
+    .filter((m): m is string => Boolean(m))
+    .join("; ");
 }
 
 function isXeroSdkError(error: unknown): error is XeroSdkError {
@@ -67,7 +91,11 @@ export function formatError(error: unknown): string {
     const body = error.response.body;
     const problem = body?.problem;
     const title = problem?.title ?? body?.httpStatusCode ?? "HTTP error";
-    const detail = problem?.detail ?? body?.Detail;
+    const detail =
+      problem?.detail ??
+      body?.Detail ??
+      collectValidationErrors(body) ??
+      body?.Message;
     return detail ? `${status} ${title}: ${detail}` : `${status} ${title}`;
   }
 
