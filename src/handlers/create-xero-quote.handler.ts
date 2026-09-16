@@ -21,6 +21,8 @@ async function createQuote(
   title: string | undefined,
   summary: string | undefined,
   lineAmountTypes: QuoteLineAmountTypes | undefined,
+  date: string | undefined,
+  expiryDate: string | undefined,
 ): Promise<Quote | undefined> {
   await xeroClient.authenticate();
 
@@ -31,11 +33,17 @@ async function createQuote(
     contact: {
       contactID: contactId,
     },
-    date: new Date().toISOString().split("T")[0], // Today's date
+    date: date ?? new Date().toISOString().split("T")[0], // defaults to today
     lineItems: lineItems,
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 7 days from now
+    // Defaults to seven days, which is what this tool has always used. Seven
+    // days suits a quote a customer can accept on the spot, but is far too
+    // short where the quote has to clear a funding body, so callers in that
+    // position need to be able to set it.
+    expiryDate:
+      expiryDate ??
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
     status: QuoteStatusCodes.DRAFT,
     title: title,
     summary: summary,
@@ -69,6 +77,8 @@ export async function createXeroQuote(
   title?: string,
   summary?: string,
   lineAmountTypes?: QuoteLineAmountTypes,
+  date?: string,
+  expiryDate?: string,
 ): Promise<XeroClientResponse<Quote>> {
   try {
     const createdQuote = await createQuote(
@@ -80,6 +90,8 @@ export async function createXeroQuote(
       title,
       summary,
       lineAmountTypes,
+      date,
+      expiryDate,
     );
 
     if (!createdQuote) {

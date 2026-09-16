@@ -29,6 +29,18 @@ const CreateQuoteTool = CreateXeroTool(
     terms: z.string().optional(),
     title: z.string().optional(),
     summary: z.string().optional(),
+    date: z
+      .string()
+      .optional()
+      .describe("Optional quote date (YYYY-MM-DD). Defaults to today."),
+    expiryDate: z
+      .string()
+      .optional()
+      .describe(
+        "Optional expiry date (YYYY-MM-DD). Defaults to seven days from the \
+quote date. Set it explicitly where the quote has to clear a funder or a \
+committee, because seven days will lapse long before they decide.",
+      ),
     lineAmountTypes: z
       .enum(quoteLineAmountTypeNames)
       .optional()
@@ -47,6 +59,8 @@ amounts supplied already include tax.",
     title,
     summary,
     lineAmountTypes,
+    date,
+    expiryDate,
   }) => {
     const result = await createXeroQuote(
       contactId,
@@ -57,6 +71,8 @@ amounts supplied already include tax.",
       title,
       summary,
       toQuoteLineAmountTypes(lineAmountTypes),
+      date,
+      expiryDate,
     );
     if (result.isError) {
       return {
