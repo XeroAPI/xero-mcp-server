@@ -9,6 +9,12 @@ const lineItemSchema = z.object({
   unitAmount: z.number(),
   accountCode: z.string(),
   taxType: z.string(),
+  tracking: z.array(z.object({
+    trackingCategoryID: z.string().optional(),
+    trackingOptionID: z.string().optional(),
+    name: z.string().optional(),
+    option: z.string().optional(),
+  })).optional(),
 });
 
 const UpdateBankTransactionTool = CreateXeroTool(

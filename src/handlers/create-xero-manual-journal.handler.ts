@@ -3,6 +3,7 @@ import {
   ManualJournal,
   ManualJournalLine,
   ManualJournals,
+  LineItemTracking,
 } from "xero-node";
 import { xeroClient } from "../clients/xero-client.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -27,7 +28,7 @@ async function createManualJournal(
       accountCode: journalLine.accountCode,
       description: journalLine.description,
       taxType: journalLine.taxType,
-      // TODO: tracking can be added here
+      tracking: journalLine.tracking as LineItemTracking[] | undefined,
     })),
     date: date,
     lineAmountTypes: lineAmountTypes,

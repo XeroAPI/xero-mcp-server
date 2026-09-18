@@ -142,3 +142,5 @@ dist
 
 # Cursor IDE
 .cursor/
+.vercel
+.env*

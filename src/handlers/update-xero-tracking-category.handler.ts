@@ -65,7 +65,7 @@ export async function updateXeroTrackingCategory(
     }
 
     return {
-      result: existingTrackingCategory,
+      result: updatedTrackingCategory,
       isError: false,
       error: null
     };

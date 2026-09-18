@@ -7,7 +7,7 @@ import eslintConfigPrettier from "eslint-config-prettier/flat";
 /** @type {import('eslint').Linter.Config[]} */
 export default defineConfig([
   { files: ["**/*.{js,mjs,cjs,ts}"] },
-  { ignores: ["dist/"] },
+  { ignores: ["dist/", ".next/", "node_modules/"] },
   { languageOptions: { globals: globals.node } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,

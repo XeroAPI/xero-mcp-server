@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { AsyncLocalStorage } from "node:async_hooks";
 import dotenv from "dotenv";
 import {
   IXeroClientConfig,
@@ -16,11 +17,7 @@ const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
 const grant_type = "client_credentials";
 
-if (!bearer_token && (!client_id || !client_secret)) {
-  throw Error("Environment Variables not set - please check your .env file");
-}
-
-abstract class MCPXeroClient extends XeroClient {
+export abstract class MCPXeroClient extends XeroClient {
   public tenantId: string;
   private shortCode: string;
 
@@ -97,10 +94,23 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     "accounting.manualjournals",
     "accounting.reports.aged.read",
     "accounting.reports.balancesheet.read",
+    "accounting.reports.banksummary.read",
+    "accounting.reports.budgetsummary.read",
+    "accounting.reports.executivesummary.read",
     "accounting.reports.profitandloss.read",
     "accounting.reports.trialbalance.read",
+    "accounting.reports.taxreports.read",
+    "accounting.journals.read",
     "accounting.contacts",
     "accounting.settings",
+    "accounting.attachments",
+    "accounting.budgets.read",
+    "finance.accountingactivity.read",
+    "finance.cashvalidation.read",
+    "finance.statements.read",
+    "finance.bankstatementsplus.read",
+    "assets",
+    "projects",
     "payroll.settings",
     "payroll.employees",
     "payroll.timesheets",
@@ -206,9 +216,10 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
 class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
 
-  constructor(config: { bearerToken: string }) {
+  constructor(config: { bearerToken: string; tenantId?: string }) {
     super();
     this.bearerToken = config.bearerToken;
+    this.tenantId = config.tenantId ?? "";
   }
 
   async authenticate(): Promise<void> {
@@ -220,12 +231,52 @@ class BearerTokenXeroClient extends MCPXeroClient {
   }
 }
 
-export const xeroClient = bearer_token
+const requestXeroClient = new AsyncLocalStorage<MCPXeroClient | undefined>();
+
+const configuredXeroClient = bearer_token
   ? new BearerTokenXeroClient({
       bearerToken: bearer_token,
     })
-  : new CustomConnectionsXeroClient({
-      clientId: client_id!,
-      clientSecret: client_secret!,
-      grantType: grant_type,
-    });
+  : client_id && client_secret
+    ? new CustomConnectionsXeroClient({
+        clientId: client_id,
+        clientSecret: client_secret,
+        grantType: grant_type,
+      })
+    : undefined;
+
+function getActiveXeroClient(): MCPXeroClient {
+  const client = requestXeroClient.getStore() ?? configuredXeroClient;
+
+  if (!client) {
+    throw new Error(
+      "No Xero credentials are configured for this request. Connect ChatGPT to Xero first.",
+    );
+  }
+
+  return client;
+}
+
+export function createBearerTokenXeroClient(
+  token: string,
+): MCPXeroClient {
+  return new BearerTokenXeroClient({ bearerToken: token });
+}
+
+export function withXeroClient<T>(
+  client: MCPXeroClient | undefined,
+  callback: () => T,
+): T {
+  return requestXeroClient.run(client, callback);
+}
+
+// The original handlers import one xeroClient. This proxy keeps that API intact
+// while routing each request to the Xero token authorized for that request.
+export const xeroClient = new Proxy({} as MCPXeroClient, {
+  get(_target, property) {
+    const client = getActiveXeroClient();
+    const value = Reflect.get(client, property, client);
+
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+}) as MCPXeroClient;
