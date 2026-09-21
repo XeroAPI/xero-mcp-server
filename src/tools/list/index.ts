@@ -1,4 +1,6 @@
 import ListAccountsTool from "./list-accounts.tool.js";
+import ListBudgetsTool from "./list-budgets.tool.js";
+import GetBudgetTool from "./get-budget.tool.js";
 import ListAgedPayablesByContact from "./list-aged-payables-by-contact.tool.js";
 import ListAgedReceivablesByContact
   from "./list-aged-receivables-by-contact.tool.js";
@@ -30,6 +32,8 @@ import ListTrialBalanceTool from "./list-trial-balance.tool.js";
 import ListContactGroupsTool from "./list-contact-groups.tool.js";
 
 export const ListTools = [
+  ListBudgetsTool,
+  GetBudgetTool,
   ListAccountsTool,
   ListContactsTool,
   ListCreditNotesTool,

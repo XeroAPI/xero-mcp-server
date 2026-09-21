@@ -10,6 +10,18 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Invoice creation and management
 - MCP protocol compliance
 
+## Reading budgets
+
+Use `list-budgets` to obtain budget IDs, then `get-budget` to retrieve a budget's
+account codes, monthly amounts and tracking information. `get-budget` accepts
+optional `dateFrom` and `dateTo` values in `YYYY-MM-DD` format. These tools only
+read data and preserve the amounts returned by Xero, including zero values.
+
+Authorise `accounting.budgets.read` for the connection or bearer token. For a
+Custom Connection, include it in `XERO_SCOPES` alongside the scopes you already
+use. The server's default scopes are unchanged. See the
+[Xero Budgets API](https://developer.xero.com/documentation/api/accounting/budgets).
+
 ## Prerequisites
 
 - Node.js (v18 or higher)
