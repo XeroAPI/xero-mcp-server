@@ -8,6 +8,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Contact management
 - Chart of Accounts management
 - Invoice creation and management
+- Full bookkeeping operations: accounts, tracking, bills, payments, journals, attachments, ledger, reports, reconciliation candidates, and Conecta-specific shareholder/event workflows
 - MCP protocol compliance
 
 ## Prerequisites
@@ -111,31 +112,31 @@ When obtaining a bearer token, you must request the appropriate scopes. The scop
 
 > **Note:** Some scopes are being deprecated in favour of more granular scopes. See the [Xero OAuth 2.0 Scopes documentation](https://developer.xero.com/documentation/guides/oauth2/scopes/) for details on deprecation timelines.
 
-```
-accounting.transactions (Deprecated)
-accounting.transactions.read (Deprecated)
-accounting.invoices
-accounting.invoices.read
-accounting.payments
-accounting.payments.read
-accounting.banktransactions
-accounting.banktransactions.read
-accounting.manualjournals
-accounting.manualjournals.read
-accounting.reports.read (Deprecated)
-accounting.reports.aged.read
-accounting.reports.balancesheet.read
-accounting.reports.profitandloss.read
-accounting.reports.trialbalance.read
-accounting.contacts 
-accounting.settings 
-payroll.settings 
-payroll.employees 
-payroll.timesheets
-```
+The hosted connector advertises the current scope set in
+[`src/xero-oauth-scopes.ts`](src/xero-oauth-scopes.ts). It includes the
+granular Accounting scopes, journal/report/attachment scopes, Finance read
+scopes for statement and ledger data, and `assets`/`projects` for optional
+fixed-asset and project workflows. Existing ChatGPT connections must be
+reconnected after scope changes.
+
+The public Xero API does not expose the final bank-statement reconciliation or
+unreconciliation mutation. The connector provides candidate matching and a
+manual handoff instead of claiming that it reconciled a line.
+
+See the [bookkeeping capability matrix](docs/bookkeeping-capability-matrix.md)
+and [Conecta workflow examples](docs/bookkeeping-workflows.md).
 
 
 ### Available MCP Commands
+
+The original hyphenated tools remain available. The bookkeeping upgrade also
+registers snake_case tools such as `create_account`, `create_bill`,
+`create_bank_transfer`, `create_manual_journal`, `general_ledger`,
+`upload_attachment`, `record_shareholder_paid_expense`,
+`record_founder_runway_funding`, `reconcile_bank_account`, and
+`monthly_close_checklist`. Mutation tools return structured success/error data,
+use idempotency keys where Xero supports them, check lock dates, and return a
+review-required result when the accounting treatment is ambiguous.
 
 - `list-accounts`: Retrieve a list of accounts
 - `list-contacts`: Retrieve a list of contacts from Xero

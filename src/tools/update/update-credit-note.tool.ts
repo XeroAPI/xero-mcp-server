@@ -9,6 +9,12 @@ const lineItemSchema = z.object({
   unitAmount: z.number(),
   accountCode: z.string(),
   taxType: z.string(),
+  tracking: z.array(z.object({
+    trackingCategoryID: z.string().optional(),
+    trackingOptionID: z.string().optional(),
+    name: z.string().optional(),
+    option: z.string().optional(),
+  })).optional(),
 });
 
 const UpdateCreditNoteTool = CreateXeroTool(
@@ -44,6 +50,12 @@ const UpdateCreditNoteTool = CreateXeroTool(
         unitAmount: number;
         accountCode: string;
         taxType: string;
+        tracking?: Array<{
+          trackingCategoryID?: string;
+          trackingOptionID?: string;
+          name?: string;
+          option?: string;
+        }>;
       }>;
       reference?: string;
       date?: string;
@@ -92,4 +104,4 @@ const UpdateCreditNoteTool = CreateXeroTool(
   },
 );
 
-export default UpdateCreditNoteTool; 
+export default UpdateCreditNoteTool;

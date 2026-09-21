@@ -15,8 +15,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && shx chmod +x dist/*.js",
-    "prepare": "npm run build",
+    "build": "npm run build:stdio && next build",
+    "build:stdio": "tsc -p tsconfig.stdio.json && shx chmod +x dist/*.js",
+    "dev": "next dev",
+    "prepare": "npm run build:stdio",
     "watch": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -24,9 +26,13 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.23.4",
+    "@modelcontextprotocol/sdk": "1.26.0",
     "dotenv": "^16.4.7",
+    "mcp-handler": "1.1.0",
+    "next": "16.3.5",
     "openid-client": "^6.8.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "xero-node": "^13.3.0",
     "zod": "3.25"
   },
@@ -38,6 +44,8 @@
     "globals": "^16.5.0",
     "prettier": "3.7.4",
     "shx": "^0.3.4",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",
     "vitest": "^4.1.5"
