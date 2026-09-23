@@ -32,7 +32,7 @@ If you don't already have a Xero account and organisation already, can create on
 
 We recommend using a Demo Company to start with because it comes with some pre-loaded sample data. Once you are logged in, switch to it by using the top left-hand dropdown and selecting "Demo Company". You can reset the data on a Demo Company, or change the country, at any time by using the top left-hand dropdown and navigating to [My Xero](https://my.xero.com).
 
-NOTE: To use Payroll-specific queries, the region should be either NZ or UK.
+NOTE: Employee, leave and timesheet payroll tools currently target NZ or UK. Australian organisations can use the Payroll AU **read** tools `list-payroll-pay-runs`, `list-payroll-payslips`, `get-payroll-payslip` and `list-payroll-pay-items`. Those tools do not post, approve or delete pay runs.
 
 ### Authentication
 
@@ -59,6 +59,8 @@ Custom connections require different scopes depending on when they were created.
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+>
+> `list-payroll-pay-runs`, `list-payroll-payslips` and `get-payroll-payslip` also need `payroll.payruns` and `payroll.payslip`. Those scopes are not in the default V1/V2 lists, so existing Custom Connections keep working. Add them via `XERO_SCOPES` if you use the Australian pay-run tools. `list-payroll-pay-items` uses the default `payroll.settings` scope.
 
 ##### Integrating the MCP server with Claude Desktop
 
@@ -151,6 +153,10 @@ payroll.timesheets
 - `list-trial-balance`: Retrieve a trial balance report
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
+- `list-payroll-pay-runs`: Retrieve Australian Payroll AU pay runs
+- `list-payroll-payslips`: Retrieve payslip summaries on an Australian pay run
+- `get-payroll-payslip`: Retrieve one Australian payslip, including superannuation lines
+- `list-payroll-pay-items`: Retrieve Australian earnings rates, deductions, leave and reimbursement types
 - `list-report-balance-sheet`: Retrieve a balance sheet report
 - `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
 - `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances

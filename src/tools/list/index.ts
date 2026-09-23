@@ -20,6 +20,9 @@ import ListPayrollEmployeesTool from "./list-payroll-employees.tool.js";
 import ListPayrollLeavePeriodsToolTool
   from "./list-payroll-leave-periods.tool.js";
 import ListPayrollLeaveTypesTool from "./list-payroll-leave-types.tool.js";
+import ListPayrollPayItemsTool from "./list-payroll-pay-items.tool.js";
+import ListPayrollPayRunsTool from "./list-payroll-pay-runs.tool.js";
+import ListPayrollPayslipsTool from "./list-payroll-payslips.tool.js";
 import ListPayrollTimesheetsTool from "./list-payroll-timesheets.tool.js";
 import ListProfitAndLossTool from "./list-profit-and-loss.tool.js";
 import ListQuotesTool from "./list-quotes.tool.js";
@@ -53,6 +56,9 @@ export const ListTools = [
   ListAgedReceivablesByContact,
   ListAgedPayablesByContact,
   ListPayrollTimesheetsTool,
+  ListPayrollPayRunsTool,
+  ListPayrollPayslipsTool,
+  ListPayrollPayItemsTool,
   ListContactGroupsTool,
   ListTrackingCategoriesTool
 ];
