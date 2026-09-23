@@ -156,3 +156,78 @@ describe("formatError", () => {
     });
   });
 });
+
+describe("formatError – stringified xero-node SDK errors", () => {
+  const validationBody = {
+    ErrorNumber: 10,
+    Type: "ValidationException",
+    Message: "A validation exception occurred",
+    Elements: [
+      {
+        AccountID: "acc-1",
+        Code: "1234",
+        ValidationErrors: [
+          { Message: "Please enter a unique Code." },
+          { Message: "Bank accounts cannot be used in expense claims." },
+        ],
+      },
+    ],
+  };
+
+  function makeSdkString(status: number, body: unknown): string {
+    return JSON.stringify({
+      response: {
+        statusCode: status,
+        body,
+        headers: { "set-cookie": "ak_bmsc=secret" },
+        request: {
+          url: { host: "api.xero.com", path: "/api.xro/2.0/Accounts/acc-1" },
+          headers: { authorization: "Bearer eyJSECRET" },
+          method: "POST",
+        },
+      },
+      body,
+    });
+  }
+
+  it("surfaces Xero validation messages from a 400 ValidationException", () => {
+    const result = formatError(makeSdkString(400, validationBody));
+
+    expect(result).toContain("Please enter a unique Code.");
+    expect(result).toContain("Bank accounts cannot be used in expense claims.");
+    expect(result).toContain("400");
+    expect(result).not.toContain("Bearer");
+    expect(result).not.toContain("eyJSECRET");
+    expect(result).not.toContain("set-cookie");
+  });
+
+  it("surfaces Detail from a stringified 400 with a problem-style body", () => {
+    const result = formatError(
+      makeSdkString(400, { Title: "Bad Request", Detail: "Invalid account type." }),
+    );
+
+    expect(result).toContain("Invalid account type.");
+    expect(result).not.toContain("eyJSECRET");
+  });
+
+  it("maps a stringified 401 to the standard auth message", () => {
+    expect(formatError(makeSdkString(401, {}))).toBe(
+      "Authentication failed. Please check your Xero credentials.",
+    );
+  });
+
+  it("still returns the generic message for a non-JSON string", () => {
+    expect(formatError("something went wrong")).toBe(
+      "An unexpected error occurred while communicating with Xero.",
+    );
+  });
+
+  it("handles a ValidationException object shape (non-stringified) as well", () => {
+    const result = formatError({
+      response: { statusCode: 400, body: validationBody },
+      body: validationBody,
+    });
+
+    expect(result).toContain("Please enter a unique Code.");
+  });
+});
