@@ -21,10 +21,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:fix": "eslint --fix",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "start:http": "node dist/mcpfy-server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.23.4",
+    "mcpfy-sdk": "0.4.0",
     "dotenv": "^16.4.7",
     "openid-client": "^6.8.1",
     "xero-node": "^13.3.0",
