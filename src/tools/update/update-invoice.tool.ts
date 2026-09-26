@@ -11,7 +11,7 @@ const trackingSchema = z.object({
     Can be obtained from the list-tracking-categories tool"),
 });
 
-const lineItemSchema = z.object({
+const completeLineItemSchema = z.object({
   description: z.string().describe("The description of the line item"),
   quantity: z.number().describe("The quantity of the line item"),
   unitAmount: z.number().describe("The price per unit of the line item"),
@@ -25,19 +25,42 @@ const lineItemSchema = z.object({
     Only use if prompted by the user.").optional(),
 });
 
+const partialLineItemSchema = z.object({
+  lineItemID: z.string().describe(
+    "The line item ID returned by list-invoices. When provided, omitted fields are preserved.",
+  ),
+  description: z.string().optional(),
+  quantity: z.number().optional(),
+  unitAmount: z.number().optional(),
+  accountCode: z.string().optional(),
+  taxType: z.string().optional(),
+  itemCode: z.string().optional(),
+  tracking: z.array(trackingSchema).optional(),
+}).refine(
+  (lineItem) =>
+    Object.entries(lineItem).some(
+      ([key, value]) => key !== "lineItemID" && value !== undefined,
+    ),
+  { message: "Provide at least one field to update for the line item." },
+);
+
+const lineItemSchema = z.union([
+  partialLineItemSchema,
+  completeLineItemSchema,
+]);
+
 const UpdateInvoiceTool = CreateXeroTool(
   "update-invoice",
   "Update an invoice in Xero. Only works on draft invoices.\
-  All line items must be provided. Any line items not provided will be removed. Including existing line items.\
-  Do not modify line items that have not been specified by the user.\
+  To update selected line item fields, provide the lineItemID returned by list-invoices; omitted fields are preserved.\
+  Without lineItemID, provide every field for every line item because omitted lines will be removed.\
  When an invoice is updated, a deep link to the invoice in Xero is returned. \
  This deep link can be used to view the contact in Xero directly. \
  This link should be displayed to the user.",
   {
     invoiceId: z.string().describe("The ID of the invoice to update."),
     lineItems: z.array(lineItemSchema).optional().describe(
-      "All line items must be provided. Any line items not provided will be removed. Including existing line items. \
-      Do not modify line items that have not been specified by the user",
+      "Use lineItemID for targeted partial updates. Without lineItemID, all fields and all existing lines must be provided.",
     ),
     reference: z.string().optional().describe("A reference number for the invoice."),
     dueDate: z.string().optional().describe("The due date of the invoice."),
@@ -56,11 +79,13 @@ const UpdateInvoiceTool = CreateXeroTool(
     }: {
       invoiceId: string;
       lineItems?: Array<{
-        description: string;
-        quantity: number;
-        unitAmount: number;
-        accountCode: string;
-        taxType: string;
+        lineItemID?: string;
+        description?: string;
+        quantity?: number;
+        unitAmount?: number;
+        accountCode?: string;
+        taxType?: string;
+        itemCode?: string;
       }>;
       reference?: string;
       dueDate?: string;
