@@ -23,6 +23,7 @@ import ListPayrollLeaveTypesTool from "./list-payroll-leave-types.tool.js";
 import ListPayrollTimesheetsTool from "./list-payroll-timesheets.tool.js";
 import ListProfitAndLossTool from "./list-profit-and-loss.tool.js";
 import ListQuotesTool from "./list-quotes.tool.js";
+import ListRepeatingInvoicesTool from "./list-repeating-invoices.tool.js";
 import ListReportBalanceSheetTool from "./list-report-balance-sheet.tool.js";
 import ListTaxRatesTool from "./list-tax-rates.tool.js";
 import ListTrackingCategoriesTool from "./list-tracking-categories.tool.js";
@@ -37,6 +38,7 @@ export const ListTools = [
   ListItemsTool,
   ListManualJournalsTool,
   ListQuotesTool,
+  ListRepeatingInvoicesTool,
   ListTaxRatesTool,
   ListTrialBalanceTool,
   ListPaymentsTool,

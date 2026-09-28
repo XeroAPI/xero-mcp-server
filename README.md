@@ -146,6 +146,7 @@ payroll.timesheets
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
 - `list-quotes`: Retrieve a list of quotes
+- `list-repeating-invoices`: Retrieve repeating invoice templates
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
 - `list-trial-balance`: Retrieve a trial balance report
@@ -170,6 +171,7 @@ payroll.timesheets
 - `create-manual-journal`: Create a new manual journal
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
+- `create-repeating-invoice`: Create a new repeating invoice template
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
@@ -179,6 +181,7 @@ payroll.timesheets
 - `update-item`: Update an existing item
 - `update-manual-journal`: Update an existing manual journal
 - `update-quote`: Update an existing draft quote
+- `update-repeating-invoice`: Update an existing repeating invoice template
 - `update-credit-note`: Update an existing draft credit note
 - `update-tracking-category`: Update an existing tracking category
 - `update-tracking-options`: Update tracking options
@@ -187,7 +190,9 @@ payroll.timesheets
 - `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
 - `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
+- `delete-repeating-invoice`: Delete an existing repeating invoice template
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
+- `get-repeating-invoice`: Retrieve a repeating invoice template by ID
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
