@@ -153,6 +153,9 @@ payroll.timesheets
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
 - `list-report-balance-sheet`: Retrieve a balance sheet report
 - `list-payroll-employee-leave`: Retrieve a Payroll Employee's leave records
+- `create-payroll-employee-leave`: Create a Payroll Employee leave request (NZ)
+- `update-payroll-employee-leave`: Update a Payroll Employee leave request (NZ)
+- `delete-payroll-employee-leave`: Delete a Payroll Employee leave request (NZ)
 - `list-payroll-employee-leave-balances`: Retrieve a Payroll Employee's leave balances
 - `list-payroll-employee-leave-types`: Retrieve a list of Payroll leave types
 - `list-payroll-leave-periods`: Retrieve a list of a Payroll Employee's leave periods

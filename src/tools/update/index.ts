@@ -9,6 +9,7 @@ import AddTimesheetLineTool from "./update-payroll-timesheet-add-line.tool.js";
 import UpdatePayrollTimesheetLineTool
   from "./update-payroll-timesheet-update-line.tool.js";
 import UpdateManualJournalTool from "./update-manual-journal-tool.js";
+import UpdatePayrollEmployeeLeaveTool from "./update-payroll-employee-leave.tool.js";
 import UpdateQuoteTool from "./update-quote.tool.js";
 import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
@@ -25,6 +26,7 @@ export const UpdateTools = [
   AddTimesheetLineTool,
   UpdatePayrollTimesheetLineTool,
   RevertPayrollTimesheetTool,
+  UpdatePayrollEmployeeLeaveTool,
   UpdateTrackingCategoryTool,
   UpdateTrackingOptionsTool
 ];
