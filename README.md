@@ -148,7 +148,7 @@ payroll.timesheets
 - `list-quotes`: Retrieve a list of quotes
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
-- `list-trial-balance`: Retrieve a trial balance report
+- `list-trial-balance`: Retrieve a trial balance report. Debit/Credit are month movement; YTD Debit/YTD Credit are as-at balances. Both pairs must balance exactly or the tool returns Integrity BLOCKED and withholds the report rows. A PASS does not approve the period close.
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
 - `list-report-balance-sheet`: Retrieve a balance sheet report

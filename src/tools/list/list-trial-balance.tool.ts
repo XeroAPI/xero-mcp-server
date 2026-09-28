@@ -1,10 +1,14 @@
 import { z } from "zod";
 import { listXeroTrialBalance } from "../../handlers/list-xero-trial-balance.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import {
+  assessTrialBalanceIntegrity,
+  formatIntegrityMessage,
+} from "../../helpers/trial-balance-integrity.js";
 
 const ListTrialBalanceTool = CreateXeroTool(
   "list-trial-balance",
-  "Lists trial balance in Xero. This provides a snapshot of the general ledger, showing debit and credit balances for each account.",
+  "Lists the Xero trial balance. Debit/Credit are the current-month movement; YTD Debit/YTD Credit are as-at balances. Both pairs must balance exactly or the tool returns Integrity BLOCKED and withholds the report rows. A PASS does not approve the period close.",
   {
     date: z.string().optional().describe("Optional date in YYYY-MM-DD format"),
     paymentsOnly: z.boolean().optional().describe("Optional flag to include only accounts with payments"),
@@ -22,10 +26,26 @@ const ListTrialBalanceTool = CreateXeroTool(
       };
     }
 
-   const trialBalanceReport = response.result;
+    const trialBalanceReport = response.result;
+    const integrity = assessTrialBalanceIntegrity(trialBalanceReport);
+
+    if (integrity.status === "BLOCKED") {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: formatIntegrityMessage(integrity),
+          },
+        ],
+      };
+    }
 
     return {
       content: [
+        {
+          type: "text" as const,
+          text: formatIntegrityMessage(integrity),
+        },
         {
           type: "text" as const,
           text: `Trial Balance Report: ${trialBalanceReport?.reportName || "Unnamed"}`,
