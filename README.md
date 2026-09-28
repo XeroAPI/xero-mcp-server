@@ -8,6 +8,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Contact management
 - Chart of Accounts management
 - Invoice creation and management
+- General ledger journal listing
 - MCP protocol compliance
 
 ## Prerequisites
@@ -59,6 +60,8 @@ Custom connections require different scopes depending on when they were created.
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+>
+> `list-journals` and `get-journal` need `accounting.journals.read` on granular-scope apps (or `accounting.transactions` on older apps). Do not add `accounting.journals.read` to the default scope list unless Xero has approved it for your app — requesting it unapproved fails token exchange with `invalid_scope`.
 
 ##### Integrating the MCP server with Claude Desktop
 
@@ -143,6 +146,8 @@ payroll.timesheets
 - `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
 - `list-manual-journals`: Retrieve a list of manual journals
+- `list-journals`: Retrieve posted general ledger journals
+- `get-journal`: Retrieve a general ledger journal by ID or number
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
 - `list-quotes`: Retrieve a list of quotes
