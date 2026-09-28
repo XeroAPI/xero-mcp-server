@@ -145,7 +145,8 @@ payroll.timesheets
 - `list-manual-journals`: Retrieve a list of manual journals
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
-- `list-quotes`: Retrieve a list of quotes
+- `list-quotes`: Retrieve a list of quotes, including line items
+- `get-quote`: Retrieve a single quote by ID or number, including line items
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
 - `list-trial-balance`: Retrieve a trial balance report

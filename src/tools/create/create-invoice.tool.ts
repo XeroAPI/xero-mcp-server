@@ -29,7 +29,8 @@ const CreateInvoiceTool = CreateXeroTool(
   "Create an invoice in Xero.\
  When an invoice is created, a deep link to the invoice in Xero is returned. \
  This deep link can be used to view the invoice in Xero directly. \
- This link should be displayed to the user.",
+ This link should be displayed to the user. \
+ When creating an invoice from a quote, first call get-quote or list-quotes, then pass each quote line item as its own invoice line. Do not collapse quote lines into a single line item.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
