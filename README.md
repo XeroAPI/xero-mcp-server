@@ -8,6 +8,7 @@ This is a Model Context Protocol (MCP) server implementation for Xero. It provid
 - Contact management
 - Chart of Accounts management
 - Invoice creation and management
+- Purchase order creation and management
 - MCP protocol compliance
 
 ## Prerequisites
@@ -146,6 +147,7 @@ payroll.timesheets
 - `list-organisation-details`: Retrieve details about an organisation
 - `list-profit-and-loss`: Retrieve a profit and loss report
 - `list-quotes`: Retrieve a list of quotes
+- `list-purchase-orders`: Retrieve a list of purchase orders
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
 - `list-trial-balance`: Retrieve a trial balance report
@@ -170,6 +172,8 @@ payroll.timesheets
 - `create-manual-journal`: Create a new manual journal
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
+- `create-purchase-order`: Create a new draft purchase order
+- `get-purchase-order`: Retrieve a purchase order by ID or number
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `create-tracking-category`: Create a new tracking category
 - `create-tracking-option`: Create a new tracking option
@@ -179,6 +183,7 @@ payroll.timesheets
 - `update-item`: Update an existing item
 - `update-manual-journal`: Update an existing manual journal
 - `update-quote`: Update an existing draft quote
+- `update-purchase-order`: Update an existing draft or submitted purchase order
 - `update-credit-note`: Update an existing draft credit note
 - `update-tracking-category`: Update an existing tracking category
 - `update-tracking-options`: Update tracking options
