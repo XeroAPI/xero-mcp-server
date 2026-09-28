@@ -59,6 +59,8 @@ Custom connections require different scopes depending on when they were created.
 > **Note:** The MCP server automatically tries V1 scopes first and falls back to V2 if needed.
 > 
 > You can override these by setting the `XERO_SCOPES` environment variable to a space-separated list of scopes.
+>
+> `list-bank-summary`, `list-budget-summary`, and `list-executive-summary` need `accounting.reports.read` on older apps, or `accounting.reports.banksummary.read` / `accounting.reports.budgetsummary.read` / `accounting.reports.executivesummary.read` on granular-scope apps. Those granular scopes are not in the default V2 list — add them via `XERO_SCOPES` (and on the Custom Connection) if you use them.
 
 ##### Integrating the MCP server with Claude Desktop
 
@@ -149,6 +151,9 @@ payroll.timesheets
 - `list-tax-rates`: Retrieve a list of tax rates
 - `list-payments`: Retrieve a list of payments
 - `list-trial-balance`: Retrieve a trial balance report
+- `list-bank-summary`: Retrieve the Bank Summary report
+- `list-budget-summary`: Retrieve the Budget Summary report
+- `list-executive-summary`: Retrieve the Executive Summary report
 - `list-bank-transactions`: Retrieve a list of bank account transactions
 - `list-payroll-employees`: Retrieve a list of Payroll Employees
 - `list-report-balance-sheet`: Retrieve a balance sheet report
