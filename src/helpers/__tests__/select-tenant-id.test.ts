@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { selectTenantId } from "../select-tenant-id.js";
+import { selectTenantId, TenantSelectionError } from "../select-tenant-id.js";
 
 const connections = [
   { tenantId: "aaaa-1111" },
@@ -12,21 +12,33 @@ describe("selectTenantId", () => {
     expect(selectTenantId(connections)).toBe("aaaa-1111");
   });
 
-  it("returns the first connection when the requested tenant is an empty string", () => {
+  it("returns the first connection when the requested tenant is blank", () => {
     expect(selectTenantId(connections, "")).toBe("aaaa-1111");
+    expect(selectTenantId(connections, "   ")).toBe("aaaa-1111");
   });
 
   it("returns the requested tenant when it is an authorised connection", () => {
     expect(selectTenantId(connections, "bbbb-2222")).toBe("bbbb-2222");
   });
 
-  it("throws when the requested tenant is not an authorised connection", () => {
+  it("ignores case and surrounding whitespace, returning Xero's spelling", () => {
+    expect(selectTenantId(connections, "  BBBB-2222\n")).toBe("bbbb-2222");
+  });
+
+  it("throws instead of falling back when the requested tenant is not authorised", () => {
     expect(() => selectTenantId(connections, "dddd-4444")).toThrowError(
-      'XERO_TENANT_ID "dddd-4444" does not match any authorised connection. Available tenant IDs: aaaa-1111, bbbb-2222, cccc-3333',
+      new TenantSelectionError(
+        'XERO_TENANT_ID "dddd-4444" does not match any organisation these credentials are authorised for. ' +
+          "Check the value against GET https://api.xero.com/connections.",
+      ),
     );
   });
 
-  it("never silently falls back to the first tenant on a mismatch", () => {
-    expect(() => selectTenantId(connections, "dddd-4444")).toThrow();
+  it("does not reveal the authorised tenant IDs in the error", () => {
+    expect(() => selectTenantId(connections, "dddd-4444")).toThrowError(
+      expect.objectContaining({
+        message: expect.not.stringMatching(/aaaa-1111|bbbb-2222|cccc-3333/),
+      }),
+    );
   });
 });

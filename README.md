@@ -153,7 +153,13 @@ By default, the MCP server uses the **first** tenant returned by Xero's connecti
 }
 ```
 
-`XERO_TENANT_ID` works with both authentication methods. If it is set but does not match any authorised connection, the server fails with an error listing the available tenant IDs — it never silently falls back to a different organisation. If it is omitted, the existing first-tenant behaviour is unchanged.
+To find the tenant IDs your token can reach, call Xero's connections endpoint with it:
+
+```bash
+curl -H "Authorization: Bearer your_bearer_token" https://api.xero.com/connections
+```
+
+`XERO_TENANT_ID` works with both authentication methods. A Custom Connection is always for a single organisation, so there it acts as a check that you're connected to the organisation you expect. The match ignores case and surrounding whitespace. If it is set but doesn't match any authorised connection, the server fails with an error, and never silently falls back to a different organisation. The error doesn't list the organisations the credentials can reach. If it is omitted, the existing first-tenant behaviour is unchanged.
 
 ### Available MCP Commands
 

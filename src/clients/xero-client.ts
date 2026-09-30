@@ -8,7 +8,10 @@ import {
 } from "xero-node";
 
 import { ensureError } from "../helpers/ensure-error.js";
-import { selectTenantId } from "../helpers/select-tenant-id.js";
+import {
+  selectTenantId,
+  TenantSelectionError,
+} from "../helpers/select-tenant-id.js";
 
 dotenv.config();
 
@@ -118,6 +121,10 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 
   private formatTokenError(error: unknown, context: string): Error {
+    // A wrong XERO_TENANT_ID is a configuration error, not a token failure.
+    if (error instanceof TenantSelectionError) {
+      return error;
+    }
     const axiosError = error as AxiosError;
     const data = axiosError.response?.data;
     const message =
