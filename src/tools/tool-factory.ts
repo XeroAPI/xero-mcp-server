@@ -1,5 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+import { withOneTextBlock } from "../helpers/join-text-content.js";
+
 import { CreateTools } from "./create/index.js";
 import { DeleteTools } from "./delete/index.js";
 import { GetTools } from "./get/index.js";
@@ -9,18 +11,18 @@ import { UpdateTools } from "./update/index.js";
 export function ToolFactory(server: McpServer) {
 
   DeleteTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
+    server.tool(tool.name, tool.description, tool.schema, withOneTextBlock(tool.handler)),
   );
   GetTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
+    server.tool(tool.name, tool.description, tool.schema, withOneTextBlock(tool.handler)),
   );
   CreateTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
+    server.tool(tool.name, tool.description, tool.schema, withOneTextBlock(tool.handler)),
   );
   ListTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
+    server.tool(tool.name, tool.description, tool.schema, withOneTextBlock(tool.handler)),
   );
   UpdateTools.map((tool) => tool()).forEach((tool) =>
-    server.tool(tool.name, tool.description, tool.schema, tool.handler),
+    server.tool(tool.name, tool.description, tool.schema, withOneTextBlock(tool.handler)),
   );
 }
