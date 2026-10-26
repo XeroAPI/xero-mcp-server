@@ -1,5 +1,4 @@
 import { listXeroOrganisationDetails } from "../../handlers/list-xero-organisation-details.handler.js";
-import { getExternalLink } from "../../helpers/get-external-link.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ListOrganisationDetailsTool = CreateXeroTool(
@@ -32,7 +31,7 @@ const ListOrganisationDetailsTool = CreateXeroTool(
       };
     }
 
-    const resolvedExternalLinks = organisation.externalLinks?.map((link, index) => `${index + 1}. ${link.linkType}: ${link.url ? getExternalLink(link.url) : link.url}`) || []
+    const resolvedExternalLinks = organisation.externalLinks?.map((link, index) => `${index + 1}. ${link.linkType}: ${link.url}`) || []
 
     const addresses = organisation.addresses?.map((address, index) => {
       return `Address ${index + 1} (${address.addressType || ""}): ${[
