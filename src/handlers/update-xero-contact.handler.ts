@@ -1,17 +1,18 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Contact, Phone, Address, Contacts } from "xero-node";
+import { Contact, CurrencyCode, Phone, Address, Contacts } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function updateContact(
-  name: string,
+  name: string | undefined,
   firstName: string | undefined,
   lastName: string | undefined,
   email: string | undefined,
   phone: string | undefined,
   address: Address | undefined,
   contactId: string,
+  defaultCurrency: string | undefined,
 ): Promise<Contact | undefined> {
   await xeroClient.authenticate();
 
@@ -41,6 +42,9 @@ async function updateContact(
           },
         ]
       : undefined,
+    defaultCurrency: defaultCurrency
+      ? CurrencyCode[defaultCurrency as keyof typeof CurrencyCode]
+      : undefined,
   };
 
   const contacts: Contacts = {
@@ -64,14 +68,18 @@ async function updateContact(
  */
 export async function updateXeroContact(
   contactId: string,
-  name: string,
+  name?: string,
   firstName?: string,
   lastName?: string,
   email?: string,
   phone?: string,
   address?: Address,
+  defaultCurrency?: string,
 ): Promise<XeroClientResponse<Contact>> {
   try {
+    if (defaultCurrency && !(defaultCurrency in CurrencyCode)) {
+      throw new Error(`Unknown currency code: ${defaultCurrency}`);
+    }
     const updatedContact = await updateContact(
       name,
       firstName,
@@ -80,6 +88,7 @@ export async function updateXeroContact(
       phone,
       address,
       contactId,
+      defaultCurrency,
     );
 
     if (!updatedContact) {

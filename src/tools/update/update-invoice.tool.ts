@@ -44,6 +44,9 @@ const UpdateInvoiceTool = CreateXeroTool(
     date: z.string().optional().describe("The date of the invoice."),
     contactId: z.string().optional().describe("The ID of the contact to update the invoice for. \
       Can be obtained from the list-contacts tool."),
+    currencyCode: z.string().length(3).optional().describe("ISO 4217 currency code, e.g. USD."),
+    lineAmountTypes: z.enum(["Exclusive", "Inclusive", "NoTax"]).optional().describe("Whether line amounts \
+      exclude tax, include tax, or carry no tax."),
   },
   async (
     {
@@ -53,6 +56,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      currencyCode,
+      lineAmountTypes,
     }: {
       invoiceId: string;
       lineItems?: Array<{
@@ -66,6 +71,8 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate?: string;
       date?: string;
       contactId?: string;
+      currencyCode?: string;
+      lineAmountTypes?: "Exclusive" | "Inclusive" | "NoTax";
     },
     //_extra: { signal: AbortSignal },
   ) => {
@@ -76,6 +83,7 @@ const UpdateInvoiceTool = CreateXeroTool(
       dueDate,
       date,
       contactId,
+      { currencyCode, lineAmountTypes },
     );
     if (result.isError) {
       return {
@@ -106,6 +114,8 @@ const UpdateInvoiceTool = CreateXeroTool(
             `ID: ${invoice?.invoiceID}`,
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
+            `Currency: ${invoice?.currencyCode}`,
+            `Line Amount Types: ${invoice?.lineAmountTypes}`,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

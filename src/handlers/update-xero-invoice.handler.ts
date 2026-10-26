@@ -1,7 +1,8 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Invoice, LineItemTracking } from "xero-node";
+import { CurrencyCode, Invoice, LineAmountTypes, LineItemTracking } from "xero-node";
+import type { InvoiceOptions } from "./create-xero-invoice.handler.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
@@ -35,6 +36,7 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  options: Omit<InvoiceOptions, "dueDate"> = {},
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -42,6 +44,12 @@ async function updateInvoice(
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    currencyCode: options.currencyCode
+      ? CurrencyCode[options.currencyCode as keyof typeof CurrencyCode]
+      : undefined,
+    lineAmountTypes: options.lineAmountTypes
+      ? LineAmountTypes[options.lineAmountTypes]
+      : undefined,
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -68,8 +76,12 @@ export async function updateXeroInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  options: Omit<InvoiceOptions, "dueDate"> = {},
 ): Promise<XeroClientResponse<Invoice>> {
   try {
+    if (options.currencyCode && !(options.currencyCode in CurrencyCode)) {
+      throw new Error(`Unknown currency code: ${options.currencyCode}`);
+    }
     const existingInvoice = await getInvoice(invoiceId);
 
     const invoiceStatus = existingInvoice?.status;
@@ -90,6 +102,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      options,
     );
 
     if (!updatedInvoice) {

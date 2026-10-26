@@ -41,10 +41,19 @@ const CreateInvoiceTool = CreateXeroTool(
       If the type is not specified, the default is ACCREC."),
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
+    dueDate: z.string().describe("The due date (YYYY-MM-DD format). Defaults to 30 days after the invoice date.").optional(),
+    currencyCode: z.string().length(3).describe("ISO 4217 currency code, e.g. USD. \
+      Defaults to the contact's default currency, or the organisation's base currency.").optional(),
+    lineAmountTypes: z.enum(["Exclusive", "Inclusive", "NoTax"]).describe("Whether line amounts \
+      exclude tax, include tax, or carry no tax. Defaults to Exclusive.").optional(),
   },
-  async ({ contactId, lineItems, type, reference, date }) => {
+  async ({ contactId, lineItems, type, reference, date, dueDate, currencyCode, lineAmountTypes }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date);
+    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date, {
+      currencyCode,
+      lineAmountTypes,
+      dueDate,
+    });
     if (result.isError) {
       return {
         content: [
@@ -75,6 +84,9 @@ const CreateInvoiceTool = CreateXeroTool(
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
             `Date: ${invoice?.date}`,
+            `Due Date: ${invoice?.dueDate}`,
+            `Currency: ${invoice?.currencyCode}`,
+            `Line Amount Types: ${invoice?.lineAmountTypes}`,
             `Total: ${invoice?.total}`,
             `Status: ${invoice?.status}`,
             deepLink ? `Link to view: ${deepLink}` : null,

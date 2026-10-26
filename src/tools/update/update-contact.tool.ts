@@ -12,7 +12,7 @@ const UpdateContactTool = CreateXeroTool(
  This link should be displayed to the user.",
   {
     contactId: z.string(),
-    name: z.string(),
+    name: z.string().optional().describe("Leave out to keep the current name."),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     email: z.string().email().optional(),
@@ -27,6 +27,8 @@ const UpdateContactTool = CreateXeroTool(
         country: z.string().optional(),
       })
       .optional(),
+    defaultCurrency: z.string().length(3).optional().describe("ISO 4217 currency code used for new \
+      invoices and bills for this contact, e.g. USD."),
   },
   async ({
     contactId,
@@ -36,9 +38,10 @@ const UpdateContactTool = CreateXeroTool(
     email,
     phone,
     address,
+    defaultCurrency,
   }: {
     contactId: string;
-    name: string;
+    name?: string;
     email?: string;
     phone?: string;
     address?: {
@@ -51,6 +54,7 @@ const UpdateContactTool = CreateXeroTool(
     };
     firstName?: string;
     lastName?: string;
+    defaultCurrency?: string;
   }) => {
     try {
       const response = await updateXeroContact(
@@ -61,6 +65,7 @@ const UpdateContactTool = CreateXeroTool(
         email,
         phone,
         address,
+        defaultCurrency,
       );
       if (response.isError) {
         return {
@@ -85,6 +90,7 @@ const UpdateContactTool = CreateXeroTool(
             type: "text" as const,
             text: [
               `Contact updated: ${contact.name} (ID: ${contact.contactID})`,
+              contact.defaultCurrency ? `Default currency: ${contact.defaultCurrency}` : null,
               deepLink ? `Link to view: ${deepLink}` : null,
             ]
               .filter(Boolean)
