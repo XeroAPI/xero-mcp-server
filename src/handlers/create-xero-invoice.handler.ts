@@ -47,6 +47,7 @@ async function createInvoice(
     true, //summarizeErrors
     undefined, //unitdp
     undefined, //idempotencyKey
+    undefined, //allowBackorders
     getClientHeaders(),
   );
   const createdInvoice = response.body.invoices?.[0];
