@@ -57,7 +57,7 @@ const ListBankTransactionsTool = CreateXeroTool(
             transaction.hasAttachments !== undefined
               ? (transaction.hasAttachments ? "Has attachments" : "Does not have attachments")
               : null,
-            `Line Items: ${transaction.lineItems?.map(formatLineItem)}`,
+            `Line Items:\n${transaction.lineItems?.map(formatLineItem).join("\n\n")}`,
           ].filter(Boolean).join("\n")
         })) || [])
       ]
