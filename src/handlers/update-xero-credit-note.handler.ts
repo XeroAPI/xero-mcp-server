@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { CreditNote } from "xero-node";
@@ -13,11 +14,9 @@ interface CreditNoteLineItem {
 }
 
 async function getCreditNote(creditNoteId: string): Promise<CreditNote | null> {
-  await xeroClient.authenticate();
-
   // First, get the current credit note to check its status
   const response = await xeroClient.accountingApi.getCreditNote(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     creditNoteId, // creditNoteId
     undefined, // unitdp
     getClientHeaders(), // options
@@ -41,7 +40,7 @@ async function updateCreditNote(
   };
 
   const response = await xeroClient.accountingApi.updateCreditNote(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     creditNoteId, // creditNoteId
     {
       creditNotes: [creditNote],

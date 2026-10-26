@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Item } from "xero-node";
@@ -7,10 +8,8 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 async function getItems(
   page: number,
 ): Promise<Item[]> {
-  await xeroClient.authenticate();
-
   const items = await xeroClient.accountingApi.getItems(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order

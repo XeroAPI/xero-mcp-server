@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice, LineItemTracking } from "xero-node";
@@ -15,11 +16,9 @@ interface InvoiceLineItem {
 }
 
 async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
-  await xeroClient.authenticate();
-
   // First, get the current invoice to check its status
   const response = await xeroClient.accountingApi.getInvoice(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     invoiceId, // invoiceId
     undefined, // unitdp
     getClientHeaders(), // options
@@ -45,7 +44,7 @@ async function updateInvoice(
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     invoiceId, // invoiceId
     {
       invoices: [invoice],

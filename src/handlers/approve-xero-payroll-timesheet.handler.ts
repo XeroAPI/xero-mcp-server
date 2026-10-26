@@ -1,15 +1,14 @@
 import { Timesheet } from "xero-node/dist/gen/model/payroll-nz/timesheet.js";
 
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { formatError } from "../helpers/format-error.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 
 async function approveTimesheet(timesheetID: string): Promise<Timesheet | null> {
-  await xeroClient.authenticate();
-
   // Call the approveTimesheet endpoint from the PayrollNZApi
   const approvedTimesheet = await xeroClient.payrollNZApi.approveTimesheet(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     timesheetID,
   );
 

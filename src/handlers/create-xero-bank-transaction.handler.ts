@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { BankTransaction } from "xero-node";
 import { formatError } from "../helpers/format-error.js";
@@ -22,8 +23,6 @@ async function createBankTransaction(
   reference?: string,
   date?: string
 ): Promise<BankTransaction | undefined> {
-  await xeroClient.authenticate();
-
   const bankTransaction: BankTransaction = {
     type: BankTransaction.TypeEnum[type],
     bankAccount: {
@@ -39,7 +38,7 @@ async function createBankTransaction(
   };
 
   const response = await xeroClient.accountingApi.createBankTransactions(
-    xeroClient.tenantId, // xeroTenantId
+    xeroApiTenantId(), // xeroTenantId
     {
       bankTransactions: [bankTransaction]
     }, // bankTransactions
