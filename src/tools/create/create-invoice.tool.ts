@@ -22,6 +22,20 @@ const lineItemSchema = z.object({
   tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
     Can be obtained from the list-tracking-categories tool. \
     Only use if prompted by the user.").optional(),
+  discountRate: z.number().min(0).max(100).describe(
+    "Percentage discount for an ACCREC invoice line. Do not use with discountAmount.",
+  ).optional(),
+  discountAmount: z.number().nonnegative().describe(
+    "Fixed discount for an ACCREC invoice line. Do not use with discountRate.",
+  ).optional(),
+}).superRefine((lineItem, context) => {
+  if (lineItem.discountRate !== undefined && lineItem.discountAmount !== undefined) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Provide either discountRate or discountAmount, not both.",
+      path: ["discountAmount"],
+    });
+  }
 });
 
 const CreateInvoiceTool = CreateXeroTool(

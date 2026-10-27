@@ -12,6 +12,8 @@ interface InvoiceLineItem {
   taxType: string;
   itemCode?: string;
   tracking?: LineItemTracking[];
+  discountRate?: number;
+  discountAmount?: number;
 }
 
 async function createInvoice(
