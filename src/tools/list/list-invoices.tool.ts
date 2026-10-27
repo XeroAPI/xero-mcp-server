@@ -50,6 +50,7 @@ const ListInvoicesTool = CreateXeroTool(
             invoice.reference ? `Reference: ${invoice.reference}` : null,
             `Type: ${invoice.type || "Unknown"}`,
             `Status: ${invoice.status || "Unknown"}`,
+            `Sent to Contact: ${invoice.sentToContact ?? "Unknown"}`,
             invoice.contact
               ? `Contact: ${invoice.contact.name} (${invoice.contact.contactID})`
               : null,
