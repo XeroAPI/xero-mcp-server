@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.23.4",
+    "axios": "1.15.0",
     "dotenv": "^16.4.7",
     "openid-client": "^6.8.1",
     "xero-node": "^20.0.0",
