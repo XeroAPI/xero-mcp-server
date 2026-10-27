@@ -3,18 +3,21 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import { formatDocumentDateFilter } from "../helpers/format-document-date-filter.js";
 
 async function getInvoices(
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
   page: number,
+  fromDate?: string,
+  toDate?: string,
 ): Promise<Invoice[]> {
   await xeroClient.authenticate();
 
   const invoices = await xeroClient.accountingApi.getInvoices(
     xeroClient.tenantId,
     undefined, // ifModifiedSince
-    undefined, // where
+    formatDocumentDateFilter(fromDate, toDate), // where
     "UpdatedDateUTC DESC", // order
     undefined, // iDs
     invoiceNumbers, // invoiceNumbers
@@ -39,9 +42,17 @@ export async function listXeroInvoices(
   page: number = 1,
   contactIds?: string[],
   invoiceNumbers?: string[],
+  fromDate?: string,
+  toDate?: string,
 ): Promise<XeroClientResponse<Invoice[]>> {
   try {
-    const invoices = await getInvoices(invoiceNumbers, contactIds, page);
+    const invoices = await getInvoices(
+      invoiceNumbers,
+      contactIds,
+      page,
+      fromDate,
+      toDate,
+    );
 
     return {
       result: invoices,
