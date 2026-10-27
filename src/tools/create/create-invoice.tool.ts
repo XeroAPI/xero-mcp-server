@@ -72,6 +72,7 @@ const CreateInvoiceTool = CreateXeroTool(
           text: [
             "Invoice created successfully:",
             `ID: ${invoice?.invoiceID}`,
+            `Invoice Number: ${invoice?.invoiceNumber}`,
             `Contact: ${invoice?.contact?.name}`,
             `Type: ${invoice?.type}`,
             `Date: ${invoice?.date}`,
