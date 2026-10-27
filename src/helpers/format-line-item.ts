@@ -2,6 +2,7 @@ import { LineItem } from "xero-node";
 
 export const formatLineItem = (lineItem: LineItem): string => {
   return [
+    `Line Item ID: ${lineItem.lineItemID}`,
     `Item ID: ${lineItem.item}`,
     `Item Code: ${lineItem.itemCode}`,
     `Description: ${lineItem.description}`,

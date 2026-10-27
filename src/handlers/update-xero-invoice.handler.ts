@@ -1,18 +1,14 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Invoice, LineItemTracking } from "xero-node";
+import { Invoice } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
+import {
+  InvoiceLineItemUpdate,
+  mergeInvoiceLineItems,
+} from "../helpers/merge-invoice-line-items.js";
 
-interface InvoiceLineItem {
-  description: string;
-  quantity: number;
-  unitAmount: number;
-  accountCode: string;
-  taxType: string;
-  itemCode?: string;
-  tracking?: LineItemTracking[];
-}
+type InvoiceLineItem = InvoiceLineItemUpdate;
 
 async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
@@ -73,7 +69,11 @@ export async function updateXeroInvoice(
   try {
     const existingInvoice = await getInvoice(invoiceId);
 
-    const invoiceStatus = existingInvoice?.status;
+    if (!existingInvoice) {
+      throw new Error("Could not find invoice.");
+    }
+
+    const invoiceStatus = existingInvoice.status;
 
     // Only allow updates to DRAFT invoices
     if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {
@@ -84,9 +84,14 @@ export async function updateXeroInvoice(
       };
     }
 
+    const safeLineItems = mergeInvoiceLineItems(
+      existingInvoice.lineItems,
+      lineItems,
+    );
+
     const updatedInvoice = await updateInvoice(
       invoiceId,
-      lineItems,
+      safeLineItems,
       reference,
       dueDate,
       date,
