@@ -14,10 +14,41 @@ dotenv.config();
 const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
+const pinned_tenant_id = process.env.XERO_TENANT_ID;
 const grant_type = "client_credentials";
 
 if (!bearer_token && (!client_id || !client_secret)) {
   throw Error("Environment Variables not set - please check your .env file");
+}
+
+interface TenantRef {
+  tenantId: string;
+  tenantName?: string;
+}
+
+/**
+ * Pick the tenant all tools will operate on. When XERO_TENANT_ID is set the
+ * server pins to that tenant so apps connected to multiple organisations work;
+ * otherwise the first connected tenant is used (previous behaviour).
+ */
+export function selectTenantId(
+  tenants: TenantRef[],
+  pinnedTenantId?: string,
+): string {
+  if (pinnedTenantId) {
+    const match = tenants.find((tenant) => tenant.tenantId === pinnedTenantId);
+    if (!match) {
+      throw new Error(
+        `XERO_TENANT_ID ${pinnedTenantId} is not connected to this app. Connected tenants: ${
+          tenants
+            .map((tenant) => `${tenant.tenantName ?? "unknown"} (${tenant.tenantId})`)
+            .join(", ") || "none"
+        }`,
+      );
+    }
+    return match.tenantId;
+  }
+  return tenants[0].tenantId;
 }
 
 abstract class MCPXeroClient extends XeroClient {
@@ -36,7 +67,7 @@ abstract class MCPXeroClient extends XeroClient {
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
     if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = this.tenants[0].tenantId;
+      this.tenantId = selectTenantId(this.tenants, pinned_tenant_id);
     }
     return this.tenants;
   }
@@ -186,7 +217,10 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
     );
 
     if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = connectionsResponse.data[0].tenantId;
+      this.tenantId = selectTenantId(
+        connectionsResponse.data,
+        pinned_tenant_id,
+      );
     }
 
     return response.data;

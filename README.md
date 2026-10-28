@@ -105,6 +105,27 @@ In this case, use the following configuration:
 
 NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_ID` if defined.
 
+##### Selecting the organisation (`XERO_TENANT_ID`)
+
+By default the server operates on the first tenant returned by the `/connections` endpoint. If your app is connected to multiple organisations, set `XERO_TENANT_ID` to pin the server to one of them:
+
+```json
+{
+  "mcpServers": {
+    "xero": {
+      "command": "npx",
+      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "env": {
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "XERO_TENANT_ID": "the_tenant_id_from_the_connections_endpoint"
+      }
+    }
+  }
+}
+```
+
+Run one server instance per organisation, each with its own auth and `XERO_TENANT_ID`. If the pinned tenant is not connected to the app, the server fails at startup with the list of connected tenants.
+
 ##### Required Scopes for Bearer Token
 
 When obtaining a bearer token, you must request the appropriate scopes. The scopes you request should be:
