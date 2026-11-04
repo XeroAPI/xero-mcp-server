@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroPayments } from "../../handlers/list-xero-payments.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { Payment } from "xero-node";
+import { formatPaymentAccount } from "../../helpers/format-payment-account.js";
 
 function paymentFormatter(payment: Payment): string {
   return [
@@ -12,9 +13,7 @@ function paymentFormatter(payment: Payment): string {
     payment.status ? `Status: ${payment.status}` : null,
     payment.paymentType ? `Payment Type: ${payment.paymentType}` : null,
     payment.updatedDateUTC ? `Last Updated: ${payment.updatedDateUTC}` : null,
-    payment.account?.name
-      ? `Account: ${payment.account.name} (${payment.account.accountID || "Unknown ID"})`
-      : null,
+    formatPaymentAccount(payment.account),
     payment.invoice
       ? [
           `Invoice:`,
