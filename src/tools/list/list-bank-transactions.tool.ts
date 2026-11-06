@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { listXeroBankTransactions } from "../../handlers/list-xero-bank-transactions.handler.js";
-import { formatLineItem } from "../../helpers/format-line-item.js";
+import { formatLineItems } from "../../helpers/format-line-item.js";
 
 const ListBankTransactionsTool = CreateXeroTool(
   "list-bank-transactions",
@@ -57,7 +57,7 @@ const ListBankTransactionsTool = CreateXeroTool(
             transaction.hasAttachments !== undefined
               ? (transaction.hasAttachments ? "Has attachments" : "Does not have attachments")
               : null,
-            `Line Items:\n${transaction.lineItems?.map(formatLineItem).join("\n\n")}`,
+            formatLineItems(transaction.lineItems),
           ].filter(Boolean).join("\n")
         })) || [])
       ]
