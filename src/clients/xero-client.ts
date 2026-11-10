@@ -39,8 +39,12 @@ abstract class MCPXeroClient extends XeroClient {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override async updateTenants(fullOrgDetails?: boolean): Promise<any[]> {
     await super.updateTenants(fullOrgDetails);
-    if (this.tenants && this.tenants.length > 0) {
-      this.tenantId = selectTenantId(this.tenants, process.env.XERO_TENANT_ID);
+    const tenantId = selectTenantId(
+      this.tenants ?? [],
+      process.env.XERO_TENANT_ID,
+    );
+    if (tenantId) {
+      this.tenantId = tenantId;
     }
     return this.tenants;
   }
@@ -193,11 +197,12 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
       },
     );
 
-    if (connectionsResponse.data && connectionsResponse.data.length > 0) {
-      this.tenantId = selectTenantId(
-        connectionsResponse.data,
-        process.env.XERO_TENANT_ID,
-      );
+    const tenantId = selectTenantId(
+      Array.isArray(connectionsResponse.data) ? connectionsResponse.data : [],
+      process.env.XERO_TENANT_ID,
+    );
+    if (tenantId) {
+      this.tenantId = tenantId;
     }
 
     return response.data;

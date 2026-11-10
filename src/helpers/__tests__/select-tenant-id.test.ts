@@ -28,8 +28,30 @@ describe("selectTenantId", () => {
   it("throws instead of falling back when the requested tenant is not authorised", () => {
     expect(() => selectTenantId(connections, "dddd-4444")).toThrowError(
       new TenantSelectionError(
-        'XERO_TENANT_ID "dddd-4444" does not match any organisation these credentials are authorised for. ' +
+        'XERO_TENANT_ID "dddd-4444" does not match any of the 3 organisations these credentials are authorised for. ' +
           "Check the value against GET https://api.xero.com/connections.",
+      ),
+    );
+  });
+
+  it("says so when the credentials reach exactly one organisation", () => {
+    expect(() =>
+      selectTenantId([{ tenantId: "aaaa-1111" }], "dddd-4444"),
+    ).toThrowError(
+      /does not match the one organisation these credentials are authorised for/,
+    );
+  });
+
+  it("returns undefined when nothing is connected and no tenant is requested", () => {
+    expect(selectTenantId([])).toBeUndefined();
+    expect(selectTenantId([], "  ")).toBeUndefined();
+  });
+
+  it("throws when a tenant is requested but nothing is connected", () => {
+    expect(() => selectTenantId([], "dddd-4444")).toThrowError(
+      new TenantSelectionError(
+        'XERO_TENANT_ID "dddd-4444" is set, but these credentials aren\'t authorised for any organisation. ' +
+          "Check the connections with GET https://api.xero.com/connections.",
       ),
     );
   });

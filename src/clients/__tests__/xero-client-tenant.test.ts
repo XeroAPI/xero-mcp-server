@@ -26,17 +26,21 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+// Stands in for xero-node's GET /connections (`tenants` is a getter over `_tenants`).
+function stubConnections(tenantIds: string[]) {
+  vi.spyOn(XeroClient.prototype, "updateTenants").mockImplementation(
+    async function (this: XeroClient) {
+      Object.assign(this, {
+        _tenants: tenantIds.map((tenantId) => ({ tenantId })),
+      });
+      return this.tenants;
+    },
+  );
+}
+
 describe("bearer token: XERO_TENANT_ID", () => {
   beforeEach(() => {
-    // Stands in for xero-node's GET /connections (`tenants` is a getter over `_tenants`).
-    vi.spyOn(XeroClient.prototype, "updateTenants").mockImplementation(
-      async function (this: XeroClient) {
-        Object.assign(this, {
-          _tenants: [{ tenantId: ORG_A }, { tenantId: ORG_B }],
-        });
-        return this.tenants;
-      },
-    );
+    stubConnections([ORG_A, ORG_B]);
   });
 
   it("targets the configured organisation, not the first", async () => {
@@ -60,8 +64,26 @@ describe("bearer token: XERO_TENANT_ID", () => {
       XERO_TENANT_ID: "not-a-tenant",
     });
     await expect(client.authenticate()).rejects.toThrow(
-      /XERO_TENANT_ID "not-a-tenant" does not match/,
+      /XERO_TENANT_ID "not-a-tenant" does not match any of the 2 organisations/,
     );
+  });
+
+  it("fails when it is set but no organisation is connected", async () => {
+    stubConnections([]);
+    const client = await loadClient({
+      XERO_CLIENT_BEARER_TOKEN: "token",
+      XERO_TENANT_ID: ORG_A,
+    });
+    await expect(client.authenticate()).rejects.toThrow(
+      /aren't authorised for any organisation/,
+    );
+  });
+
+  it("is unchanged when unset and no organisation is connected", async () => {
+    stubConnections([]);
+    const client = await loadClient({ XERO_CLIENT_BEARER_TOKEN: "token" });
+    await client.authenticate();
+    expect(client.tenantId).toBe("");
   });
 });
 
@@ -92,5 +114,13 @@ describe("custom connection: XERO_TENANT_ID", () => {
       /^XERO_TENANT_ID ".+" does not match/,
     );
     expect((error as Error).message).not.toContain(ORG_A);
+  });
+
+  it("reports no connected organisation as a configuration error too", async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [] });
+    const client = await loadClient({ ...credentials, XERO_TENANT_ID: ORG_A });
+    await expect(client.authenticate()).rejects.toThrow(
+      /^XERO_TENANT_ID ".+" is set, but these credentials aren't authorised for any organisation/,
+    );
   });
 });
