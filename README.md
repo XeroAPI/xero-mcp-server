@@ -159,7 +159,34 @@ To find the tenant IDs your token can reach, call Xero's connections endpoint wi
 curl -H "Authorization: Bearer your_bearer_token" https://api.xero.com/connections
 ```
 
-`XERO_TENANT_ID` works with both authentication methods. A Custom Connection is always for a single organisation, so there it acts as a check that you're connected to the organisation you expect. The match ignores case and surrounding whitespace. If it is set but doesn't match any authorised connection, the server fails with an error, and never silently falls back to a different organisation. The error doesn't list the organisations the credentials can reach. If it is omitted, the existing first-tenant behaviour is unchanged.
+`XERO_TENANT_ID` works with both authentication methods. A Custom Connection is always for a single organisation, so there it acts as a check that you're connected to the organisation you expect. The match ignores case and surrounding whitespace. If it is set but doesn't match any authorised connection, or nothing is connected at all, the server fails with an error, and never silently falls back to a different organisation. The error says how many organisations the credentials can reach, but doesn't list them. If it is omitted, the existing first-tenant behaviour is unchanged.
+
+To work with several organisations at once, run one server instance per organisation, each with its own `XERO_TENANT_ID`:
+
+```json
+{
+  "mcpServers": {
+    "xero-uk": {
+      "command": "npx",
+      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "env": {
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "XERO_TENANT_ID": "uk_tenant_id"
+      }
+    },
+    "xero-us": {
+      "command": "npx",
+      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "env": {
+        "XERO_CLIENT_BEARER_TOKEN": "your_bearer_token",
+        "XERO_TENANT_ID": "us_tenant_id"
+      }
+    }
+  }
+}
+```
+
+With a bearer token, the instances can share one token, as long as it is authorised for each organisation. A Custom Connection covers a single organisation, so there each instance needs its own `XERO_CLIENT_ID` and `XERO_CLIENT_SECRET`.
 
 ### Available MCP Commands
 
