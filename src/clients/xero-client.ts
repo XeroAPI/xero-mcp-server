@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import axios, { AxiosError } from "axios";
 import dotenv from "dotenv";
 import {
@@ -16,8 +18,10 @@ const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = process.env.XERO_CLIENT_BEARER_TOKEN;
 const grant_type = "client_credentials";
 
-if (!bearer_token && (!client_id || !client_secret)) {
-  throw Error("Environment Variables not set - please check your .env file");
+export function assertEnvCredentials(): void {
+  if (!bearer_token && (!client_id || !client_secret)) {
+    throw Error("Environment Variables not set - please check your .env file");
+  }
 }
 
 abstract class MCPXeroClient extends XeroClient {
@@ -220,29 +224,75 @@ class CustomConnectionsXeroClient extends MCPXeroClient {
   }
 }
 
-class BearerTokenXeroClient extends MCPXeroClient {
+export class BearerTokenXeroClient extends MCPXeroClient {
   private readonly bearerToken: string;
+  private readonly requestedTenantId?: string;
+  private readonly perRequest: boolean;
+  private authenticated = false;
 
-  constructor(config: { bearerToken: string }) {
+  /**
+   * @param config.tenantId Optional Xero tenant to use; defaults to the first connection the token can see.
+   * @param config.perRequest True for a client that lives for one HTTP request: it looks up tenants only once.
+   */
+  constructor(config: { bearerToken: string; tenantId?: string; perRequest?: boolean }) {
     super();
     this.bearerToken = config.bearerToken;
+    this.requestedTenantId = config.tenantId;
+    this.perRequest = config.perRequest ?? false;
   }
 
   async authenticate(): Promise<void> {
+    if (this.perRequest && this.authenticated) return;
+
     this.setTokenSet({
       access_token: this.bearerToken,
     });
 
     await this.updateTenants();
+    if (this.requestedTenantId) {
+      if (!this.tenants?.some((t) => t.tenantId === this.requestedTenantId)) {
+        throw new Error(`Xero tenant ${this.requestedTenantId} is not connected to this token`);
+      }
+      this.tenantId = this.requestedTenantId;
+    }
+    this.authenticated = true;
   }
 }
 
-export const xeroClient = bearer_token
-  ? new BearerTokenXeroClient({
-      bearerToken: bearer_token,
-    })
-  : new CustomConnectionsXeroClient({
-      clientId: client_id!,
-      clientSecret: client_secret!,
-      grantType: grant_type,
-    });
+let defaultClient: MCPXeroClient | undefined;
+
+/** The client configured from environment variables (stdio mode), created on first use. */
+function getDefaultClient(): MCPXeroClient {
+  if (!defaultClient) {
+    assertEnvCredentials();
+    defaultClient = bearer_token
+      ? new BearerTokenXeroClient({
+          bearerToken: bearer_token,
+        })
+      : new CustomConnectionsXeroClient({
+          clientId: client_id!,
+          clientSecret: client_secret!,
+          grantType: grant_type,
+        });
+  }
+  return defaultClient;
+}
+
+/** Holds the per-request client in HTTP mode, where each request brings its own Xero access token. */
+export const requestXeroClient = new AsyncLocalStorage<MCPXeroClient>();
+
+/**
+ * The Xero client handlers use. Inside an HTTP request it is that request's client; otherwise (stdio) it is
+ * the environment-configured client, so handlers need no changes.
+ */
+export const xeroClient: MCPXeroClient = new Proxy({} as MCPXeroClient, {
+  get(_target, prop) {
+    const client = requestXeroClient.getStore() ?? getDefaultClient();
+    const value = Reflect.get(client, prop, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+  set(_target, prop, value) {
+    const client = requestXeroClient.getStore() ?? getDefaultClient();
+    return Reflect.set(client, prop, value, client);
+  },
+});

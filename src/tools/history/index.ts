@@ -5,8 +5,9 @@ import {
   addEntityNote,
   HistoryEntityConfig,
 } from "../../handlers/history-handler-factory.js";
-import { xeroClient } from "../../clients/xero-client.js";
-import { HistoryRecord } from "xero-node";
+// Prototype methods, not xeroClient.accountingApi: reading the client at import time would bind to the
+// environment client before any request exists. The factory calls them with the current client as `this`.
+import { AccountingApi, HistoryRecord } from "xero-node";
 
 interface HistoryEntityDefinition {
   entity: string;
@@ -21,8 +22,8 @@ const HISTORY_ENTITIES: HistoryEntityDefinition[] = [
     idParam: "invoiceID",
     idDescription: "The Xero invoice ID.",
     config: {
-      getMethod: xeroClient.accountingApi.getInvoiceHistory,
-      createMethod: xeroClient.accountingApi.createInvoiceHistory,
+      getMethod: AccountingApi.prototype.getInvoiceHistory,
+      createMethod: AccountingApi.prototype.createInvoiceHistory,
     },
   },
   {
@@ -30,8 +31,8 @@ const HISTORY_ENTITIES: HistoryEntityDefinition[] = [
     idParam: "contactID",
     idDescription: "The Xero contact ID.",
     config: {
-      getMethod: xeroClient.accountingApi.getContactHistory,
-      createMethod: xeroClient.accountingApi.createContactHistory,
+      getMethod: AccountingApi.prototype.getContactHistory,
+      createMethod: AccountingApi.prototype.createContactHistory,
     },
   },
   {
@@ -39,8 +40,8 @@ const HISTORY_ENTITIES: HistoryEntityDefinition[] = [
     idParam: "creditNoteID",
     idDescription: "The Xero credit note ID.",
     config: {
-      getMethod: xeroClient.accountingApi.getCreditNoteHistory,
-      createMethod: xeroClient.accountingApi.createCreditNoteHistory,
+      getMethod: AccountingApi.prototype.getCreditNoteHistory,
+      createMethod: AccountingApi.prototype.createCreditNoteHistory,
     },
   },
   {
@@ -48,9 +49,9 @@ const HISTORY_ENTITIES: HistoryEntityDefinition[] = [
     idParam: "bankTransactionID",
     idDescription: "The Xero bank transaction ID.",
     config: {
-      getMethod: xeroClient.accountingApi.getBankTransactionsHistory,
+      getMethod: AccountingApi.prototype.getBankTransactionsHistory,
       createMethod:
-        xeroClient.accountingApi.createBankTransactionHistoryRecord,
+        AccountingApi.prototype.createBankTransactionHistoryRecord,
     },
   },
   {
@@ -58,8 +59,8 @@ const HISTORY_ENTITIES: HistoryEntityDefinition[] = [
     idParam: "quoteID",
     idDescription: "The Xero quote ID.",
     config: {
-      getMethod: xeroClient.accountingApi.getQuoteHistory,
-      createMethod: xeroClient.accountingApi.createQuoteHistory,
+      getMethod: AccountingApi.prototype.getQuoteHistory,
+      createMethod: AccountingApi.prototype.createQuoteHistory,
     },
   },
 ];

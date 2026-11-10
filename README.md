@@ -135,6 +135,24 @@ payroll.timesheets
 ```
 
 
+#### 3. HTTP mode with a token per request
+
+For running behind an MCP gateway (or any client) that does the Xero OAuth flow itself. The server speaks
+Streamable HTTP and holds no Xero credentials: every request brings its own access token.
+
+```bash
+XERO_MCP_TRANSPORT=http XERO_MCP_HTTP_HOST=0.0.0.0 XERO_MCP_HTTP_PORT=3000 node dist/index.js
+```
+
+- `POST /mcp` with `Authorization: Bearer <Xero access token>`. Tool calls without a token get 401; discovery
+  (`initialize`, `tools/list`, `ping`) works without one, so gateways can health-check and list tools. Request the scopes listed under
+  Bearer Token above, plus `offline_access` so the gateway can refresh.
+- Optional `Xero-Tenant-Id` header picks the organisation; otherwise the token's first connection is used.
+- `GET /health` for health checks. Stateless: no sessions, nothing stored between requests.
+- `XERO_MCP_HTTP_HOST` defaults to `127.0.0.1`; set `0.0.0.0` inside a container.
+
+Stdio mode (above) is unchanged and remains the default.
+
 ### Available MCP Commands
 
 - `list-accounts`: Retrieve a list of accounts
