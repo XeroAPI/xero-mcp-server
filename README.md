@@ -175,7 +175,7 @@ payroll.timesheets
 - `create-tracking-option`: Create a new tracking option
 - `update-bank-transaction`: Update an existing bank transaction
 - `update-contact`: Update an existing contact
-- `update-invoice`: Update an existing draft invoice
+- `update-invoice`: Update an existing invoice or change its status
 - `update-item`: Update an existing item
 - `update-manual-journal`: Update an existing manual journal
 - `update-quote`: Update an existing draft quote
