@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { formatLineItem } from "../../helpers/format-line-item.js";
+import { formatLineItems } from "../../helpers/format-line-item.js";
 
 const ListInvoicesTool = CreateXeroTool(
   "list-invoices",
@@ -82,7 +82,7 @@ const ListInvoicesTool = CreateXeroTool(
             invoice.hasErrors ? "Has Errors: Yes" : null,
             invoice.isDiscounted ? "Is Discounted: Yes" : null,
             returnLineItems
-              ? `Line Items: ${invoice.lineItems?.map(formatLineItem)}`
+              ? formatLineItems(invoice.lineItems)
               : null,
           ]
             .filter(Boolean)
