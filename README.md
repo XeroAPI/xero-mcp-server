@@ -134,6 +134,48 @@ payroll.employees
 payroll.timesheets
 ```
 
+#### 3. Token File (self-refreshing)
+
+This is the best choice for a self-hosted, single-user setup (e.g. running locally in Claude Desktop/Code) when you want **persistent authentication without a paid Custom Connection**, and it works in **every region** (Custom Connections do not).
+
+Point the server at a token file with `XERO_TOKEN_FILE`. The server renews the access token via the rolling refresh token whenever it is near expiry, and persists the rotated refresh token back to the file (written atomically, `0600`).
+
+**Generate the token file with the built-in `auth` command** — it runs the full OAuth2 **authorization-code flow** for you (opens your browser, captures the redirect on a local callback server, exchanges the code, and writes the file). No manual token wrangling:
+
+```bash
+XERO_CLIENT_ID=... XERO_CLIENT_SECRET=... \
+XERO_TOKEN_FILE=/absolute/path/to/xero-tokens.json \
+XERO_SCOPES="accounting.transactions accounting.contacts accounting.settings" \
+npx -y @xeroapi/xero-mcp-server@latest auth
+```
+
+`XERO_SCOPES` is **required** for the `auth` command (space-separated; same var the server honours). `offline_access` is appended automatically — it is what yields the refresh token. The flow prints the connected tenants and their `tenantId` so you can set `XERO_TENANT_ID` for a multi-org token.
+
+**One-time Xero-side prerequisite:** in your app at [developer.xero.com](https://developer.xero.com/), the app must be a **Web app** (has a client secret) and must list `http://localhost:53682/callback` under its allowed **Redirect URIs**. Without it the flow fails with `unauthorized_client` / a redirect mismatch.
+
+Override the callback with `XERO_REDIRECT_URI` if `53682` is taken (register the exact same value in the Xero app). The default deliberately avoids port `5000`, which the macOS AirPlay Receiver occupies (`EADDRINUSE`).
+
+```json
+{
+  "mcpServers": {
+    "xero": {
+      "command": "npx",
+      "args": ["-y", "@xeroapi/xero-mcp-server@latest"],
+      "env": {
+        "XERO_TOKEN_FILE": "/absolute/path/to/xero-tokens.json",
+        "XERO_CLIENT_ID": "your_client_id_here",
+        "XERO_CLIENT_SECRET": "your_client_secret_here",
+        "XERO_TENANT_ID": "optional_tenant_id_to_pin_one_org"
+      }
+    }
+  }
+}
+```
+
+The token file must contain at least `access_token` and `refresh_token` (the `auth` command writes exactly this, plus `_obtained_at`/`expires_at` bookkeeping). `XERO_CLIENT_ID` / `XERO_CLIENT_SECRET` are used to perform the refresh. `XERO_TENANT_ID` is optional — set it to pin the client to a single organisation when the token has multiple tenants connected; otherwise the first connected tenant is used.
+
+NOTE: `XERO_TOKEN_FILE` takes precedence over `XERO_CLIENT_BEARER_TOKEN` and Custom Connections when defined. Request the same scopes listed under [Required Scopes for Bearer Token](#required-scopes-for-bearer-token) (plus `offline_access`).
+
 
 ### Available MCP Commands
 
