@@ -36,9 +36,17 @@ async function updateBankTransaction(
   reference?: string,
   date?: string
 ): Promise<BankTransaction | undefined> {
+  // Build a minimal payload with only editable fields plus the attributes Xero
+  // requires on update. Do NOT spread the fetched object: it carries read-only
+  // computed fields (subTotal/total/totalTax, updatedDateUTC, etc.) that go
+  // stale when lineItems change, causing a 400 "The document sub total does not
+  // equal the sub total of the lines". Omitting the totals lets Xero recompute.
   const bankTransaction: BankTransaction = {
-    ...existingBankTransaction,
     bankTransactionID: bankTransactionId,
+    bankAccount: existingBankTransaction.bankAccount,
+    lineAmountTypes: existingBankTransaction.lineAmountTypes,
+    status: existingBankTransaction.status,
+    currencyCode: existingBankTransaction.currencyCode,
     type: type ? BankTransaction.TypeEnum[type] : existingBankTransaction.type,
     contact: contactId ? { contactID: contactId } : existingBankTransaction.contact,
     lineItems: lineItems ? lineItems : existingBankTransaction.lineItems,

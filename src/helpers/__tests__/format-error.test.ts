@@ -120,6 +120,113 @@ describe("formatError", () => {
     });
   });
 
+  // xero-node v13 routes requests through axios, which throws on non-2xx. The
+  // generated API methods catch that and `reject(JSON.stringify(generateError()))`,
+  // so real-world SDK failures arrive as a JSON *string*, not an object.
+  describe("xero-node v13 stringified SDK error", () => {
+    function makeSerialisedSdkError(statusCode: number, body: unknown): string {
+      return JSON.stringify({
+        response: {
+          statusCode,
+          body,
+          headers: { "set-cookie": "ak_bmsc=secret" },
+          request: {
+            url: { protocol: "https:", host: "api.xero.com", path: "/api.xro/2.0/ManualJournals" },
+            headers: { authorization: "Bearer eyJSECRET", "user-agent": "xero-mcp" },
+            method: "POST",
+          },
+        },
+        body,
+      });
+    }
+
+    it("surfaces Xero validation errors instead of the generic message", () => {
+      const serialised = makeSerialisedSdkError(400, {
+        ErrorNumber: 10,
+        Type: "ValidationException",
+        Message: "A validation exception occurred",
+        Elements: [
+          {
+            ValidationErrors: [
+              { Message: "Account code 'ABC' is not a valid code for this organisation." },
+            ],
+          },
+        ],
+      });
+
+      const result = formatError(serialised);
+
+      expect(result).toContain("400");
+      expect(result).toContain(
+        "Account code 'ABC' is not a valid code for this organisation.",
+      );
+      expect(result).not.toContain("Bearer");
+      expect(result).not.toContain("eyJSECRET");
+      expect(result).not.toContain("set-cookie");
+    });
+
+    it("joins multiple validation errors across elements", () => {
+      const serialised = makeSerialisedSdkError(400, {
+        Type: "ValidationException",
+        Message: "A validation exception occurred",
+        Elements: [
+          { ValidationErrors: [{ Message: "Journal must balance." }] },
+          { ValidationErrors: [{ Message: "Date is invalid." }] },
+        ],
+      });
+
+      const result = formatError(serialised);
+
+      expect(result).toContain("Journal must balance.");
+      expect(result).toContain("Date is invalid.");
+    });
+
+    it("maps a stringified 401 to the standard auth message", () => {
+      const serialised = makeSerialisedSdkError(401, {});
+
+      const result = formatError(serialised);
+
+      expect(result).toBe(
+        "Authentication failed. Please check your Xero credentials.",
+      );
+      expect(result).not.toContain("Bearer");
+    });
+
+    it("maps a stringified 403 to the permission message", () => {
+      const result = formatError(makeSerialisedSdkError(403, {}));
+
+      expect(result).toBe(
+        "You don't have permission to access this resource in Xero.",
+      );
+      expect(result).not.toContain("Bearer");
+    });
+
+    it("falls back to the top-level Message when no ValidationErrors are present", () => {
+      const serialised = makeSerialisedSdkError(400, {
+        Type: "ValidationException",
+        Message: "A validation exception occurred",
+      });
+
+      expect(formatError(serialised)).toContain(
+        "A validation exception occurred",
+      );
+    });
+
+    it("never echoes a JSON string it cannot whitelist", () => {
+      const leaky = JSON.stringify({
+        request: { headers: { authorization: "Bearer LEAKY_TOKEN" } },
+      });
+
+      const result = formatError(leaky);
+
+      expect(result).toBe(
+        "An unexpected error occurred while communicating with Xero.",
+      );
+      expect(result).not.toContain("Bearer");
+      expect(result).not.toContain("LEAKY_TOKEN");
+    });
+  });
+
   describe("plain Error", () => {
     it("returns the error message", () => {
       expect(formatError(new Error("Employee ID is required"))).toBe(
