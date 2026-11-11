@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -13,14 +14,12 @@ interface FetchEmployeeLeaveParams {
  * Internal function to fetch employee leave from Xero
  */
 async function fetchEmployeeLeave({ employeeId }: FetchEmployeeLeaveParams): Promise<EmployeeLeave[] | null> {
-  await xeroClient.authenticate();
-
   if (!employeeId) {
     throw new Error("Employee ID is required to fetch employee leave");
   }
 
   const response = await xeroClient.payrollNZApi.getEmployeeLeaves(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     employeeId,
     {
       headers: getClientHeaders().headers

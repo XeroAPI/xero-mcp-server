@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { tenantContext } from "../clients/tenant-context.js";
 import {
   contactDeepLink,
   creditNoteDeepLink,
@@ -27,7 +28,8 @@ export enum DeepLinkType {
  * @returns
  */
 export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
-  const orgShortCode = await xeroClient.getShortCode();
+  const { tenantId, apiTenantId } = tenantContext();
+  const orgShortCode = await xeroClient.getShortCode(tenantId, apiTenantId);
 
   if (!orgShortCode) {
     throw new Error("Failed to retrieve organisation short code");

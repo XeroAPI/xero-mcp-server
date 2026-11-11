@@ -1,14 +1,13 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Organisation } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getOrganisationDetails(): Promise<Organisation> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getOrganisations(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     getClientHeaders(),
   );
 

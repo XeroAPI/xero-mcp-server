@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Payment } from "xero-node";
@@ -18,8 +19,6 @@ async function getPayments(
     reference?: string;
   },
 ): Promise<Payment[]> {
-  await xeroClient.authenticate();
-
   // Build where clause for filtering
   const whereConditions: string[] = [];
 
@@ -41,7 +40,7 @@ async function getPayments(
     whereConditions.length > 0 ? whereConditions.join(" AND ") : undefined;
 
   const response = await xeroClient.accountingApi.getPayments(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // ifModifiedSince
     where,
     "UpdatedDateUTC DESC", // order

@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
@@ -18,10 +19,8 @@ async function fetchProfitAndLoss(
   standardLayout?: boolean,
   paymentsOnly?: boolean,
 ): Promise<ReportWithRow | null> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getReportProfitAndLoss(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     fromDate,
     toDate,
     periods,

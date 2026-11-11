@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Contact, Phone } from "xero-node";
@@ -9,8 +10,6 @@ async function createContact(
   email?: string,
   phone?: string,
 ): Promise<Contact | undefined> {
-  await xeroClient.authenticate();
-
   const contact: Contact = {
     name,
     emailAddress: email,
@@ -25,7 +24,7 @@ async function createContact(
   };
 
   const response = await xeroClient.accountingApi.createContacts(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     {
       contacts: [contact],
     }, //contacts

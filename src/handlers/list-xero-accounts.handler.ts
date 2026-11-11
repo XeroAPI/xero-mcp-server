@@ -1,14 +1,13 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Account } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function listAccounts(): Promise<Account[]> {
-  await xeroClient.authenticate();
-
   const response = await xeroClient.accountingApi.getAccounts(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // ifModifiedSince
     undefined, // where
     undefined, // order

@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { xeroApiTenantId } from "../clients/tenant-context.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Invoice } from "xero-node";
@@ -9,10 +10,8 @@ async function getInvoices(
   contactIds: string[] | undefined,
   page: number,
 ): Promise<Invoice[]> {
-  await xeroClient.authenticate();
-
   const invoices = await xeroClient.accountingApi.getInvoices(
-    xeroClient.tenantId,
+    xeroApiTenantId(),
     undefined, // ifModifiedSince
     undefined, // where
     "UpdatedDateUTC DESC", // order
