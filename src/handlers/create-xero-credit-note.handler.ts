@@ -16,6 +16,7 @@ async function createCreditNote(
   contactId: string,
   lineItems: CreditNoteLineItem[],
   reference: string | undefined,
+  currencyRate: number | undefined,
 ): Promise<CreditNote | undefined> {
   await xeroClient.authenticate();
 
@@ -28,6 +29,7 @@ async function createCreditNote(
     date: new Date().toISOString().split("T")[0], // Today's date
     reference: reference,
     status: CreditNote.StatusEnum.DRAFT,
+    currencyRate: currencyRate,
   };
 
   const response = await xeroClient.accountingApi.createCreditNotes(
@@ -51,12 +53,14 @@ export async function createXeroCreditNote(
   contactId: string,
   lineItems: CreditNoteLineItem[],
   reference?: string,
+  currencyRate?: number,
 ): Promise<XeroClientResponse<CreditNote>> {
   try {
     const createdCreditNote = await createCreditNote(
       contactId,
       lineItems,
       reference,
+      currencyRate,
     );
 
     if (!createdCreditNote) {

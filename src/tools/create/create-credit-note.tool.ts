@@ -21,9 +21,10 @@ const CreateCreditNoteTool = CreateXeroTool(
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),
     reference: z.string().optional(),
+    currencyRate: z.number().positive().optional().describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency credit notes. Defaults to XE.com day rate if omitted."),
   },
-  async ({ contactId, lineItems, reference }) => {
-    const result = await createXeroCreditNote(contactId, lineItems, reference);
+  async ({ contactId, lineItems, reference, currencyRate }) => {
+    const result = await createXeroCreditNote(contactId, lineItems, reference, currencyRate);
     if (result.isError) {
       return {
         content: [

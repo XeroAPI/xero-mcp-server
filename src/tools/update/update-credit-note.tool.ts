@@ -28,6 +28,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
     reference: z.string().optional(),
     date: z.string().optional(),
     contactId: z.string().optional(),
+    currencyRate: z.number().positive().optional().describe("Optional exchange rate to base currency (e.g. 0.75). Only required for non-base currency credit notes. Defaults to XE.com day rate if omitted."),
   },
   async (
     {
@@ -36,6 +37,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference,
       date,
       contactId,
+      currencyRate,
     }: {
       creditNoteId: string;
       lineItems?: Array<{
@@ -48,6 +50,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference?: string;
       date?: string;
       contactId?: string;
+      currencyRate?: number;
     },
   ) => {
     const result = await updateXeroCreditNote(
@@ -56,6 +59,7 @@ const UpdateCreditNoteTool = CreateXeroTool(
       reference,
       contactId,
       date,
+      currencyRate,
     );
     if (result.isError) {
       return {
