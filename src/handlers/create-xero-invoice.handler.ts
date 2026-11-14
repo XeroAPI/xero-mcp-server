@@ -1,7 +1,7 @@
 import { xeroClient } from "../clients/xero-client.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { Invoice, LineItemTracking } from "xero-node";
+import { CurrencyCode, Invoice, LineItemTracking } from "xero-node";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 interface InvoiceLineItem {
@@ -18,6 +18,7 @@ async function createInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
   type: Invoice.TypeEnum,
+  currencyCode: CurrencyCode | undefined,
   reference: string | undefined,
   date: string | undefined,
 ): Promise<Invoice | undefined> {
@@ -29,6 +30,7 @@ async function createInvoice(
       contactID: contactId,
     },
     lineItems: lineItems,
+    ...(currencyCode ? { currencyCode } : {}),
     date: date || new Date().toISOString().split("T")[0], // Use provided date or today's date
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       .toISOString()
@@ -61,6 +63,7 @@ export async function createXeroInvoice(
   contactId: string,
   lineItems: InvoiceLineItem[],
   type: Invoice.TypeEnum = Invoice.TypeEnum.ACCREC,
+  currencyCode?: CurrencyCode,
   reference?: string,
   date?: string,
 ): Promise<XeroClientResponse<Invoice>> {
@@ -69,6 +72,7 @@ export async function createXeroInvoice(
       contactId,
       lineItems,
       type,
+      currencyCode,
       reference,
       date,
     );
